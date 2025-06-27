@@ -1,36 +1,60 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { API_URL } from "@/lib/config";
+import { useRouter } from "next/navigation";
+import { useAuthToken } from "@/hooks/useAuthToken";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const token = useAuthToken();
+
+  //redirect if already logged in
+  useEffect(() => {
+    if (token) {
+      router.push("/dashboard");
+    }
+  }, [token, router]);
+
+  //clear error on input change
+  useEffect(() => {
+    setError("");
+  }, [email, password]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      setError("Please enter both email and password.");
+      setError("Please fill in all fields.");
       return;
     }
+    setLoading(true);
     setError("");
     try {
-      const response = await fetch(`${API_URL}/api/orders/user`, {
+      const response = await fetch(`${API_URL}/api/admin/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
-      if (!response.ok) {
-        const data = await response.json();
-        setError(data.message || "Login failed");
+      const data = await response.json();
+      if (!response.ok || !data.token) {
+        setError(data.message || "Login failed. Please try again.");
+        setLoading(false);
         return;
       }
-      // Success: handle redirect or state update here
-      // Example: window.location.href = "/dashboard";
+
+      // redirect to dashboard
+      router.replace("/dashboard");
     } catch {
       setError("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,14 +101,14 @@ const LoginPage = () => {
             <div className="mb-4">
               <div className="relative">
                 {/* Nigeria Flag */}
-                <span className="absolute left-3 top-1/2 -translate-y-1/2">
+                {/* <span className="absolute left-3 top-1/2 -translate-y-1/2">
                   <Image
                     src="https://upload.wikimedia.org/wikipedia/commons/7/79/Flag_of_Nigeria.svg"
                     alt="Nigeria Flag"
                     width={20}
                     height={14}
                   />
-                </span>
+                </span> */}
                 <input
                   id="email"
                   type="email"

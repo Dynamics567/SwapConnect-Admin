@@ -122,9 +122,9 @@ export default function ListingDetails() {
                 >
                   <option value="condition">Condition tag</option>
 
-                  <option value="used">Used</option>
-                  <option value="new">New</option>
-                  <option value="refurbished">Refurbished</option>
+                  <option value="used">Excellent</option>
+                  <option value="new">Good</option>
+                  <option value="refurbished">Fair</option>
                 </select>
               </div>
               <div>
@@ -132,9 +132,9 @@ export default function ListingDetails() {
                   id="verification"
                   className="w-full border rounded px-3 py-2 text-sm bg-gray-50"
                 >
-                  <option value="verified">Verified</option>
-                  <option value="pending">Pending</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="verified">Verification status</option>
+                  <option value="pending">Verify</option>
+                  <option value="rejected">Warranty</option>
                 </select>
               </div>
             </div>
