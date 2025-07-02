@@ -193,8 +193,9 @@ const LoginPage = () => {
             <button
               type="submit"
               className="w-full bg-[#037F44] text-white py-2 rounded  transition-colors"
+              disabled={loading}
             >
-              Sign in
+              {loading ? "Signing in..." : "Sign in"}
             </button>
             <div className="mt-4 text-center">
               <span className="text-sm text-black hover:underline cursor-pointer">

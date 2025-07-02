@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Pencil, ToggleLeft, ToggleRight } from "lucide-react";
+import Image from "next/image";
 
 export default function SettingsContent() {
   const [activeTab, setActiveTab] = useState<
@@ -67,7 +68,7 @@ export default function SettingsContent() {
               <label htmlFor="profile-image" className="cursor-pointer">
                 <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border">
                   {image ? (
-                    <img
+                    <Image
                       src={image}
                       alt="Profile"
                       className="w-full h-full object-cover"

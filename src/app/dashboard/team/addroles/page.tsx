@@ -3,8 +3,7 @@ import React, { useState } from "react";
 
 export default function AddTeamMemberPage() {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState("super admin");
+  // const [role, setRole] = useState("super admin");
   const [success, setSuccess] = useState(false);
   const [permissionsSelected, setPermissionsSelected] = useState<string[]>([
     "all_access",

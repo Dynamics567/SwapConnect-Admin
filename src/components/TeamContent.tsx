@@ -47,7 +47,7 @@ export default function TeamContent() {
       member.role.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleDeactivate = (idx: number) => {
+  const handleDeactivate = () => {
     setConfirmIdx(null);
     setActionMenuIdx(null);
     setSuccessDeactivate(true);
@@ -196,7 +196,7 @@ export default function TeamContent() {
                             </button>
                             <button
                               className="px-6 py-2 rounded bg-red-600 text-white"
-                              onClick={() => handleDeactivate(idx)}
+                              onClick={() => handleDeactivate}
                             >
                               Yes, Deactivate
                             </button>
@@ -287,7 +287,7 @@ export default function TeamContent() {
                             </button>
                             <button
                               className="px-6 py-2 rounded bg-red-600 text-white"
-                              onClick={() => handleDeactivate(idx)}
+                              onClick={() => handleDeactivate}
                             >
                               Proceed
                             </button>

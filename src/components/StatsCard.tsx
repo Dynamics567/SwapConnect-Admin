@@ -64,7 +64,7 @@ function StatsCard() {
         } else {
           setStats([]);
         }
-      } catch (error) {
+      } catch {
         setStats([]);
       } finally {
         setLoading(false);

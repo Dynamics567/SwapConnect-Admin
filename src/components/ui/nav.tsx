@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+// import { useRouter, useSearchParams } from "next/navigation";
 import { API_URL } from "../../lib/config";
 import { useAuthToken } from "../../hooks/useAuthToken";
 
@@ -115,7 +115,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
     fetchUser();
   }, [token]);
   const displayName = user?.name || "User";
-  const displayEmail = user?.email || "";
+  // const displayEmail = user?.email || "";
   const displayAvatar = user?.avatar || "/Elipse 5.svg";
 
   return (
