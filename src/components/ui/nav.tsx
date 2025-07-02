@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Bell,
   Menu,
@@ -13,16 +13,16 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-// import { useRouter, useSearchParams } from "next/navigation";
-// import { API_URL } from "../../lib/config";
-// import { useAuthToken } from "../../hooks/useAuthToken";
+import { useRouter, useSearchParams } from "next/navigation";
+import { API_URL } from "../../lib/config";
+import { useAuthToken } from "../../hooks/useAuthToken";
 
-// interface User {
-//   id: string;
-//   name: string;
-//   avatar: string;
-//   email: string;
-// }
+interface User {
+  id: string;
+  name: string;
+  avatar: string;
+  email: string;
+}
 
 const menuItems = [
   { label: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -45,83 +45,78 @@ interface NavProps {
 
 const Navbar: React.FC<NavProps> = ({ title }) => {
   const [menuOpen, setMenuOpen] = useState(false);
-  // const [user, setUser] = useState<User | null>(null);
-  // const [userError, setUserError] = useState<string | null>(null);
-  // const [userLoading, setUserLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [userError, setUserError] = useState<string | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
 
-  //   const firebaseUser = useFirebaseUser();
-  //   const token = useAuthToken(); // Use the hook
+  const token = useAuthToken(); // Use the hook
 
-  //   useEffect(() => {
-  //     const fetchUser = async () => {
-  //       if (!token) {
-  //         setUser(null);
-  //         setUserLoading(false);
-  //         // const currentUrl = window.location.href;
-  //         // window.location.href = `http://localhost:3000/auth/login?redirect=${encodeURIComponent(
-  //         //   currentUrl
-  //         // )}`;
-  //         return;
-  //       }
-  //       setUserLoading(true);
-  //       setUserError(null);
-  //       try {
-  //         const response = await fetch(`${API_URL}/api/users`, {
-  //           method: "GET",
-  //           headers: {
-  //             "Content-Type": "application/json",
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         });
-  //         if (!response.ok) {
-  //           if (response.status === 401) {
-  //             localStorage.removeItem("token");
-  //             setUserError("Unauthorized");
+  useEffect(() => {
+    // console.log("Token in Navbar:", token); // Debug line
 
-  //             const currentUrl = window.location.href;
-  //             window.location.href = `http://localhost:3000/auth/login?redirect=${encodeURIComponent(
-  //               currentUrl
-  //             )}`;
-  //             return;
-  //           } else {
-  //             setUserError(`Error: ${response.status}`);
-  //           }
-  //           setUser(null);
-  //           setUserLoading(false);
-  //           return;
-  //         }
-  //         const data = await response.json();
-  //         if (data.data && typeof data.data === "object") {
-  //           const userData = {
-  //             ...data.data,
-  //             name: `${data.data.firstName} ${data.data.lastName}`,
-  //             avatar: data.data.avatar || "/Elipse 5.svg",
-  //             email: data.data.email || "",
-  //           };
-  //           setUser(userData);
-  //           console.log("data:", data);
-  //         } else {
-  //           setUserError("Invalid user data");
-  //           console.log("Unexpected user data format:", data);
-  //           setUser(null);
-  //         }
-  //       } catch (error) {
-  //         setUserError("Failed to fetch user");
-  //         console.log("Error fetching user:", error);
-  //         setUser(null);
-  //       } finally {
-  //         setUserLoading(false);
-  //       }
-  //     };
-  //     fetchUser();
-  //   }, [token]);
+    const fetchUser = async () => {
+      if (!token) {
+        setUser(null);
+        setUserLoading(false);
 
-  // Prefer Firebase user if available
-  //   const displayName =
-  //     firebaseUser?.displayName || user?.name || user?.email || "Guest";
-  //   const displayAvatar =
-  //     firebaseUser?.photoURL || user?.avatar || "/Elipse 5.svg";
-  // const displayEmail = firebaseUser?.email || user?.email || "";
+        return;
+      }
+      setUserLoading(true);
+      setUserError(null);
+      try {
+        const response = await fetch(`${API_URL}/api/admin/get-dashboard`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          if (response.status === 401) {
+            localStorage.removeItem("token");
+            setUserError("Unauthorized");
+
+            // const currentUrl = window.location.href;
+            // window.location.href = `http://localhost:3000/auth/login?redirect=${encodeURIComponent(
+            //   currentUrl
+            // )}`;
+            return;
+          } else {
+            setUserError(`Error: ${response.status}`);
+          }
+          setUser(null);
+          setUserLoading(false);
+          return;
+        }
+        const data = await response.json();
+        console.log("API Respone", data);
+        if (data.admin && typeof data.admin === "object") {
+          const userData = {
+            ...data.admin,
+            name: `${data.admin.firstName} ${data.admin.lastName}`,
+            avatar: data.admin.avatar || "/Elipse 5.svg",
+            email: data.admin.email || "",
+          };
+          setUser(userData);
+          console.log("data:", data);
+        } else {
+          setUserError("Invalid user data");
+          console.log("Unexpected user data format:", data);
+          setUser(null);
+        }
+      } catch (error) {
+        setUserError("Failed to fetch user");
+        console.log("Error fetching user:", error);
+        setUser(null);
+      } finally {
+        setUserLoading(false);
+      }
+    };
+    fetchUser();
+  }, [token]);
+  const displayName = user?.name || "User";
+  const displayEmail = user?.email || "";
+  const displayAvatar = user?.avatar || "/Elipse 5.svg";
 
   return (
     <nav className="fixed top-0 right-0 left-0 h-[85px] bg-white flex items-center justify-between md:left-[280px] border-b px-4 md:px-8 z-[101]">
@@ -134,11 +129,11 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
           </button>
           <div className="flex items-center gap-[12px]">
             <span className="font-normal text-[#3E344F] text-[16px]">
-              Lasisi David{" "}
+              {userLoading ? "Loading..." : userError ? "Error" : displayName}
             </span>
 
             <Image
-              src="/Elipse 5.png"
+              src={displayAvatar}
               alt="Profile"
               width={40}
               height={40}
@@ -154,14 +149,14 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
       <div className="flex md:hidden items-center justify-between w-full">
         <div className="flex items-center gap-1 md:gap-3">
           <Image
-            src="/Elipse 5.svg"
+            src={displayAvatar}
             alt="Profile"
             width={36}
             height={36}
             className="w-9 h-9 rounded-full object-cover border-2 border-[#eee]"
           />
           <span className="font-normal text-[#353535] text-[16px]">
-            Lasisi David{" "}
+            {userLoading ? "Loading..." : userError ? "Error" : displayName}
           </span>
         </div>
         <div className="flex items-center gap-4">

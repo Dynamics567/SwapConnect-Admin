@@ -233,9 +233,68 @@ export default function TeamContent() {
                   <td className="py-2 px-4">{role.role}</td>
                   <td className="py-2 px-4">{role.permission}</td>
                   <td className="py-2 px-4">
-                    <button className="text-[#037F44] hover:underline text-sm">
-                      Manage
+                    <button
+                      className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
+                      onClick={() =>
+                        setActionMenuIdx(actionMenuIdx === idx ? null : idx)
+                      }
+                      type="button"
+                    >
+                      <MoreVertical size={18} />
                     </button>
+                    {actionMenuIdx === idx && (
+                      <div className="absolute z-10 right-6 mt-2 w-36 bg-white border rounded shadow-lg">
+                        <button
+                          className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
+                          onClick={() => {
+                            setActionMenuIdx(null);
+                            router.push(
+                              `/dashboard/team/editrole/${encodeURIComponent(
+                                role.role
+                              )}`
+                            );
+                          }}
+                        >
+                          Edit Role
+                        </button>
+                        <button
+                          className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-red-600 text-sm"
+                          onClick={() => {
+                            setActionMenuIdx(null);
+                            setConfirmIdx(idx);
+                          }}
+                        >
+                          Deactivate
+                        </button>
+                      </div>
+                    )}
+                    {/* Confirm Deactivate Popup */}
+                    {confirmIdx === idx && (
+                      <div className="fixed inset-0 flex items-center justify-center  bg-opacity-30 z-50">
+                        <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+                          <p className="text-lg font-semibold mb-4 text-[#037F44]">
+                            Deactivate Member
+                          </p>
+                          <p className="mb-6 text-gray-700">
+                            Are you sure you want to deactivate this role?{" "}
+                          </p>
+                          <div className="flex gap-4 justify-center">
+                            <button
+                              className="px-6 py-2 rounded bg-gray-200 text-gray-700"
+                              onClick={() => setConfirmIdx(null)}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="px-6 py-2 rounded bg-red-600 text-white"
+                              onClick={() => handleDeactivate(idx)}
+                            >
+                              Proceed
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -251,7 +310,7 @@ export default function TeamContent() {
               Success!
             </p>
             <p className="text-gray-700">
-              Team member deactivated successfully.
+              Role has been deactivated successfully.{" "}
             </p>
           </div>
         </div>

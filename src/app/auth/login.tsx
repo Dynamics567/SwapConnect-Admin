@@ -41,6 +41,7 @@ const LoginPage = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
       if (!response.ok || !data.token) {
@@ -48,6 +49,7 @@ const LoginPage = () => {
         setLoading(false);
         return;
       }
+      localStorage.setItem("token", data.token);
 
       // redirect to dashboard
       router.replace("/dashboard");
@@ -100,15 +102,6 @@ const LoginPage = () => {
             {error && <div className="mb-4 text-red-500 text-sm">{error}</div>}
             <div className="mb-4">
               <div className="relative">
-                {/* Nigeria Flag */}
-                {/* <span className="absolute left-3 top-1/2 -translate-y-1/2">
-                  <Image
-                    src="https://upload.wikimedia.org/wikipedia/commons/7/79/Flag_of_Nigeria.svg"
-                    alt="Nigeria Flag"
-                    width={20}
-                    height={14}
-                  />
-                </span> */}
                 <input
                   id="email"
                   type="email"
