@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Users,
   UserCheck,
@@ -9,7 +9,17 @@ import {
   MoreVertical,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuthToken } from "@/hooks/useAuthToken";
+import { API_URL } from "@/lib/config";
+import { JSX } from "react";
 
+const PAGE_SIZE = 5;
+interface Stats {
+  label: string;
+  value: string | number;
+  key: string;
+  icon: JSX.Element;
+}
 const stats = [
   {
     label: "Total Users",
@@ -27,58 +37,138 @@ const stats = [
     icon: <UserX size={22} className="text-[#037F44]" />,
   },
 ];
-
-const users = [
-  {
-    _id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "08012345678",
-    amountSpent: "$1,200",
-    dateJoined: "2024-01-15",
-  },
-  {
-    _id: "2",
-
-    name: "Jane Smith",
-    email: "jane@example.com",
-    phone: "08098765432",
-    amountSpent: "$950",
-    dateJoined: "2024-02-10",
-  },
-];
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone_number: string;
+  amount_spent: string;
+  date_joined: string;
+}
 
 export default function UserPage() {
   const [search, setSearch] = useState("");
   const [dropdownIdx, setDropdownIdx] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [category, setCategory] = useState();
+  const [users, setUsers] = useState<User[]>([]);
+  const [stats, setStats] = useState<Stats[]>([]);
   const router = useRouter();
+  const token = useAuthToken();
 
   const handleRowClick = (userId: string) => {
     router.push(`/dashboard/user/${userId}`);
   };
+  useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/api/admin/users/all?role=users`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        console.log("API response", data);
+        if (data) {
+          setUsers(data?.users);
+          setStats([
+            {
+              label: "Total Users",
+              value: `${data?.stats.total_users ?? 0}`,
+              key: "users",
+              icon: <Users size={22} className="text-[#037F44]" />,
+            },
+            {
+              label: "Active Users",
+              value: `${data?.stats.active_users ?? 0}`,
+              key: "active_users",
+              icon: <UserCheck size={22} className="text-[#037F44]" />,
+            },
+            {
+              label: "Inactive Users",
+              value: `${data?.stats.inactive_users ?? 0}`,
+              key: "inactive_users",
+              icon: <UserX size={22} className="text-[#037F44]" />,
+            },
+          ]);
+        } else {
+          setUsers([]);
+          setStats([]);
+        }
+      } catch {
+        setUsers([]);
+        setStats([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, [token]);
 
+  // // Filter and search logic
+  // const filteredUsers = useMemo(() => {
+  //   return users.filter(
+  //     (prod) =>
+  //       (!category || prod.categoryId === category) &&
+  //       prod.name.toLowerCase().includes(search.toLowerCase())
+  //   );
+  // }, [search, category, users]);
+
+  // // Pagination logic
+  // const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
+  // const paginatedProducts = filteredProducts.slice(
+  //   (page - 1) * PAGE_SIZE,
+  //   page * PAGE_SIZE
+  // );
   return (
     <div className="flex flex-col gap-8 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
       {/* Stat Cards */}
       <div className="flex gap-4">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="bg-white w-[331px] h-[90px] rounded-lg shadow p-6 flex flex-col justify-center"
-          >
-            <div className="flex items-center gap-3">
-              <span className="bg-[#F7F8FB] rounded-full p-2 flex items-center justify-center">
-                {stat.icon}
-              </span>
-              <div>
-                <div className="text-sm text-gray-500 mb-1">{stat.label}</div>
-                <div className="text-xl font-bold text-[#037F44]">
-                  {stat.value}
+        {loading
+          ? [1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-white w-[244px] h-[90px] rounded-lg shadow p-6 flex flex-col justify-center animate-pulse"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="bg-[#F7F8FB] rounded-full p-2 w-10 h-10" />
+                  <div>
+                    <div className="text-sm text-[#BEBEBE] mb-1 bg-gray-100 w-20 h-4 rounded" />
+                    <div className="text-2xl font-bold text-[#353535] bg-gray-100 w-16 h-6 rounded" />
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        ))}
+            ))
+          : stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="bg-white w-[244px] h-[90px] rounded-lg shadow p-6 flex flex-col justify-center"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="bg-[#F7F8FB] rounded-full p-2 flex items-center justify-center">
+                    {stat.icon}
+                  </span>
+                  <div>
+                    <div className="text-sm text-[#BEBEBE] mb-1">
+                      {stat.label}
+                    </div>
+                    <div className="text-2xl font-bold text-[#353535]">
+                      {stat.value}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
       </div>
 
       {/* Search and Filter */}
@@ -137,7 +227,7 @@ export default function UserPage() {
                 <tr
                   key={idx}
                   className="border-b last:border-b-0 cursor-pointer hover:bg-[#F7F8FB] transition"
-                  onClick={() => handleRowClick(user._id)} // Navigate to user profile page
+                  onClick={() => handleRowClick(user.id)} // Navigate to user profile page
                 >
                   <td className="py-3 text-[#434343] text-sm px-4">
                     {user.name}
@@ -146,13 +236,13 @@ export default function UserPage() {
                     {user.email}
                   </td>
                   <td className="py-3 text-[#434343] text-sm px-4">
-                    {user.phone}
+                    {user.phone_number}
                   </td>
                   <td className="py-3 text-[#434343] text-sm px-4">
-                    {user.amountSpent}
+                    {user.amount_spent}
                   </td>
                   <td className="py-3 text-[#434343] text-sm px-4">
-                    {user.dateJoined}
+                    {user.date_joined}
                   </td>
                   <td className="py-3 text-[#434343] text-sm px-4">
                     <button

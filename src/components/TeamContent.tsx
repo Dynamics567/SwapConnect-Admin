@@ -1,14 +1,20 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Filter, Search, MoreVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/config";
+import { useAuthToken } from "@/hooks/useAuthToken";
 
 const teamData = [
   { name: "Jane Doe", email: "jane@example.com", role: "Admin" },
   { name: "John Smith", email: "john@example.com", role: "Editor" },
   { name: "Alice Lee", email: "alice@example.com", role: "Viewer" },
 ];
-
+interface Teams {
+  name: string;
+  email: string;
+  role: string;
+}
 const rolesData = [
   {
     role: "Super Admin",
@@ -35,16 +41,19 @@ const rolesData = [
 export default function TeamContent() {
   const [activeTab, setActiveTab] = useState<"teams" | "roles">("teams");
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [team, setTeam] = useState<Teams[]>([]);
   const [actionMenuIdx, setActionMenuIdx] = useState<number | null>(null);
   const [confirmIdx, setConfirmIdx] = useState<number | null>(null);
   const [successDeactivate, setSuccessDeactivate] = useState(false);
   const router = useRouter();
+  const token = useAuthToken();
 
-  const filteredTeams = teamData.filter(
-    (member) =>
-      member.name.toLowerCase().includes(search.toLowerCase()) ||
-      member.email.toLowerCase().includes(search.toLowerCase()) ||
-      member.role.toLowerCase().includes(search.toLowerCase())
+  const filteredTeams = team.filter(
+    (team) =>
+      team.name.toLowerCase().includes(search.toLowerCase()) ||
+      team.email.toLowerCase().includes(search.toLowerCase()) ||
+      team.role.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleDeactivate = () => {
@@ -54,7 +63,38 @@ export default function TeamContent() {
     setTimeout(() => setSuccessDeactivate(false), 2000);
     // Here you would also call your API to deactivate the user
   };
-
+  useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    const fetchTeams = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/api/admin/users/all?role=admin`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        console.log("API Response", data);
+        if (data) {
+          setTeam(data?.users);
+        } else {
+          setTeam([]);
+        }
+      } catch {
+        setTeam([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTeams();
+  }, [token]);
   return (
     <div className="w-full flex flex-col gap-6 relative">
       {/* Header row */}
@@ -134,11 +174,11 @@ export default function TeamContent() {
               </tr>
             </thead>
             <tbody>
-              {filteredTeams.map((member, idx) => (
+              {filteredTeams.map((team, idx) => (
                 <tr key={idx} className="text-[#434343] text-sm relative">
-                  <td className="py-2 px-4">{member.name}</td>
-                  <td className="py-2 px-4">{member.email}</td>
-                  <td className="py-2 px-4">{member.role}</td>
+                  <td className="py-2 px-4">{team.name}</td>
+                  <td className="py-2 px-4">{team.email}</td>
+                  <td className="py-2 px-4">{team.role}</td>
                   <td className="py-2 px-4">
                     <button
                       className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
@@ -157,7 +197,7 @@ export default function TeamContent() {
                             setActionMenuIdx(null);
                             router.push(
                               `/dashboard/team/edit/${encodeURIComponent(
-                                member.email
+                                team.email
                               )}`
                             );
                           }}
@@ -184,8 +224,7 @@ export default function TeamContent() {
                           </p>
                           <p className="mb-6 text-gray-700">
                             Are you sure you want to deactivate{" "}
-                            <span className="font-semibold">{member.name}</span>
-                            ?
+                            <span className="font-semibold">{team.name}</span>?
                           </p>
                           <div className="flex gap-4 justify-center">
                             <button

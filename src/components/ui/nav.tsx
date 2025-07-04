@@ -133,7 +133,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
             </span>
 
             <Image
-              src={displayAvatar}
+              src={user?.avatar || "/Elipse 5.svg"}
               alt="Profile"
               width={40}
               height={40}
