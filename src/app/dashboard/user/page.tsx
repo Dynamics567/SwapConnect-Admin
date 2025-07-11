@@ -13,30 +13,30 @@ import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
 import { JSX } from "react";
 
-const PAGE_SIZE = 5;
+// const PAGE_SIZE = 5;
 interface Stats {
   label: string;
   value: string | number;
   key: string;
   icon: JSX.Element;
 }
-const stats = [
-  {
-    label: "Total Users",
-    value: "1,200",
-    icon: <Users size={22} className="text-[#037F44]" />,
-  },
-  {
-    label: "Active Users",
-    value: "950",
-    icon: <UserCheck size={22} className="text-[#037F44]" />,
-  },
-  {
-    label: "Non Active Users",
-    value: "250",
-    icon: <UserX size={22} className="text-[#037F44]" />,
-  },
-];
+// const stats = [
+//   {
+//     label: "Total Users",
+//     value: "1,200",
+//     icon: <Users size={22} className="text-[#037F44]" />,
+//   },
+//   {
+//     label: "Active Users",
+//     value: "950",
+//     icon: <UserCheck size={22} className="text-[#037F44]" />,
+//   },
+//   {
+//     label: "Non Active Users",
+//     value: "250",
+//     icon: <UserX size={22} className="text-[#037F44]" />,
+//   },
+// ];
 interface User {
   id: string;
   name: string;
@@ -50,8 +50,8 @@ export default function UserPage() {
   const [search, setSearch] = useState("");
   const [dropdownIdx, setDropdownIdx] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [category, setCategory] = useState();
+  // const [page, setPage] = useState(1);
+  // const [category, setCategory] = useState();
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<Stats[]>([]);
   const router = useRouter();

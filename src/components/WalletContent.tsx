@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Filter, CircleDollarSign } from "lucide-react";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
@@ -207,71 +207,89 @@ export default function WalletContent() {
 
       {/* Column 4: Transactions Table */}
       <div className="w-full mt-6 lg:mt-0">
-        <div className="bg-white rounded-xl shadow p-4">
-          {activeTab === "normal" ? (
-            <table className="w-full table-auto">
-              <thead>
-                <tr className="bg-[#CCDCD4]  text-[#505050] text-left">
-                  <th className="py-2 px-4 font-normal text-sm">
-                    Transaction ID
-                  </th>
-                  <th className="py-2 px-4 font-normal text-sm">ITEM</th>
-                  <th className="py-2 px-4 font-normal text-sm">AMOUNT</th>
-                  <th className="py-2 px-4 font-normal text-sm">DATE</th>
-                  <th className="py-2 px-4 font-normal text-sm">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((transactions) => (
-                  <tr key={transactions.id} className=" text-sm text-[#434343]">
-                    <td className="py-2 px-4">{transactions.id}</td>
-                    <td className="py-2 px-4">
-                      {" "}
-                      {transactions.order.products[0].name}
-                    </td>
-                    <td className="py-2 px-4">₦{transactions.amount}</td>
-                    <td className="py-2 px-4">{transactions.createdAt}</td>
-                    <td className="py-2 px-4 text-green-700">
-                      {transactions.status}
-                    </td>
+        {loading ? (
+          <p>Loading orders...</p>
+        ) : transactions.length === 0 ? (
+          <div>
+            <p className="text-center text-[#848484] mt-6">No orders found</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow p-4">
+            {activeTab === "normal" ? (
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="bg-[#CCDCD4]  text-[#505050] text-left">
+                    <th className="py-2 px-4 font-normal text-sm">
+                      Transaction ID
+                    </th>
+                    <th className="py-2 px-4 font-normal text-sm">ITEM</th>
+                    <th className="py-2 px-4 font-normal text-sm">AMOUNT</th>
+                    <th className="py-2 px-4 font-normal text-sm">DATE</th>
+                    <th className="py-2 px-4 font-normal text-sm">Status</th>
                   </tr>
-                ))}
+                </thead>
+                <tbody>
+                  {transactions.map((transactions) => (
+                    <tr
+                      key={transactions.id}
+                      className=" text-sm text-[#434343]"
+                    >
+                      <td className="py-2 px-4">{transactions.id}</td>
+                      <td className="py-2 px-4">
+                        {" "}
+                        {transactions.order.products[0].name}
+                      </td>
+                      <td className="py-2 px-4">₦{transactions.amount}</td>
+                      <td className="py-2 px-4">{transactions.createdAt}</td>
+                      <td className="py-2 px-4 text-green-700">
+                        {transactions.status}
+                      </td>
+                    </tr>
+                  ))}
 
-                {/* <tr className=" text-sm text-[#434343]">
+                  {/* <tr className=" text-sm text-[#434343]">
                   <td className="py-2 px-4">SWPC2024</td>
                   <td className="py-2 px-4">Samsung S21</td>
                   <td className="py-2 px-4">$200</td>
                   <td className="py-2 px-4">2024-06-02</td>
                   <td className="py-2 px-4 text-yellow-600">Pending</td>
                 </tr> */}
-              </tbody>
-            </table>
-          ) : (
-            <table className="w-full table-auto">
-              <thead>
-                <tr className="bg-[#CCDCD4]  text-[#505050] text-left">
-                  <th className="py-2 px-4 font-normal text-sm">
-                    Transaction ID
-                  </th>
-                  <th className="py-2 px-4 font-normal text-sm">LISTED ITEM</th>
-                  <th className="py-2 px-4 font-normal text-sm">SWAP OFFER</th>
-                  <th className="py-2 px-4 font-normal text-sm">BID AMOUNT</th>
-                  <th className="py-2 px-4 font-normal text-sm">DATE</th>
-                  <th className="py-2 px-4 font-normal text-sm">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {swaps.map((swaps) => (
-                  <tr key={swaps.id} className=" text-sm text-[#434343]">
-                    <td className="py-2 px-4">{swaps.id}</td>
-                    <td className="py-2 px-4">{swaps.bid.product.name}</td>
-                    <td className="py-2 px-4"> {swaps.bid.swapProduct}</td>
-                    <td className="py-2 px-4">₦{swaps.amount}</td>
-                    <td className="py-2 px-4">{swaps.createdAt}</td>
-                    <td className="py-2 px-4 text-green-700">{swaps.status}</td>
+                </tbody>
+              </table>
+            ) : (
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="bg-[#CCDCD4]  text-[#505050] text-left">
+                    <th className="py-2 px-4 font-normal text-sm">
+                      Transaction ID
+                    </th>
+                    <th className="py-2 px-4 font-normal text-sm">
+                      LISTED ITEM
+                    </th>
+                    <th className="py-2 px-4 font-normal text-sm">
+                      SWAP OFFER
+                    </th>
+                    <th className="py-2 px-4 font-normal text-sm">
+                      BID AMOUNT
+                    </th>
+                    <th className="py-2 px-4 font-normal text-sm">DATE</th>
+                    <th className="py-2 px-4 font-normal text-sm">Status</th>
                   </tr>
-                ))}
-                {/* <tr className=" text-sm text-[#434343]">
+                </thead>
+                <tbody>
+                  {swaps.map((swaps) => (
+                    <tr key={swaps.id} className=" text-sm text-[#434343]">
+                      <td className="py-2 px-4">{swaps.id}</td>
+                      <td className="py-2 px-4">{swaps.bid.product.name}</td>
+                      <td className="py-2 px-4"> {swaps.bid.swapProduct}</td>
+                      <td className="py-2 px-4">₦{swaps.amount}</td>
+                      <td className="py-2 px-4">{swaps.createdAt}</td>
+                      <td className="py-2 px-4 text-green-700">
+                        {swaps.status}
+                      </td>
+                    </tr>
+                  ))}
+                  {/* <tr className=" text-sm text-[#434343]">
                   <td className="py-2 px-4">SWAP2024</td>
                   <td className="py-2 px-4">Samsung S21</td>
                   <td className="py-2 px-4">iPhone X</td>
@@ -279,10 +297,11 @@ export default function WalletContent() {
                   <td className="py-2 px-4">2024-06-04</td>
                   <td className="py-2 px-4 text-yellow-600">Pending</td>
                 </tr> */}
-              </tbody>
-            </table>
-          )}
-        </div>
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

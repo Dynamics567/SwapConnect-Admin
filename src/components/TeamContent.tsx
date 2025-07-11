@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 
-const teamData = [
-  { name: "Jane Doe", email: "jane@example.com", role: "Admin" },
-  { name: "John Smith", email: "john@example.com", role: "Editor" },
-  { name: "Alice Lee", email: "alice@example.com", role: "Viewer" },
-];
+// const teamData = [
+//   { name: "Jane Doe", email: "jane@example.com", role: "Admin" },
+//   { name: "John Smith", email: "john@example.com", role: "Editor" },
+//   { name: "Alice Lee", email: "alice@example.com", role: "Viewer" },
+// ];
 interface Teams {
   name: string;
   email: string;
@@ -162,99 +162,109 @@ export default function TeamContent() {
       </div>
 
       {/* Table */}
+
       {activeTab === "teams" ? (
         <div className="bg-white rounded-xl shadow p-4 w-full overflow-x-auto">
-          <table className="w-full table-auto">
-            <thead>
-              <tr className="bg-[#CCDCD4] text-[#505050] text-left">
-                <th className="py-2 px-4 font-normal text-sm">Name</th>
-                <th className="py-2 px-4 font-normal text-sm">Email</th>
-                <th className="py-2 px-4 font-normal text-sm">Role</th>
-                <th className="py-2 px-4 font-normal text-sm">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTeams.map((team, idx) => (
-                <tr key={idx} className="text-[#434343] text-sm relative">
-                  <td className="py-2 px-4">{team.name}</td>
-                  <td className="py-2 px-4">{team.email}</td>
-                  <td className="py-2 px-4">{team.role}</td>
-                  <td className="py-2 px-4">
-                    <button
-                      className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
-                      onClick={() =>
-                        setActionMenuIdx(actionMenuIdx === idx ? null : idx)
-                      }
-                      type="button"
-                    >
-                      <MoreVertical size={18} />
-                    </button>
-                    {actionMenuIdx === idx && (
-                      <div className="absolute z-10 right-6 mt-2 w-36 bg-white border rounded shadow-lg">
-                        <button
-                          className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
-                          onClick={() => {
-                            setActionMenuIdx(null);
-                            router.push(
-                              `/dashboard/team/edit/${encodeURIComponent(
-                                team.email
-                              )}`
-                            );
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-red-600 text-sm"
-                          onClick={() => {
-                            setActionMenuIdx(null);
-                            setConfirmIdx(idx);
-                          }}
-                        >
-                          Deactivate
-                        </button>
-                      </div>
-                    )}
-                    {/* Confirm Deactivate Popup */}
-                    {confirmIdx === idx && (
-                      <div className="fixed inset-0 flex items-center justify-center  bg-opacity-30 z-50">
-                        <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-                          <p className="text-lg font-semibold mb-4 text-[#037F44]">
-                            Deactivate Member
-                          </p>
-                          <p className="mb-6 text-gray-700">
-                            Are you sure you want to deactivate{" "}
-                            <span className="font-semibold">{team.name}</span>?
-                          </p>
-                          <div className="flex gap-4 justify-center">
-                            <button
-                              className="px-6 py-2 rounded bg-gray-200 text-gray-700"
-                              onClick={() => setConfirmIdx(null)}
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              className="px-6 py-2 rounded bg-red-600 text-white"
-                              onClick={() => handleDeactivate}
-                            >
-                              Yes, Deactivate
-                            </button>
+          {loading ? (
+            <p>Loading orders...</p>
+          ) : team.length === 0 ? (
+            <div>
+              <p className="text-center text-[#848484] mt-6">No orders found</p>
+            </div>
+          ) : (
+            <table className="w-full table-auto">
+              <thead>
+                <tr className="bg-[#CCDCD4] text-[#505050] text-left">
+                  <th className="py-2 px-4 font-normal text-sm">Name</th>
+                  <th className="py-2 px-4 font-normal text-sm">Email</th>
+                  <th className="py-2 px-4 font-normal text-sm">Role</th>
+                  <th className="py-2 px-4 font-normal text-sm">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTeams.map((team, idx) => (
+                  <tr key={idx} className="text-[#434343] text-sm relative">
+                    <td className="py-2 px-4">{team.name}</td>
+                    <td className="py-2 px-4">{team.email}</td>
+                    <td className="py-2 px-4">{team.role}</td>
+                    <td className="py-2 px-4">
+                      <button
+                        className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
+                        onClick={() =>
+                          setActionMenuIdx(actionMenuIdx === idx ? null : idx)
+                        }
+                        type="button"
+                      >
+                        <MoreVertical size={18} />
+                      </button>
+                      {actionMenuIdx === idx && (
+                        <div className="absolute z-10 right-6 mt-2 w-36 bg-white border rounded shadow-lg">
+                          <button
+                            className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
+                            onClick={() => {
+                              setActionMenuIdx(null);
+                              router.push(
+                                `/dashboard/team/edit/${encodeURIComponent(
+                                  team.email
+                                )}`
+                              );
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-red-600 text-sm"
+                            onClick={() => {
+                              setActionMenuIdx(null);
+                              setConfirmIdx(idx);
+                            }}
+                          >
+                            Deactivate
+                          </button>
+                        </div>
+                      )}
+                      {/* Confirm Deactivate Popup */}
+                      {confirmIdx === idx && (
+                        <div className="fixed inset-0 flex items-center justify-center  bg-opacity-30 z-50">
+                          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+                            <p className="text-lg font-semibold mb-4 text-[#037F44]">
+                              Deactivate Member
+                            </p>
+                            <p className="mb-6 text-gray-700">
+                              Are you sure you want to deactivate{" "}
+                              <span className="font-semibold">{team.name}</span>
+                              ?
+                            </p>
+                            <div className="flex gap-4 justify-center">
+                              <button
+                                className="px-6 py-2 rounded bg-gray-200 text-gray-700"
+                                onClick={() => setConfirmIdx(null)}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                className="px-6 py-2 rounded bg-red-600 text-white"
+                                onClick={() => handleDeactivate}
+                              >
+                                Yes, Deactivate
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {filteredTeams.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="py-4 text-center text-gray-400">
-                    No team members found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {filteredTeams.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="py-4 text-center text-gray-400">
+                      No team members found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow p-4 w-full overflow-x-auto">

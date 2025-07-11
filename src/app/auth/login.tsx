@@ -12,14 +12,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const token = useAuthToken();
-
-  //redirect if already logged in
-  // useEffect(() => {
-  //   if (token) {
-  //     router.push("/dashboard");
-  //   }
-  // }, [token, router]);
+  // const token = useAuthToken();
 
   //clear error on input change
   useEffect(() => {
