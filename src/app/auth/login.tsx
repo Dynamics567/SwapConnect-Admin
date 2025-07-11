@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { API_URL } from "@/lib/config";
 import { useRouter } from "next/navigation";
-import { useAuthToken } from "@/hooks/useAuthToken";
+// import { useAuthToken } from "@/hooks/useAuthToken";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
