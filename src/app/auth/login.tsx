@@ -15,11 +15,11 @@ const LoginPage = () => {
   const token = useAuthToken();
 
   //redirect if already logged in
-  useEffect(() => {
-    if (token) {
-      router.push("/dashboard");
-    }
-  }, [token, router]);
+  // useEffect(() => {
+  //   if (token) {
+  //     router.push("/dashboard");
+  //   }
+  // }, [token, router]);
 
   //clear error on input change
   useEffect(() => {
@@ -39,7 +39,7 @@ const LoginPage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          // Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ email, password }),
       });

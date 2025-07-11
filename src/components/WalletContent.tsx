@@ -1,9 +1,122 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, use } from "react";
 import { Search, Filter, CircleDollarSign } from "lucide-react";
+import { useAuthToken } from "@/hooks/useAuthToken";
+import { API_URL } from "@/lib/config";
+
+interface Transaction {
+  id: string;
+  item: string;
+  amount: string;
+  createdAt: string;
+  status: string;
+  order: {
+    id: string;
+    products: [
+      {
+        id: number;
+        name: string | null;
+      }
+    ];
+  };
+}
+interface Swap {
+  id: string;
+  name: string;
+  swapProduct: string;
+  amount: string;
+  createdAt: string;
+  status: string;
+  bid: {
+    id: string;
+    product: {
+      id: number;
+      name: string;
+    };
+    swapProduct: string | null;
+  };
+}
+interface Stats {
+  transactionVolume: number;
+  pendingPayments: number;
+  platformEarnings: number;
+}
 
 export default function WalletContent() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [swaps, setSwaps] = useState<Swap[]>([]);
+  const [stat, setStat] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"normal" | "swap">("normal");
+  const token = useAuthToken();
+
+  useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/api/admin/transactions/recent`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+
+        // console.log("Transaction Data:", data);
+        if (typeof data.transactions === "object") {
+          setTransactions(data.transactions.orders);
+          setSwaps(data.transactions.swaps);
+        } else {
+          setTransactions([]);
+          setSwaps([]);
+        }
+      } catch {
+        setTransactions([]);
+        setSwaps([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    const fetchStats = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/admin/statistics`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+
+        // console.log("Statistics Data:", data);
+        if (data?.statistics) {
+          setStat(data?.statistics);
+        } else {
+          setStat(null);
+        }
+      } catch {
+        setStat(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, [token]);
 
   return (
     <div className="flex flex-col  gap-6 w-full">
@@ -15,7 +128,10 @@ export default function WalletContent() {
           </span>
           <div className="flex flex-col">
             <span className="text-xs text-[#BEBEBE] mb-1">Revenue</span>
-            <span className="text-2xl font-bold text-black">₦1,200,000</span>
+
+            <span className="text-2xl font-bold text-black">
+              ₦{stat?.transactionVolume}
+            </span>
           </div>
         </div>
         <div className="bg-white rounded-xl w-[331px] shadow p-4 flex gap-5 items-start">
@@ -24,7 +140,9 @@ export default function WalletContent() {
           </span>
           <div className="flex flex-col">
             <span className="text-xs text-[#BEBEBE] mb-1">Payment Pending</span>
-            <span className="text-2xl font-bold text-black">₦150,000</span>
+            <span className="text-2xl font-bold text-black">
+              ₦{stat?.pendingPayments}
+            </span>
           </div>
         </div>
         <div className="bg-white rounded-xl w-[331px] shadow p-4 flex gap-5 items-start">
@@ -104,21 +222,28 @@ export default function WalletContent() {
                 </tr>
               </thead>
               <tbody>
-                {/* Example row */}
-                <tr className=" text-sm text-[#434343]">
-                  <td className="py-2 px-4">SWPC2023</td>
-                  <td className="py-2 px-4">Iphone 11</td>
-                  <td className="py-2 px-4">$100</td>
-                  <td className="py-2 px-4">2024-06-01</td>
-                  <td className="py-2 px-4 text-green-700">Approved</td>
-                </tr>
-                <tr className=" text-sm text-[#434343]">
+                {transactions.map((transactions) => (
+                  <tr key={transactions.id} className=" text-sm text-[#434343]">
+                    <td className="py-2 px-4">{transactions.id}</td>
+                    <td className="py-2 px-4">
+                      {" "}
+                      {transactions.order.products[0].name}
+                    </td>
+                    <td className="py-2 px-4">₦{transactions.amount}</td>
+                    <td className="py-2 px-4">{transactions.createdAt}</td>
+                    <td className="py-2 px-4 text-green-700">
+                      {transactions.status}
+                    </td>
+                  </tr>
+                ))}
+
+                {/* <tr className=" text-sm text-[#434343]">
                   <td className="py-2 px-4">SWPC2024</td>
                   <td className="py-2 px-4">Samsung S21</td>
                   <td className="py-2 px-4">$200</td>
                   <td className="py-2 px-4">2024-06-02</td>
                   <td className="py-2 px-4 text-yellow-600">Pending</td>
-                </tr>
+                </tr> */}
               </tbody>
             </table>
           ) : (
@@ -136,23 +261,24 @@ export default function WalletContent() {
                 </tr>
               </thead>
               <tbody>
-                {/* Example row */}
-                <tr className=" text-sm text-[#434343]">
-                  <td className="py-2 px-4">SWAP2023</td>
-                  <td className="py-2 px-4">Iphone 11</td>
-                  <td className="py-2 px-4">Iphone 8</td>
-                  <td className="py-2 px-4">$80</td>
-                  <td className="py-2 px-4">2024-06-03</td>
-                  <td className="py-2 px-4 text-green-700">Approved</td>
-                </tr>
-                <tr className=" text-sm text-[#434343]">
+                {swaps.map((swaps) => (
+                  <tr key={swaps.id} className=" text-sm text-[#434343]">
+                    <td className="py-2 px-4">{swaps.id}</td>
+                    <td className="py-2 px-4">{swaps.bid.product.name}</td>
+                    <td className="py-2 px-4"> {swaps.bid.swapProduct}</td>
+                    <td className="py-2 px-4">₦{swaps.amount}</td>
+                    <td className="py-2 px-4">{swaps.createdAt}</td>
+                    <td className="py-2 px-4 text-green-700">{swaps.status}</td>
+                  </tr>
+                ))}
+                {/* <tr className=" text-sm text-[#434343]">
                   <td className="py-2 px-4">SWAP2024</td>
                   <td className="py-2 px-4">Samsung S21</td>
                   <td className="py-2 px-4">iPhone X</td>
                   <td className="py-2 px-4">$120</td>
                   <td className="py-2 px-4">2024-06-04</td>
                   <td className="py-2 px-4 text-yellow-600">Pending</td>
-                </tr>
+                </tr> */}
               </tbody>
             </table>
           )}

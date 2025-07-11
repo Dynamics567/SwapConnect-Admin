@@ -68,7 +68,7 @@ export default function UserPage() {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          `${API_URL}/api/admin/users/all?role=users`,
+          `${API_URL}/api/admin/users/all?role=user`,
           {
             method: "GET",
             headers: {
@@ -78,7 +78,7 @@ export default function UserPage() {
           }
         );
         const data = await response.json();
-        console.log("API response", data);
+        // console.log("API response", data);
         if (data) {
           setUsers(data?.users);
           setStats([

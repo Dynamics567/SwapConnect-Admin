@@ -81,7 +81,7 @@ export default function TeamContent() {
           }
         );
         const data = await response.json();
-        console.log("API Response", data);
+        // console.log("API Response", data);
         if (data) {
           setTeam(data?.users);
         } else {
