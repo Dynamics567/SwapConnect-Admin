@@ -69,7 +69,7 @@ export default function WalletContent() {
         );
         const data = await response.json();
 
-        // console.log("Transaction Data:", data);
+        console.log("Transaction Data:", data);
         if (typeof data.transactions === "object") {
           setTransactions(data.transactions.orders);
           setSwaps(data.transactions.swaps);

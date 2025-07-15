@@ -133,7 +133,7 @@ export default function UserPage() {
   return (
     <div className="flex flex-col gap-8 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
       {/* Stat Cards */}
-      <div className="flex gap-4">
+      <div className="md:flex-row flex flex-col gap-4">
         {loading
           ? [1, 2, 3].map((i) => (
               <div
@@ -173,7 +173,7 @@ export default function UserPage() {
 
       {/* Search and Filter */}
       <div className="flex items-center gap-3">
-        <div className="relative w-[918px]">
+        <div className="relative w-full md:w-[918px]">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
             <Search size={18} />
           </span>
@@ -185,14 +185,14 @@ export default function UserPage() {
             className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300 bg-white"
           />
         </div>
-        <button className="flex items-center gap-2 bg-[#037F44] text-white px-4 py-2 rounded hover:bg-[#025e2e] transition-colors">
+        <button className="hidden md:flex items-center gap-2 bg-[#037F44] text-white px-4 py-2 rounded hover:bg-[#025e2e] transition-colors">
           <Filter size={18} />
           Filter
         </button>
       </div>
 
-      {/* Users Table */}
-      <div className="bg-white rounded-lg shadow p-6">
+      {/* Users Table (Desktop Only) */}
+      <div className="hidden md:block bg-white rounded-lg shadow p-6">
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-[#CCDCD4] text-[#037F44] text-left">
@@ -227,7 +227,7 @@ export default function UserPage() {
                 <tr
                   key={idx}
                   className="border-b last:border-b-0 cursor-pointer hover:bg-[#F7F8FB] transition"
-                  onClick={() => handleRowClick(user.id)} // Navigate to user profile page
+                  onClick={() => handleRowClick(user.id)}
                 >
                   <td className="py-3 text-[#434343] text-sm px-4">
                     {user.name}
@@ -247,9 +247,10 @@ export default function UserPage() {
                   <td className="py-3 text-[#434343] text-sm px-4">
                     <button
                       className="p-2 rounded-full hover:bg-[#F7F8FB] transition-colors"
-                      onClick={() =>
-                        setDropdownIdx(dropdownIdx === idx ? null : idx)
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDropdownIdx(dropdownIdx === idx ? null : idx);
+                      }}
                     >
                       <MoreVertical size={20} />
                     </button>
@@ -274,6 +275,79 @@ export default function UserPage() {
               ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="block md:hidden">
+        <div className="flex flex-col gap-4">
+          {users
+            .filter(
+              (u) =>
+                u.name.toLowerCase().includes(search.toLowerCase()) ||
+                u.email.toLowerCase().includes(search.toLowerCase())
+            )
+            .map((user, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-lg shadow p-4 flex flex-col gap-2"
+                onClick={() => handleRowClick(user.id)}
+              >
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-[#353535]">
+                    {user.name}
+                  </span>
+                  <span className="text-xs text-[#BEBEBE]">
+                    {user.date_joined}
+                  </span>
+                </div>
+                <div className="text-sm text-[#505050]">{user.email}</div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-[#505050]">{user.phone_number}</span>
+                  <span className="font-bold text-[#037F44]">
+                    {user.amount_spent}
+                  </span>
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // handle view
+                    }}
+                  >
+                    View
+                  </button>
+                  <button
+                    className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // handle suspend
+                    }}
+                  >
+                    Suspend
+                  </button>
+                  <button
+                    className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // handle ban
+                    }}
+                  >
+                    Ban
+                  </button>
+                  <button
+                    className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // handle ban
+                    }}
+                  >
+                    Assign badge
+                  </button>
+                </div>
+              </div>
+            ))}
+        </div>
       </div>
     </div>
   );

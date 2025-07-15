@@ -26,17 +26,17 @@ interface User {
 
 const menuItems = [
   { label: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { label: "User management", url: "/dashboard/products", icon: UserRound },
-  { label: "Teams", url: "/dashboard/bid", icon: UsersRound }, //
+  { label: "User management", url: "/dashboard/user", icon: UserRound },
+  { label: "Teams", url: "/dashboard/team", icon: UsersRound }, //
 
-  { label: "Item management", url: "/dashboard/orders", icon: Clipboard },
+  { label: "Item management", url: "/dashboard/items", icon: Clipboard },
   { label: "Transaction oversight", url: "/dashboard/wallet", icon: Receipt },
   {
     label: "Physical store",
-    url: "/dashboard/settings",
+    url: "/dashboard/store",
     icon: MapPinCheckInside,
   },
-  { label: "Settings", url: "/dashboard/settings", icon: Settings },
+  { label: "Settings", url: "/dashboard/setting", icon: Settings },
 ];
 
 interface NavProps {

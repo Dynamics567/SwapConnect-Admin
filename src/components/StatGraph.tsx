@@ -32,7 +32,7 @@ const revenueData = [
 
 function UserSignUpGraph() {
   return (
-    <div className="bg-white rounded-lg shadow w-[504px] p-4 h-64 flex flex-col mb-4">
+    <div className="bg-white rounded-lg shadow w-full md:w-[504px] p-4 h-64 flex flex-col mb-4">
       <span className="font-semibold text-lg text-[#1D1D1D] mb-2">
         User Sign Ups
       </span>
@@ -56,7 +56,7 @@ function UserSignUpGraph() {
 
 function RevenueGraph() {
   return (
-    <div className="bg-white rounded-lg shadow w-[504px] p-4 h-64 flex flex-col mb-4">
+    <div className="bg-white rounded-lg shadow w-full md:w-[504px] p-4 h-64 flex flex-col mb-4">
       <span className="font-semibold text-lg text-[#1D1D1D] mb-2">Revenue</span>
       <ResponsiveContainer width="100%" height={180}>
         <LineChart data={revenueData}>
@@ -79,7 +79,7 @@ function RevenueGraph() {
 function StatGraph() {
   return (
     <div>
-      <div className="flex gap-4">
+      <div className="md:flex-row flex flex-col gap-4">
         <UserSignUpGraph />
         <RevenueGraph />
       </div>

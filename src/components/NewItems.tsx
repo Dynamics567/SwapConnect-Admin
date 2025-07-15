@@ -35,7 +35,7 @@ export default function NewItems() {
           },
         });
         const data = await response.json();
-        // console.log("Recent Listings:", data);
+        console.log("Recent Listings:", data);
         if (data) {
           setItems(data?.listings);
         } else {

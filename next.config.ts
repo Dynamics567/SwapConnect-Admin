@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       "www.vectorstock.com",
       "loremflickr.com",
       "randomuser.me",
+      "fdn2.gsmarena.com",
     ],
   },
   /* config options here */

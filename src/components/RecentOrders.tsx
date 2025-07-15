@@ -30,7 +30,9 @@ const recentOrders = [
 function RecentOrders() {
   return (
     <div>
-      <div className="bg-white rounded shadow p-6 overflow-x-auto">
+      {/* Desktop/Table View */}
+
+      <div className="hidden md:block bg-white rounded shadow p-6 overflow-x-auto">
         <h3 className="font-semibold text-[#353535] mb-4 text-lg">
           Recent Orders
         </h3>
@@ -61,6 +63,36 @@ function RecentOrders() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile/Card View */}
+
+      <div className="block md:hidden bg-white rounded shadow p-4">
+        <h3 className="font-semibold text-[#353535] mb-4 text-lg">
+          Recent Orders
+        </h3>
+        <div className="flex flex-col gap-4">
+          {recentOrders.map((order) => (
+            <div
+              key={order.id}
+              className="border rounded-lg p-4 shadow-sm bg-[#F7F8FB]"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-semibold text-[#353535]">
+                  {order.product}
+                </span>
+                <span className="font-bold text-[#037F44]">{order.price}</span>
+              </div>
+              <div className="text-xs text-[#505050] mb-1">
+                {order.description}
+              </div>
+              <div className="flex justify-between items-center text-xs text-[#BEBEBE]">
+                <span>{order.category}</span>
+                <span>{order.date}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
