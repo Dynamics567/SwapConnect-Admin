@@ -10,6 +10,7 @@ import {
   Receipt,
   Settings,
   MapPinCheckInside,
+  HelpCircle,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -37,6 +38,7 @@ const menuItems = [
     icon: MapPinCheckInside,
   },
   { label: "Settings", url: "/dashboard/setting", icon: Settings },
+  { label: "Support", url: "/dashboard/support", icon: HelpCircle },
 ];
 
 interface NavProps {
@@ -202,7 +204,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
               className="mt-8 w-full py-2 bg-[#F87171] text-white rounded font-semibold hover:bg-[#d32f2f] transition"
               onClick={() => {
                 localStorage.removeItem("token");
-                window.location.href = "/auth/login";
+                window.location.href = "/";
               }}
             >
               Logout
