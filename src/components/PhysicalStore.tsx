@@ -36,7 +36,9 @@ export default function PhysicalStore() {
   return (
     <div className="w-full flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-[#037F44]">Physical Stores</h2>
+        <h2 className="md:text-2xl text-lg font-bold text-[#037F44]">
+          Physical Stores
+        </h2>
         <button
           className="flex items-center gap-2 bg-[#037F44] text-white px-4 py-2 rounded-lg hover:bg-[#025e2e] transition"
           onClick={() => router.push("/dashboard/store/add")}
@@ -64,8 +66,8 @@ export default function PhysicalStore() {
         </button>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow p-4 w-full overflow-x-auto">
+      {/* Desktop Table */}
+      <div className="hidden md:block bg-white rounded-xl shadow p-4 w-full overflow-x-auto">
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-[#CCDCD4] text-[#505050] text-left">
@@ -125,6 +127,63 @@ export default function PhysicalStore() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="block md:hidden">
+        <div className="flex flex-col gap-4">
+          {filteredStores.length === 0 ? (
+            <div className="text-center text-gray-400 py-8">
+              No stores found.
+            </div>
+          ) : (
+            filteredStores.map((store, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 relative"
+              >
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-[#353535]">
+                    {store.name}
+                  </span>
+                  <button
+                    className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
+                    onClick={() =>
+                      setActionMenuIdx(actionMenuIdx === idx ? null : idx)
+                    }
+                    type="button"
+                  >
+                    <MoreVertical size={18} />
+                  </button>
+                  {actionMenuIdx === idx && (
+                    <div className="absolute z-10 right-4 top-12 w-32 bg-white border rounded shadow-lg">
+                      <button
+                        className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
+                        onClick={() => {
+                          setActionMenuIdx(null);
+                          // handle edit logic here
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-red-600 text-sm"
+                        onClick={() => {
+                          setActionMenuIdx(null);
+                          // handle delete logic here
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="text-sm text-[#505050]">{store.location}</div>
+                <div className="text-sm text-[#505050]">{store.contact}</div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

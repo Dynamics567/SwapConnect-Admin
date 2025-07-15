@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
+import { useParams } from "next/navigation";
 
 interface Item {
   id: string;
@@ -38,6 +39,8 @@ export default function ListingDetails() {
   const [loading, setLoading] = useState(false);
   const token = useAuthToken();
   const [item, setItem] = useState<Item | null>(null);
+  const params = useParams();
+  const productId = params.id;
 
   useEffect(() => {
     if (!token) {
@@ -47,7 +50,7 @@ export default function ListingDetails() {
     const fetchOrders = async () => {
       try {
         const response = await fetch(
-          `${API_URL}/api/admin/product/${item?.id}`,
+          `${API_URL}/api/admin/product/${productId}`,
           {
             method: "GET",
             headers: {
@@ -70,7 +73,7 @@ export default function ListingDetails() {
       }
     };
     fetchOrders();
-  }, [token]);
+  }, [token, productId]);
 
   return (
     <div className="flex flex-col gap-8 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
@@ -100,11 +103,11 @@ export default function ListingDetails() {
                 className="rounded-xl object-cover w-full h-48"
               />
               <div className="flex mt-2 gap-2">
-                {item?.otherImages.map((image, i) => (
+                {item?.otherImages?.map((image, i) => (
                   <Image
                     key={i}
                     src={image}
-                    alt={`Thumbnail ${i}`}
+                    alt="product image"
                     width={64}
                     height={64}
                     className="w-16 h-16 rounded-md object-cover"
@@ -121,10 +124,10 @@ export default function ListingDetails() {
                 />
                 <div>
                   <p className="font-semibold text-[#1B2559]">
-                    {item?.Account.firstName} {item?.Account.lastName}
+                    {item?.Account?.firstName} {item?.Account?.lastName}
                   </p>
                   <p className="text-sm text-[#1B2559]">
-                    {item?.Account.phone}
+                    {item?.Account?.phone}
                   </p>
                 </div>
                 <CheckCircle className="text-green-600 ml-auto" />
@@ -160,7 +163,7 @@ export default function ListingDetails() {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-gray-500">COLOR</span>
-                    <span>{item?.metaData.color}</span>
+                    <span>{item?.metaData?.color}</span>
                   </div>
                 </div>
 

@@ -121,7 +121,7 @@ export default function WalletContent() {
   return (
     <div className="flex flex-col  gap-6 w-full">
       {/* Column 1: Stat Cards */}
-      <div className="flex  gap-4 w-full ">
+      <div className="flex flex-col md:flex-row  gap-4 w-full ">
         <div className="bg-white rounded-xl w-[331px] shadow p-4 flex gap-5 items-start">
           <span className="bg-[#F7F8FB] rounded-full text-[#037F44] p-2 flex items-center justify-center">
             <CircleDollarSign />
@@ -214,93 +214,154 @@ export default function WalletContent() {
             <p className="text-center text-[#848484] mt-6">No orders found</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow p-4">
-            {activeTab === "normal" ? (
-              <table className="w-full table-auto">
-                <thead>
-                  <tr className="bg-[#CCDCD4]  text-[#505050] text-left">
-                    <th className="py-2 px-4 font-normal text-sm">
-                      Transaction ID
-                    </th>
-                    <th className="py-2 px-4 font-normal text-sm">ITEM</th>
-                    <th className="py-2 px-4 font-normal text-sm">AMOUNT</th>
-                    <th className="py-2 px-4 font-normal text-sm">DATE</th>
-                    <th className="py-2 px-4 font-normal text-sm">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions.map((transactions) => (
-                    <tr
-                      key={transactions.id}
-                      className=" text-sm text-[#434343]"
-                    >
-                      <td className="py-2 px-4">{transactions.id}</td>
-                      <td className="py-2 px-4">
-                        {" "}
-                        {transactions.order.products[0].name}
-                      </td>
-                      <td className="py-2 px-4">₦{transactions.amount}</td>
-                      <td className="py-2 px-4">{transactions.createdAt}</td>
-                      <td className="py-2 px-4 text-green-700">
-                        {transactions.status}
-                      </td>
+          <>
+            {/* Desktop/Table View */}
+            <div className="hidden md:block bg-white rounded-xl shadow p-4">
+              {activeTab === "normal" ? (
+                <table className="w-full table-auto">
+                  <thead>
+                    <tr className="bg-[#CCDCD4]  text-[#505050] text-left">
+                      <th className="py-2 px-4 font-normal text-sm">
+                        Transaction ID
+                      </th>
+                      <th className="py-2 px-4 font-normal text-sm">ITEM</th>
+                      <th className="py-2 px-4 font-normal text-sm">AMOUNT</th>
+                      <th className="py-2 px-4 font-normal text-sm">DATE</th>
+                      <th className="py-2 px-4 font-normal text-sm">Status</th>
                     </tr>
-                  ))}
+                  </thead>
+                  <tbody>
+                    {transactions.map((transactions) => (
+                      <tr
+                        key={transactions.id}
+                        className=" text-sm text-[#434343]"
+                      >
+                        <td className="py-2 px-4">{transactions.id}</td>
+                        <td className="py-2 px-4">
+                          {transactions.order.products[0].name}
+                        </td>
+                        <td className="py-2 px-4">₦{transactions.amount}</td>
+                        <td className="py-2 px-4">{transactions.createdAt}</td>
+                        <td className="py-2 px-4 text-green-700">
+                          {transactions.status}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <table className="w-full table-auto">
+                  <thead>
+                    <tr className="bg-[#CCDCD4]  text-[#505050] text-left">
+                      <th className="py-2 px-4 font-normal text-sm">
+                        Transaction ID
+                      </th>
+                      <th className="py-2 px-4 font-normal text-sm">
+                        LISTED ITEM
+                      </th>
+                      <th className="py-2 px-4 font-normal text-sm">
+                        SWAP OFFER
+                      </th>
+                      <th className="py-2 px-4 font-normal text-sm">
+                        BID AMOUNT
+                      </th>
+                      <th className="py-2 px-4 font-normal text-sm">DATE</th>
+                      <th className="py-2 px-4 font-normal text-sm">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {swaps.map((swaps) => (
+                      <tr key={swaps.id} className=" text-sm text-[#434343]">
+                        <td className="py-2 px-4">{swaps.id}</td>
+                        <td className="py-2 px-4">{swaps.bid.product.name}</td>
+                        <td className="py-2 px-4"> {swaps.bid.swapProduct}</td>
+                        <td className="py-2 px-4">₦{swaps.amount}</td>
+                        <td className="py-2 px-4">{swaps.createdAt}</td>
+                        <td className="py-2 px-4 text-green-700">
+                          {swaps.status}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
 
-                  {/* <tr className=" text-sm text-[#434343]">
-                  <td className="py-2 px-4">SWPC2024</td>
-                  <td className="py-2 px-4">Samsung S21</td>
-                  <td className="py-2 px-4">$200</td>
-                  <td className="py-2 px-4">2024-06-02</td>
-                  <td className="py-2 px-4 text-yellow-600">Pending</td>
-                </tr> */}
-                </tbody>
-              </table>
-            ) : (
-              <table className="w-full table-auto">
-                <thead>
-                  <tr className="bg-[#CCDCD4]  text-[#505050] text-left">
-                    <th className="py-2 px-4 font-normal text-sm">
-                      Transaction ID
-                    </th>
-                    <th className="py-2 px-4 font-normal text-sm">
-                      LISTED ITEM
-                    </th>
-                    <th className="py-2 px-4 font-normal text-sm">
-                      SWAP OFFER
-                    </th>
-                    <th className="py-2 px-4 font-normal text-sm">
-                      BID AMOUNT
-                    </th>
-                    <th className="py-2 px-4 font-normal text-sm">DATE</th>
-                    <th className="py-2 px-4 font-normal text-sm">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {swaps.map((swaps) => (
-                    <tr key={swaps.id} className=" text-sm text-[#434343]">
-                      <td className="py-2 px-4">{swaps.id}</td>
-                      <td className="py-2 px-4">{swaps.bid.product.name}</td>
-                      <td className="py-2 px-4"> {swaps.bid.swapProduct}</td>
-                      <td className="py-2 px-4">₦{swaps.amount}</td>
-                      <td className="py-2 px-4">{swaps.createdAt}</td>
-                      <td className="py-2 px-4 text-green-700">
-                        {swaps.status}
-                      </td>
-                    </tr>
+            {/* Mobile/Card View */}
+            <div className="block md:hidden">
+              {activeTab === "normal" ? (
+                <div className="flex flex-col gap-4">
+                  {transactions.map((transaction) => (
+                    <div
+                      key={transaction.id}
+                      className="bg-white rounded-xl shadow p-4 flex flex-col gap-2"
+                    >
+                      {/* Item and Amount on a row */}
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-[#353535]">
+                          {transaction.order.products[0].name}
+                        </span>
+                        <span className="font-bold text-[#037F44]">
+                          ₦{transaction.amount}
+                        </span>
+                      </div>
+                      {/* Date and Status on a row */}
+                      <div className="flex justify-between items-center text-xs mt-1">
+                        <span className="text-[#BEBEBE]">
+                          {transaction.createdAt}
+                        </span>
+                        <span
+                          className={`font-semibold ${
+                            transaction.status === "Pending"
+                              ? "text-yellow-600"
+                              : "text-green-700"
+                          }`}
+                        >
+                          {transaction.status}
+                        </span>
+                      </div>
+                    </div>
                   ))}
-                  {/* <tr className=" text-sm text-[#434343]">
-                  <td className="py-2 px-4">SWAP2024</td>
-                  <td className="py-2 px-4">Samsung S21</td>
-                  <td className="py-2 px-4">iPhone X</td>
-                  <td className="py-2 px-4">$120</td>
-                  <td className="py-2 px-4">2024-06-04</td>
-                  <td className="py-2 px-4 text-yellow-600">Pending</td>
-                </tr> */}
-                </tbody>
-              </table>
-            )}
-          </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {swaps.map((swap) => (
+                    <div
+                      key={swap.id}
+                      className="bg-white rounded-xl shadow p-4 flex flex-col gap-2"
+                    >
+                      {/* Listed Item and Bid Amount */}
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-[#353535]">
+                          {swap.bid.product.name}
+                        </span>
+                        <span className="font-bold text-[#037F44]">
+                          ₦{swap.amount}
+                        </span>
+                      </div>
+                      {/* Swap Offer */}
+                      <div className="text-xs text-[#505050]">
+                        Swap Offer: {swap.bid.swapProduct}
+                      </div>
+                      {/* Date and Status */}
+                      <div className="flex justify-between items-center text-xs mt-1">
+                        <span className="text-[#BEBEBE]">{swap.createdAt}</span>
+                        <span
+                          className={`font-semibold ${
+                            swap.status === "Pending"
+                              ? "text-yellow-600"
+                              : "text-green-700"
+                          }`}
+                        >
+                          {swap.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>
