@@ -1,11 +1,11 @@
-'use client';
-import type React from 'react';
-import { useState, useEffect } from 'react';
-import { Search, MessageCircle, Clock, User } from 'lucide-react';
-import Image from 'next/image';
-import { useSocket } from '../hooks/useSocket';
-import { API_URL } from '../lib/config';
-import { useAuthToken } from '../hooks/useAuthToken';
+"use client";
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Search, MessageCircle, Clock, User } from "lucide-react";
+import Image from "next/image";
+import { useSocket } from "../hooks/useSocket";
+import { API_URL } from "../lib/config";
+import { useAuthToken } from "../hooks/useAuthToken";
 
 // Define types above your component:
 interface Message {
@@ -62,11 +62,11 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
   const [filteredConversations, setFilteredConversations] = useState<
     Conversation[]
   >([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'open' | 'closed'>(
-    'all'
+  const [filter, setFilter] = useState<"all" | "pending" | "open" | "closed">(
+    "all"
   );
 
   const token = useAuthToken();
@@ -79,9 +79,9 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
     try {
       setLoading(true);
       const response = await fetch(`${API_URL}/api/conversations`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
@@ -94,8 +94,8 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
       setConversations(data.data || []);
       setError(null);
     } catch (err) {
-      console.error('Error fetching conversations:', err);
-      setError('Failed to fetch conversations');
+      console.error("Error fetching conversations:", err);
+      setError("Failed to fetch conversations");
     } finally {
       setLoading(false);
     }
@@ -104,7 +104,7 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
   // Initial fetch
   useEffect(() => {
     fetchConversations();
-  }, [token]);
+  }, [token, fetchConversations]);
 
   // Listen for new messages via socket
   useEffect(() => {
@@ -115,7 +115,7 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
       message: Message;
       conversation: Conversation;
     }) => {
-      console.log('New user message received:', data);
+      console.log("New user message received:", data);
 
       // Update the conversation in the list
       setConversations((prev) => {
@@ -142,10 +142,10 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
       });
     };
 
-    socket.on('newUserMessage', handleNewUserMessage);
+    socket.on("newUserMessage", handleNewUserMessage);
 
     return () => {
-      socket.off('newUserMessage', handleNewUserMessage);
+      socket.off("newUserMessage", handleNewUserMessage);
     };
   }, [socket]);
 
@@ -154,7 +154,7 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
     let filtered = conversations;
 
     // Filter by status
-    if (filter !== 'all') {
+    if (filter !== "all") {
       filtered = filtered.filter((conv) => conv.status === filter);
     }
 
@@ -163,8 +163,8 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
       filtered = filtered.filter((conv) => {
         const userName = conv.User
           ? `${conv.User.firstName} ${conv.User.lastName}`.toLowerCase()
-          : '';
-        const email = conv.User?.email?.toLowerCase() || '';
+          : "";
+        const email = conv.User?.email?.toLowerCase() || "";
         const subject = conv.subject.toLowerCase();
 
         return (
@@ -191,7 +191,7 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 1) {
-      return 'Just now';
+      return "Just now";
     } else if (diffInHours < 24) {
       return `${Math.floor(diffInHours)}h ago`;
     } else {
@@ -201,21 +201,21 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'closed':
-        return 'bg-gray-100 text-gray-800';
+      case "open":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "closed":
+        return "bg-gray-100 text-gray-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getUnreadCount = (conversation: Conversation) => {
     // This would need to be calculated based on actual unread messages
     // For now, we'll show a simple indicator for pending conversations
-    return conversation.status === 'pending' ? 1 : 0;
+    return conversation.status === "pending" ? 1 : 0;
   };
 
   if (loading) {
@@ -240,11 +240,11 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
             <div className="flex items-center gap-2">
               <div
                 className={`w-2 h-2 rounded-full ${
-                  isConnected ? 'bg-green-500' : 'bg-red-500'
+                  isConnected ? "bg-green-500" : "bg-red-500"
                 }`}
               ></div>
               <span className="text-xs text-gray-500">
-                {isConnected ? 'Online' : 'Offline'}
+                {isConnected ? "Online" : "Offline"}
               </span>
             </div>
           </div>
@@ -266,14 +266,14 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
 
           {/* Filter Tabs */}
           <div className="flex gap-1">
-            {(['all', 'pending', 'open', 'closed'] as const).map((status) => (
+            {(["all", "pending", "open", "closed"] as const).map((status) => (
               <button
                 key={status}
                 onClick={() => setFilter(status)}
                 className={`px-3 py-1 text-xs rounded-full capitalize transition-colors ${
                   filter === status
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
                 {status}
@@ -298,10 +298,7 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
 
           {filteredConversations.length === 0 ? (
             <div className="p-4 text-center text-gray-500">
-              <MessageCircle
-                size={48}
-                className="mx-auto mb-2 text-gray-300"
-              />
+              <MessageCircle size={48} className="mx-auto mb-2 text-gray-300" />
               <p className="text-sm">No conversations found</p>
             </div>
           ) : (
@@ -316,14 +313,14 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
                     key={conversation.id}
                     onClick={() => onSelectConversation(conversation)}
                     className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      isSelected ? 'bg-blue-50 border-r-2 border-blue-500' : ''
+                      isSelected ? "bg-blue-50 border-r-2 border-blue-500" : ""
                     }`}
                   >
                     <div className="flex items-start gap-3">
                       <div className="relative">
                         <Image
                           src={
-                            `${conversation.User?.avatar}` || '/Elipse 5.svg'
+                            `${conversation.User?.avatar}` || "/Elipse 5.svg"
                           }
                           alt="User Avatar"
                           width={40}
@@ -342,7 +339,7 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
                           <h3 className="font-medium text-gray-900 truncate">
                             {conversation.User
                               ? `${conversation.User.firstName} ${conversation.User.lastName}`
-                              : 'Unknown User'}
+                              : "Unknown User"}
                           </h3>
                           <div className="flex items-center gap-2">
                             <span

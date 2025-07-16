@@ -57,7 +57,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       joinConversation(conversationId);
     }
     // }
-  }, [isConnected, conversationId, error]);
+  }, [isConnected, conversationId, error, joinConversation]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {

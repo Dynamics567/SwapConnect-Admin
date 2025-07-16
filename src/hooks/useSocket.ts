@@ -57,7 +57,7 @@ interface UseSocketReturn {
   messages: Message[];
   conversations: Conversation[];
   currentConversation: Conversation | null;
-  onlineUsers: any[];
+  onlineUsers: { id: number; name: string; avatar?: string }[];
   error: string | null;
 }
 
