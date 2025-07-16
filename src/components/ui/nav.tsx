@@ -96,7 +96,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
           const userData = {
             ...data.admin,
             name: `${data.admin.firstName} ${data.admin.lastName}`,
-            avatar: data.admin.avatar || "/Elipse 5.svg",
+            avatar: data.admin.avatar || "",
             email: data.admin.email || "",
           };
           setUser(userData);
@@ -118,7 +118,14 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
   }, [token]);
   const displayName = user?.name || "User";
   // const displayEmail = user?.email || "";
-  const displayAvatar = user?.avatar || "/Elipse 5.svg";
+  const displayAvatar = user?.avatar || ""; // Remove Elipse 5.svg/png fallback
+
+  function getInitials(name: string) {
+    if (!name) return "OO";
+    const parts = name.split(" ");
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
 
   return (
     <nav className="fixed top-0 right-0 left-0 h-[85px] bg-white flex items-center justify-between md:left-[280px] border-b px-4 md:px-8 z-[101]">
@@ -134,29 +141,52 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
               {userLoading ? "Loading..." : userError ? "Error" : displayName}
             </span>
 
-            <Image
-              src={user?.avatar || "/Elipse 5.svg"}
-              alt="Profile"
-              width={40}
-              height={40}
-              className="w-[40px] h-[40px] rounded-full object-cover border-2 border-[#eee]"
-            />
+            {/* Show initials if avatar is null, else show image */}
+            {user?.avatar ? (
+              <Image
+                src={user.avatar}
+                alt="Profile"
+                width={40}
+                height={40}
+                className="w-[40px] h-[40px] rounded-full object-cover border-2 border-[#eee]"
+              />
+            ) : (
+              <div
+                className="w-[40px] h-[40px] rounded-full flex items-center justify-center text-white font-bold text-lg"
+                style={{
+                  background: "#00B9AE",
+                }}
+              >
+                {getInitials(user?.name ?? "")}
+              </div>
+            )}
             {/* <span className="text-[13px] text-[#037F44]">
               {userLoading ? "" : userError ? "" : displayEmail}
             </span> */}
           </div>
         </div>
       </div>
-      {/* Mobile: user, image, bell, hamburger */}
+      {/* Mobile: user, image/initials, bell, hamburger */}
       <div className="flex md:hidden items-center justify-between w-full">
         <div className="flex items-center gap-1 md:gap-3">
-          <Image
-            src={displayAvatar}
-            alt="Profile"
-            width={36}
-            height={36}
-            className="w-9 h-9 rounded-full object-cover border-2 border-[#eee]"
-          />
+          {user?.avatar ? (
+            <Image
+              src={displayAvatar}
+              alt="Profile"
+              width={36}
+              height={36}
+              className="w-9 h-9 rounded-full object-cover border-2 border-[#eee]"
+            />
+          ) : (
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-base"
+              style={{
+                background: "#00B9AE",
+              }}
+            >
+              {getInitials(user?.name ?? "")}
+            </div>
+          )}
           <span className="font-normal text-[#353535] text-[16px]">
             {userLoading ? "Loading..." : userError ? "Error" : displayName}
           </span>

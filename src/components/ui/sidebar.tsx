@@ -29,11 +29,6 @@ const menuItems = [
   { label: "Settings", url: "/dashboard/setting", icon: Settings },
 ];
 
-const supportItems = [
-  { label: "Support", url: "/dashboard/support", icon: HelpCircle },
-  { label: "Log out", url: "/settings", icon: LogOut },
-];
-
 const Sidebar: React.FC = () => (
   <aside className="fixed flex flex-col h-screen w-[280px] bg-white text-[#848484] p-8 shadow-[2px_0_8px_rgba(0,0,0,0.05)] z-100 justify-between">
     <div>
@@ -66,19 +61,31 @@ const Sidebar: React.FC = () => (
     </div>
     <nav>
       <ul className="list-none">
-        {supportItems.map((item) => (
-          <li key={item.label}>
-            <Link
-              href={item.url}
-              className="flex items-center cursor-pointer py-3 text-[17px] transition-colors duration-200 hover:text-[#037F44]"
-            >
-              <span className="text-[20px] mr-[16px]">
-                <item.icon size={20} />
-              </span>
-              {item.label}
-            </Link>
-          </li>
-        ))}
+        <li>
+          <Link
+            href="/dashboard/support"
+            className="flex items-center cursor-pointer py-3 text-[17px] transition-colors duration-200 hover:text-[#037F44]"
+          >
+            <span className="text-[20px] mr-[16px]">
+              <HelpCircle size={20} />
+            </span>
+            Support
+          </Link>
+        </li>
+        <li>
+          <button
+            className="flex items-center w-full cursor-pointer py-3 text-[17px] transition-colors duration-200 hover:text-[#037F44] bg-transparent border-none outline-none"
+            onClick={() => {
+              localStorage.removeItem("token");
+              window.location.replace("/");
+            }}
+          >
+            <span className="text-[20px] mr-[16px]">
+              <LogOut size={20} />
+            </span>
+            Log out
+          </button>
+        </li>
       </ul>
     </nav>
   </aside>

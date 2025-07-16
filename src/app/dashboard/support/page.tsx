@@ -1,8 +1,8 @@
-'use client';
-import type React from 'react';
-import { useState } from 'react';
-import ConversationsList from '../../../components/ConversationsList';
-import ChatInterface from '../../../components/ChatInterface';
+"use client";
+import type React from "react";
+import { useState } from "react";
+import ConversationsList from "../../../components/ConversationsList";
+import ChatInterface from "../../../components/ChatInterface";
 
 interface Conversation {
   id: number;
@@ -53,7 +53,11 @@ const SupportPage: React.FC = () => {
   return (
     <div className="h-[calc(100vh)] flex bg-gray-50">
       {/* Conversations List - Hidden on mobile when chat is open */}
-      <div className={`${showChat ? 'hidden md:flex' : 'flex'} flex-shrink-0 overflow-auto`}>
+      <div
+        className={`${
+          showChat ? "hidden md:flex" : "flex"
+        } flex-shrink-0 overflow-auto`}
+      >
         <ConversationsList
           onSelectConversation={handleSelectConversation}
           selectedConversationId={selectedConversation?.id}
@@ -61,7 +65,9 @@ const SupportPage: React.FC = () => {
       </div>
 
       {/* Chat Interface - Hidden on mobile when no conversation selected */}
-      <div className={`${showChat ? 'flex' : 'hidden md:flex'} flex-1`}>
+      <div
+        className={`${showChat ? "flex" : "hidden md:flex"} flex-1 pt-[110px] `}
+      >
         {selectedConversation ? (
           <ChatInterface
             conversationId={selectedConversation.id}

@@ -1,9 +1,9 @@
-'use client';
-import type React from 'react';
-import { useState, useEffect, useRef } from 'react';
-import { Send, Paperclip, MoreVertical, Phone, Video } from 'lucide-react';
-import Image from 'next/image';
-import { useSocket } from '../hooks/useSocket';
+"use client";
+import type React from "react";
+import { useState, useEffect, useRef } from "react";
+import { Send, Paperclip, MoreVertical, Phone, Video } from "lucide-react";
+import Image from "next/image";
+import { useSocket } from "../hooks/useSocket";
 
 interface Message {
   id: number;
@@ -33,7 +33,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   conversationId,
   onBack,
 }) => {
-  const [messageInput, setMessageInput] = useState('');
+  const [messageInput, setMessageInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -81,7 +81,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }, [conversationId, messages, markAsRead]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const getCurrentUserId = () => {
@@ -95,7 +95,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     if (!messageInput.trim() || !conversationId) return;
 
     sendMessage(conversationId, messageInput.trim());
-    setMessageInput('');
+    setMessageInput("");
 
     // Stop typing indicator
     if (isTyping) {
@@ -127,7 +127,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   const formatDate = (dateString: string) => {
@@ -137,9 +137,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return 'Today';
+      return "Today";
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
+      return "Yesterday";
     } else {
       return date.toLocaleDateString();
     }
@@ -165,8 +165,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <div className="text-center">
           <div className="text-gray-500 mb-2">
             {conversationId
-              ? 'Loading conversation...'
-              : 'Select a conversation to start chatting'}
+              ? "Loading conversation..."
+              : "Select a conversation to start chatting"}
           </div>
           {error && <div className="text-red-500 text-sm">{error}</div>}
         </div>
@@ -191,7 +191,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           )}
           <div className="relative">
             <Image
-              src={currentConversation.User?.avatar || '/Elipse 5.svg'}
+              src={currentConversation.User?.avatar || "/Elipse 5.svg"}
               alt="User Avatar"
               width={40}
               height={40}
@@ -203,31 +203,22 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             <h3 className="font-semibold text-gray-900">
               {currentConversation.User
                 ? `${currentConversation.User.firstName} ${currentConversation.User.lastName}`
-                : 'Unknown User'}
+                : "Unknown User"}
             </h3>
             <p className="text-sm text-gray-500">
-              {isConnected ? 'Online' : 'Offline'} • {onlineUsers.length} online
+              {isConnected ? "Online" : "Offline"} • {onlineUsers.length} online
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button className="p-2 hover:bg-gray-100 rounded-lg">
-            <Phone
-              size={20}
-              className="text-gray-600"
-            />
+            <Phone size={20} className="text-gray-600" />
           </button>
           <button className="p-2 hover:bg-gray-100 rounded-lg">
-            <Video
-              size={20}
-              className="text-gray-600"
-            />
+            <Video size={20} className="text-gray-600" />
           </button>
           <button className="p-2 hover:bg-gray-100 rounded-lg">
-            <MoreVertical
-              size={20}
-              className="text-gray-600"
-            />
+            <MoreVertical size={20} className="text-gray-600" />
           </button>
         </div>
       </div>
@@ -245,9 +236,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
             {/* Messages for this date */}
             {dayMessages.map((message, index) => {
-              const isCurrentUser = message.senderId === getCurrentUserId();
+              // Determine if the message is from the admin (current user)
+              const isAdmin = message.Sender?.role?.toLowerCase() === "admin";
               const showAvatar =
-                !isCurrentUser &&
+                !isAdmin &&
                 (index === 0 ||
                   dayMessages[index - 1]?.senderId !== message.senderId);
 
@@ -255,14 +247,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 <div
                   key={message.id}
                   className={`flex gap-3 ${
-                    isCurrentUser ? 'justify-end' : 'justify-start'
+                    isAdmin ? "justify-end" : "justify-start"
                   }`}
                 >
-                  {!isCurrentUser && (
+                  {/* User avatar (left side for user messages) */}
+                  {!isAdmin && (
                     <div className="w-8">
                       {showAvatar && (
                         <Image
-                          src={message.Sender.avatar || '/Elipse 5.svg'}
+                          src={message.Sender.avatar || "/Elipse 5.svg"}
                           alt="Sender Avatar"
                           width={32}
                           height={32}
@@ -272,12 +265,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     </div>
                   )}
 
+                  {/* Message bubble */}
                   <div
                     className={`max-w-xs lg:max-w-md ${
-                      isCurrentUser ? 'order-1' : ''
+                      isAdmin ? "order-1" : ""
                     }`}
                   >
-                    {showAvatar && !isCurrentUser && (
+                    {showAvatar && !isAdmin && (
                       <div className="text-xs text-gray-500 mb-1 px-3">
                         {message.Sender.firstName} {message.Sender.lastName}
                       </div>
@@ -285,9 +279,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
                     <div
                       className={`px-4 py-2 rounded-2xl ${
-                        isCurrentUser
-                          ? 'bg-blue-500 text-white rounded-br-md'
-                          : 'bg-gray-100 text-gray-900 rounded-bl-md'
+                        isAdmin
+                          ? "bg-blue-500 text-white rounded-br-md"
+                          : "bg-gray-100 text-gray-900 rounded-bl-md"
                       }`}
                     >
                       <p className="text-sm">{message.content}</p>
@@ -295,13 +289,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
                     <div
                       className={`text-xs text-gray-500 mt-1 px-3 ${
-                        isCurrentUser ? 'text-right' : 'text-left'
+                        isAdmin ? "text-right" : "text-left"
                       }`}
                     >
                       {formatTime(message.createdAt)}
-                      {isCurrentUser && (
+                      {isAdmin && (
                         <span className="ml-1">
-                          {message.isRead ? '✓✓' : '✓'}
+                          {message.isRead ? "✓✓" : "✓"}
                         </span>
                       )}
                     </div>
@@ -316,18 +310,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
       {/* Message Input */}
       <div className="p-4 border-t bg-white">
-        <form
-          onSubmit={handleSendMessage}
-          className="flex items-center gap-3"
-        >
-          <button
-            type="button"
-            className="p-2 hover:bg-gray-100 rounded-lg"
-          >
-            <Paperclip
-              size={20}
-              className="text-gray-600"
-            />
+        <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+          <button type="button" className="p-2 hover:bg-gray-100 rounded-lg">
+            <Paperclip size={20} className="text-gray-600" />
           </button>
 
           <div className="flex-1 relative">
