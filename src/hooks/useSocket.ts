@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { io, type Socket } from 'socket.io-client';
-import { useAuthToken } from './useAuthToken';
-import { API_URL } from '@/lib/config';
+import { useEffect, useRef, useState } from "react";
+import { io, type Socket } from "socket.io-client";
+import { useAuthToken } from "./useAuthToken";
+import { API_URL } from "@/lib/config";
 
 interface Message {
   id: number;
@@ -68,7 +68,9 @@ export const useSocket = (): UseSocketReturn => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] =
     useState<Conversation | null>(null);
-  const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<
+    { id: number; name: string; avatar?: string }[]
+  >([]);
   const [error, setError] = useState<string | null>(null);
 
   const token = useAuthToken();
@@ -78,65 +80,62 @@ export const useSocket = (): UseSocketReturn => {
     if (!token) return;
 
     // Create socket connection
-    const newSocket = io(
-      API_URL || 'http://localhost:3001',
-      {
-        auth: {
-          token,
-        },
-        extraHeaders: {
-          Authorization: `Bearer ${token}`,
-        },
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-      }
-    );
+    const newSocket = io(API_URL || "http://localhost:3001", {
+      auth: {
+        token,
+      },
+      extraHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+    });
 
     socketRef.current = newSocket;
     setSocket(newSocket);
 
     // Connection event handlers
-    newSocket.on('connect', () => {
-      console.log('Connected to server');
+    newSocket.on("connect", () => {
+      console.log("Connected to server");
       setIsConnected(true);
       setError(null);
     });
 
-    newSocket.on('disconnect', () => {
-      console.log('Disconnected from server');
+    newSocket.on("disconnect", () => {
+      console.log("Disconnected from server");
       setIsConnected(false);
     });
 
-    newSocket.on('connect_error', (err) => {
-      console.error('Connection error:', err);
-      setError('Failed to connect to server');
+    newSocket.on("connect_error", (err) => {
+      console.error("Connection error:", err);
+      setError("Failed to connect to server");
       setIsConnected(false);
     });
 
     // Message event handlers
     newSocket.on(
-      'conversationJoined',
+      "conversationJoined",
       (data: { conversation: Conversation; messages: Message[] }) => {
-        console.log('Joined conversation:', data);
+        console.log("Joined conversation:", data);
         setCurrentConversation(data.conversation);
         setMessages(data.messages);
       }
     );
 
-    newSocket.on('newMessage', (message: Message) => {
-      console.log('New message received:', message);
+    newSocket.on("newMessage", (message: Message) => {
+      console.log("New message received:", message);
       setMessages((prev) => [...prev, message]);
     });
 
     newSocket.on(
-      'newUserMessage',
+      "newUserMessage",
       (data: {
         conversationId: number;
         message: Message;
-        conversation: any;
+        conversation: Conversation;
       }) => {
-        console.log('New user message notification:', data);
+        console.log("New user message notification:", data);
         // Update conversations list to show new message
         setConversations((prev) =>
           prev.map((conv) =>
@@ -149,13 +148,13 @@ export const useSocket = (): UseSocketReturn => {
     );
 
     newSocket.on(
-      'messagesMarkedAsRead',
+      "messagesMarkedAsRead",
       (data: {
         conversationId: number;
         readBy: number;
         messageIds?: number[];
       }) => {
-        console.log('Messages marked as read:', data);
+        console.log("Messages marked as read:", data);
         setMessages((prev) =>
           prev.map((msg) =>
             msg.conversationId === data.conversationId &&
@@ -168,36 +167,39 @@ export const useSocket = (): UseSocketReturn => {
     );
 
     newSocket.on(
-      'userTyping',
+      "userTyping",
       (data: { userId: number; userName: string; isTyping: boolean }) => {
-        console.log('User typing:', data);
+        console.log("User typing:", data);
         // Handle typing indicator
       }
     );
 
     newSocket.on(
-      'onlineUsers',
-      (data: { conversationId: number; users: any[] }) => {
-        console.log('Online users:', data);
+      "onlineUsers",
+      (data: {
+        conversationId: number;
+        users: { id: number; name: string; avatar?: string }[];
+      }) => {
+        console.log("Online users:", data);
         setOnlineUsers(data.users);
       }
     );
 
     newSocket.on(
-      'adminOnline',
+      "adminOnline",
       (data: { adminId: number; adminName: string }) => {
-        console.log('Admin online:', data);
+        console.log("Admin online:", data);
       }
     );
 
     newSocket.on(
-      'adminOffline',
+      "adminOffline",
       (data: { adminId: number; adminName: string }) => {
-        console.log('Admin offline:', data);
+        console.log("Admin offline:", data);
       }
     );
 
-    newSocket.on('error', (data: { message: string }) => {
+    newSocket.on("error", (data: { message: string }) => {
       // console.error('Socket error:', data);
       setError(data.message);
     });
@@ -211,23 +213,23 @@ export const useSocket = (): UseSocketReturn => {
 
   const joinConversation = (conversationId: number) => {
     if (socket && isConnected) {
-      socket.emit('joinConversation', conversationId);
+      socket.emit("joinConversation", conversationId);
     }
   };
 
   const sendMessage = (conversationId: number, content: string) => {
     if (socket && isConnected) {
-      socket.emit('sendMessage', {
+      socket.emit("sendMessage", {
         conversationId,
         content,
-        messageType: 'text',
+        messageType: "text",
       });
     }
   };
 
   const markAsRead = (conversationId: number, messageIds?: number[]) => {
     if (socket && isConnected) {
-      socket.emit('markAsRead', {
+      socket.emit("markAsRead", {
         conversationId,
         messageIds,
       });
@@ -236,7 +238,7 @@ export const useSocket = (): UseSocketReturn => {
 
   const setTyping = (conversationId: number, isTyping: boolean) => {
     if (socket && isConnected) {
-      socket.emit('typing', {
+      socket.emit("typing", {
         conversationId,
         isTyping,
       });

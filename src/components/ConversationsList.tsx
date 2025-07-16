@@ -7,6 +7,22 @@ import { useSocket } from '../hooks/useSocket';
 import { API_URL } from '../lib/config';
 import { useAuthToken } from '../hooks/useAuthToken';
 
+// Define types above your component:
+interface Message {
+  id: number;
+  content: string;
+  createdAt: string;
+  isRead: boolean;
+  senderId?: number;
+  Sender?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+    role?: string;
+  };
+}
+
 interface Conversation {
   id: number;
   user: number;
@@ -30,12 +46,7 @@ interface Conversation {
     email: string;
     avatar: string;
   };
-  Messages?: Array<{
-    id: number;
-    content: string;
-    createdAt: string;
-    isRead: boolean;
-  }>;
+  Messages?: Message[];
 }
 
 interface ConversationsListProps {
@@ -101,8 +112,8 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
 
     const handleNewUserMessage = (data: {
       conversationId: number;
-      message: any;
-      conversation: any;
+      message: Message;
+      conversation: Conversation;
     }) => {
       console.log('New user message received:', data);
 
