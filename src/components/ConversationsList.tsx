@@ -1,6 +1,6 @@
 "use client";
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Search, MessageCircle, Clock, User } from "lucide-react";
 import Image from "next/image";
 import { useSocket } from "../hooks/useSocket";
@@ -72,8 +72,8 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
   const token = useAuthToken();
   const { socket, isConnected } = useSocket();
 
-  // Fetch conversations from API
-  const fetchConversations = async () => {
+  // Wrap fetchConversations in useCallback to stabilize its reference
+  const fetchConversations = useCallback(async () => {
     if (!token) return;
 
     try {
@@ -99,7 +99,7 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   // Initial fetch
   useEffect(() => {
