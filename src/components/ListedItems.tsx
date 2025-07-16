@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
-import Page from "@/app/dashboard/page";
+// import Page from "@/app/dashboard/page";
 import PageButton from "./PageButton";
 
 type Order = {
