@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Search, Filter, CircleDollarSign } from "lucide-react";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
+import PageButton from "./PageButton";
 
 interface Transaction {
   id: string;
@@ -47,18 +48,20 @@ export default function WalletContent() {
   const [swaps, setSwaps] = useState<Swap[]>([]);
   const [stat, setStat] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const [activeTab, setActiveTab] = useState<"normal" | "swap">("normal");
   const token = useAuthToken();
 
   useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    // if (!token) {
+    //   setLoading(false);
+    //   return;
+    // }
     const fetchOrders = async () => {
       try {
         const response = await fetch(
-          `${API_URL}/api/admin/transactions/recent`,
+          `${API_URL}/api/admin/transactions/recent?page=${page}&limit=10`,
           {
             method: "GET",
             headers: {
@@ -69,9 +72,11 @@ export default function WalletContent() {
         );
         const data = await response.json();
 
-        console.log("Transaction Data:", data);
+        // console.log("Transaction Data:", data);
         if (typeof data.transactions === "object") {
           setTransactions(data.transactions.orders);
+          setPage(data.pagination.currentPage);
+          setTotalPages(data.pagination.totalPages);
           setSwaps(data.transactions.swaps);
         } else {
           setTransactions([]);
@@ -85,7 +90,7 @@ export default function WalletContent() {
       }
     };
     fetchOrders();
-  }, [token]);
+  }, [page]);
 
   useEffect(() => {
     if (!token) {
@@ -285,6 +290,11 @@ export default function WalletContent() {
                   </tbody>
                 </table>
               )}
+              <PageButton
+                page={page}
+                setPage={setPage}
+                totalPages={totalPages}
+              />
             </div>
 
             {/* Mobile/Card View */}
@@ -322,6 +332,11 @@ export default function WalletContent() {
                       </div>
                     </div>
                   ))}
+                  <PageButton
+                    page={page}
+                    setPage={setPage}
+                    totalPages={totalPages}
+                  />
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
@@ -358,6 +373,11 @@ export default function WalletContent() {
                       </div>
                     </div>
                   ))}
+                  <PageButton
+                    page={page}
+                    setPage={setPage}
+                    totalPages={totalPages}
+                  />
                 </div>
               )}
             </div>

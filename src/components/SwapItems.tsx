@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
+import PageButton from "./PageButton";
 
 type Order = {
   id: string;
@@ -87,13 +88,15 @@ type Order = {
 export default function NewItems() {
   const [swap, setSwap] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const token = useAuthToken();
 
   useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    // if (!token) {
+    //   setLoading(false);
+    //   return;
+    // }
     const fetchOrders = async () => {
       try {
         const response = await fetch(`${API_URL}/api/admin/swaps/active`, {
@@ -107,6 +110,8 @@ export default function NewItems() {
         // console.log("Swap Data:", data);
         if (Array.isArray(data.swaps)) {
           setSwap(data.swaps);
+          setPage(data.pagination.currentPage);
+          setTotalPages(data.pagination.totalPages);
         } else {
           setSwap([]);
         }
@@ -117,7 +122,7 @@ export default function NewItems() {
       }
     };
     fetchOrders();
-  }, [token]);
+  }, [page]);
   return (
     <div>
       {loading ? (
@@ -170,6 +175,7 @@ export default function NewItems() {
           ))}
         </div>
       )}
+      <PageButton page={page} setPage={setPage} totalPages={totalPages} />
     </div>
   );
 }

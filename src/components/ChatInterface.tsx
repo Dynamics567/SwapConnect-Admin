@@ -39,6 +39,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
+    // socket,
     isConnected,
     joinConversation,
     sendMessage,

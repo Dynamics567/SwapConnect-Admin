@@ -4,6 +4,7 @@ import { Plus, Filter, Search, MoreVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
+import PageButton from "./PageButton";
 
 // const teamData = [
 //   { name: "Jane Doe", email: "jane@example.com", role: "Admin" },
@@ -42,6 +43,8 @@ export default function TeamContent() {
   const [activeTab, setActiveTab] = useState<"teams" | "roles">("teams");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const [team, setTeam] = useState<Teams[]>([]);
   const [actionMenuIdx, setActionMenuIdx] = useState<number | null>(null);
   const [confirmIdx, setConfirmIdx] = useState<number | null>(null);
@@ -64,14 +67,14 @@ export default function TeamContent() {
     // Here you would also call your API to deactivate the user
   };
   useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    // if (!token) {
+    //   setLoading(false);
+    //   return;
+    // }
     const fetchTeams = async () => {
       try {
         const response = await fetch(
-          `${API_URL}/api/admin/users/all?role=admin`,
+          `${API_URL}/api/admin/users/all?role=admin&page=${page}&limit=10`,
           {
             method: "GET",
             headers: {
@@ -84,6 +87,8 @@ export default function TeamContent() {
         // console.log("API Response", data);
         if (data) {
           setTeam(data?.users);
+          setPage(data?.pagination.currentPage || 1);
+          setTotalPages(data?.pagination.totalPages || 1);
         } else {
           setTeam([]);
         }
@@ -94,7 +99,7 @@ export default function TeamContent() {
       }
     };
     fetchTeams();
-  }, [token]);
+  }, [page]);
   return (
     <div className="w-full flex flex-col gap-6 relative">
       {/* Header row */}
@@ -265,6 +270,7 @@ export default function TeamContent() {
               </tbody>
             </table>
           )}
+          <PageButton page={page} setPage={setPage} totalPages={totalPages} />
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow p-4 w-full overflow-x-auto">
@@ -349,6 +355,7 @@ export default function TeamContent() {
               ))}
             </tbody>
           </table>
+          <PageButton page={page} setPage={setPage} totalPages={totalPages} />
         </div>
       )}
       {/* Success Popup */}

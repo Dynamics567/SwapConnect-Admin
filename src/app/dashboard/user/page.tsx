@@ -12,8 +12,9 @@ import { useRouter } from "next/navigation";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
 import { JSX } from "react";
+import PageButton from "@/components/PageButton";
 
-// const PAGE_SIZE = 5;
+// const PAGE_SIZE = 10;
 interface Stats {
   label: string;
   value: string | number;
@@ -50,25 +51,26 @@ export default function UserPage() {
   const [search, setSearch] = useState("");
   const [dropdownIdx, setDropdownIdx] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  // const [page, setPage] = useState(1);
+  const [page, setPage] = useState(1);
   // const [category, setCategory] = useState();
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<Stats[]>([]);
   const router = useRouter();
   const token = useAuthToken();
+  const [totalPages, setTotalPages] = useState(0);
 
   const handleRowClick = (userId: string) => {
     router.push(`/dashboard/user/${userId}`);
   };
   useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    // if (!token) {
+    //   setLoading(false);
+    //   return;
+    // }
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          `${API_URL}/api/admin/users/all?role=user`,
+          `${API_URL}/api/admin/users/all?role=user&page=${page}&limit=10`,
           {
             method: "GET",
             headers: {
@@ -81,6 +83,8 @@ export default function UserPage() {
         // console.log("API response", data);
         if (data) {
           setUsers(data?.users);
+          setPage(data.pagination.currentPage);
+          setTotalPages(data.pagination.totalPages);
           setStats([
             {
               label: "Total Users",
@@ -113,7 +117,7 @@ export default function UserPage() {
       }
     };
     fetchUser();
-  }, [token]);
+  }, [page]);
 
   // // Filter and search logic
   // const filteredUsers = useMemo(() => {
@@ -275,6 +279,7 @@ export default function UserPage() {
               ))}
           </tbody>
         </table>
+        <PageButton page={page} setPage={setPage} totalPages={totalPages} />
       </div>
 
       {/* Mobile Card View */}
@@ -348,6 +353,7 @@ export default function UserPage() {
               </div>
             ))}
         </div>
+        <PageButton page={page} setPage={setPage} totalPages={totalPages} />
       </div>
     </div>
   );

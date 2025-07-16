@@ -81,7 +81,7 @@ const LoginPage = () => {
           </div>
         </div>
         {/* Right: Login Form */}
-        <div className="w-full md:w-1/2 flex items-center  justify-center p-8">
+        <div className="w-full md:w-1/2 flex items-center  justify-center p-4 md:p-8">
           <form onSubmit={handleSubmit} className="w-[720px] max-w-xs">
             <div>
               <h2 className="text-3xl font-bold mb-2 text-[#037F44]">

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
+import Page from "@/app/dashboard/page";
+import PageButton from "./PageButton";
 
 type Order = {
   id: string;
@@ -18,13 +20,15 @@ type Order = {
 export default function NewItems() {
   const [items, setItems] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const token = useAuthToken();
 
   useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    // if (!token) {
+    //   setLoading(false);
+    //   return;
+    // }
     const fetchOrders = async () => {
       try {
         const response = await fetch(`${API_URL}/api/admin/listings/recent`, {
@@ -37,6 +41,8 @@ export default function NewItems() {
         const data = await response.json();
         if (data) {
           setItems(data?.listings);
+          setPage(data.pagination.currentPage);
+          setTotalPages(data.pagination.totalPages);
         } else {
           setItems([]);
         }
@@ -47,7 +53,7 @@ export default function NewItems() {
       }
     };
     fetchOrders();
-  }, [token]);
+  }, [page]);
 
   return (
     <div>
@@ -95,6 +101,7 @@ export default function NewItems() {
           ))}
         </div>
       )}
+      <PageButton page={page} setPage={setPage} totalPages={totalPages} />
     </div>
   );
 }
