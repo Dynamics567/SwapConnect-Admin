@@ -39,6 +39,10 @@ export default function ListingDetails() {
   const [loading, setLoading] = useState(false);
   const token = useAuthToken();
   const [item, setItem] = useState<Item | null>(null);
+  const [approvalStatus, setApprovalStatus] = useState<
+    "approved" | "rejected" | null
+  >(null);
+
   const params = useParams();
   const productId = params.id;
 
@@ -74,6 +78,54 @@ export default function ListingDetails() {
     };
     fetchOrders();
   }, [token, productId]);
+
+  const handleApprove = async () => {
+    if (!token || !productId) return;
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${API_URL}/api/admin/product/${productId}/approve`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const result = await res.json();
+      console.log("Approved:", result);
+      setApprovalStatus("approved");
+    } catch (err) {
+      console.error("Approval error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!token || !productId) return;
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${API_URL}/api/admin/product/${productId}/reject`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const result = await res.json();
+      console.log("Rejected:", result);
+      setApprovalStatus("rejected");
+    } catch (err) {
+      console.error("Rejection error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-8 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
@@ -186,12 +238,32 @@ export default function ListingDetails() {
                 </div>
               </div>
 
-              <button className="bg-green-700 text-white rounded-lg py-2 w-full mb-3 hover:bg-green-800">
-                Approve listing
-              </button>
-              <button className="border border-green-700 text-green-700 rounded-lg py-2 w-full hover:bg-green-50">
-                Reject listing
-              </button>
+              {approvalStatus === "approved" ? (
+                <p className="text-green-700 font-medium text-center">
+                  Product approved
+                </p>
+              ) : approvalStatus === "rejected" ? (
+                <p className="text-red-600 font-medium text-center">
+                  Product rejected
+                </p>
+              ) : (
+                <>
+                  <button
+                    onClick={handleApprove}
+                    className="bg-green-700 text-white rounded-lg py-2 w-full mb-3 hover:bg-green-800 disabled:opacity-50"
+                    disabled={loading}
+                  >
+                    {loading ? "Processing..." : "Approve listing"}
+                  </button>
+                  <button
+                    onClick={handleReject}
+                    className="border border-green-700 text-green-700 rounded-lg py-2 w-full hover:bg-green-50 disabled:opacity-50"
+                    disabled={loading}
+                  >
+                    {loading ? "Processing..." : "Reject listing"}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

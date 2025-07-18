@@ -45,6 +45,7 @@ interface User {
   phone_number: string;
   amount_spent: string;
   date_joined: string;
+  isSuspended?: boolean; // locally tracked
 }
 
 export default function UserPage() {
@@ -63,10 +64,6 @@ export default function UserPage() {
     router.push(`/dashboard/user/${userId}`);
   };
   useEffect(() => {
-    // if (!token) {
-    //   setLoading(false);
-    //   return;
-    // }
     const fetchUser = async () => {
       try {
         const response = await fetch(
@@ -119,21 +116,41 @@ export default function UserPage() {
     fetchUser();
   }, [page]);
 
-  // // Filter and search logic
-  // const filteredUsers = useMemo(() => {
-  //   return users.filter(
-  //     (prod) =>
-  //       (!category || prod.categoryId === category) &&
-  //       prod.name.toLowerCase().includes(search.toLowerCase())
-  //   );
-  // }, [search, category, users]);
+  const handleSuspendUser = async (userId: string, currentState?: boolean) => {
+    if (!token) return;
 
-  // // Pagination logic
-  // const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
-  // const paginatedProducts = filteredProducts.slice(
-  //   (page - 1) * PAGE_SIZE,
-  //   page * PAGE_SIZE
-  // );
+    const suspend = !currentState; // toggle state
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/admin/users/${userId}/suspend`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ suspend }),
+        }
+      );
+
+      const resText = await response.text();
+
+      if (response.ok) {
+        setUsers((prev) =>
+          prev.map((user) =>
+            user.id === userId ? { ...user, isSuspended: suspend } : user
+          )
+        );
+        alert(`User has been ${suspend ? "suspended" : "unsuspended"}`);
+      } else {
+        console.error("Failed to suspend user:", resText);
+      }
+    } catch (error) {
+      console.error("Error suspending user:", error);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-8 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
       {/* Stat Cards */}
@@ -260,12 +277,25 @@ export default function UserPage() {
                     </button>
                     {dropdownIdx === idx && (
                       <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-10">
-                        <button className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44]">
+                        <button
+                          className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44]"
+                          onClick={() =>
+                            router.push("/dashboard/user/[userId]")
+                          }
+                        >
                           View
                         </button>
-                        <button className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44]">
-                          Suspend
+                        <button
+                          className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44]"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSuspendUser(user.id, user.isSuspended);
+                            setDropdownIdx(null);
+                          }}
+                        >
+                          {user.isSuspended ? "Unsuspend" : "Suspend"}
                         </button>
+
                         <button className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44]">
                           Ban
                         </button>
@@ -317,6 +347,8 @@ export default function UserPage() {
                     className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
                     onClick={(e) => {
                       e.stopPropagation();
+                      router.push("/dashboard/user/[userId]");
+
                       // handle view
                     }}
                   >
@@ -326,11 +358,12 @@ export default function UserPage() {
                     className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // handle suspend
+                      handleSuspendUser(user.id, user.isSuspended);
                     }}
                   >
-                    Suspend
+                    {user.isSuspended ? "Unsuspend" : "Suspend"}
                   </button>
+
                   <button
                     className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
                     onClick={(e) => {

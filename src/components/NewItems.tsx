@@ -78,7 +78,7 @@ export default function NewItems() {
             >
               <Image
                 src={items.imageUrl}
-                alt={items.name}
+                alt="phone"
                 width={280}
                 height={160}
                 className="object-cover rounded mb-3"
