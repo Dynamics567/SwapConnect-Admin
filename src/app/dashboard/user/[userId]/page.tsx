@@ -8,94 +8,6 @@ import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 
 // Mock users data (replace with real data fetching in production)
-const users = [
-  {
-    _id: "1",
-    id: "1",
-    firstname: "John",
-    lastname: "Doe",
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "08012345678",
-    amountSpent: "$1,200",
-    dateJoined: "2024-01-15",
-    status: "Active",
-    badge: "Gold",
-    bio: "A passionate swapper and long-time user.",
-    image: "",
-    orders: [
-      {
-        id: "ORD-001",
-        product: "iPhone 14",
-        category: "Electronics",
-        description: "Latest Apple smartphone",
-        date: "2024-03-01",
-        amount: "$800",
-        status: "Completed",
-      },
-      {
-        id: "ORD-002",
-        product: "Samsung TV",
-        category: "Electronics",
-        description: "50-inch 4K UHD Smart TV",
-        date: "2024-04-10",
-        amount: "$400",
-        status: "Pending",
-      },
-    ],
-    payments: [
-      {
-        id: "PAY-001",
-        name: "iPhone 14",
-        category: "Electronics",
-        price: "$800",
-        status: "Success",
-      },
-      {
-        id: "PAY-002",
-        name: "Samsung TV",
-        category: "Electronics",
-        price: "$400",
-        status: "Pending",
-      },
-    ],
-  },
-  {
-    _id: "2",
-    id: "2",
-    firstname: "Jane",
-    lastname: "Smith",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    phone: "08098765432",
-    amountSpent: "$950",
-    dateJoined: "2024-02-10",
-    status: "Non Active",
-    badge: "Silver",
-    bio: "Loves electronics and home appliances.",
-    image: "",
-    orders: [
-      {
-        id: "ORD-003",
-        product: "MacBook Pro",
-        category: "Computers",
-        description: "Apple laptop with M1 chip",
-        date: "2024-02-15",
-        amount: "$950",
-        status: "Completed",
-      },
-    ],
-    payments: [
-      {
-        id: "PAY-003",
-        name: "MacBook Pro",
-        category: "Computers",
-        price: "$950",
-        status: "Success",
-      },
-    ],
-  },
-];
 
 const tabs = [
   { key: "personal", label: "Personal Details" },
@@ -155,6 +67,8 @@ export default function UserDetailsPage() {
       return;
     }
     const fetchUserDetails = async () => {
+      setLoading(true); // Start loading
+
       try {
         const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
           method: "GET",
@@ -179,9 +93,17 @@ export default function UserDetailsPage() {
     fetchUserDetails();
   }, [userId, token]);
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#F8F9FB]">
+        <p className="text-lg text-gray-600">Loading user details...</p>
+      </div>
+    );
+  }
+
   if (!users) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#F8F9FB]">
         <p className="text-xl text-red-600">User not found.</p>
         <Link
           href="/dashboard/user"
@@ -203,6 +125,7 @@ export default function UserDetailsPage() {
         <span className="text-[#505050]">User Details</span>
       </div>
       {/* Tabs */}
+
       <div className="flex gap-8 mb-8">
         {tabs.map((tab) => (
           <button
@@ -222,6 +145,7 @@ export default function UserDetailsPage() {
       </div>
 
       {/* Tab Content */}
+
       <div className="bg-white rounded-lg shadow p-8 w-full">
         {activeTab === "personal" && (
           <div>
