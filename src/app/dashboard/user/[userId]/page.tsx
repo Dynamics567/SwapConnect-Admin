@@ -82,10 +82,10 @@ export default function UserDetailsPage() {
         if (data) {
           setUsers(data); // Assuming the API returns a single user object
         } else {
-          setUsers([]);
+          setUsers(null);
         }
       } catch {
-        setUsers([]);
+        setUsers(null);
       } finally {
         setLoading(false);
       }
