@@ -26,10 +26,7 @@ export default function NewItems() {
   const token = useAuthToken();
 
   useEffect(() => {
-    // if (!token) {
-    //   setLoading(false);
-    //   return;
-    // }
+    
     const fetchOrders = async () => {
       try {
         const response = await fetch(

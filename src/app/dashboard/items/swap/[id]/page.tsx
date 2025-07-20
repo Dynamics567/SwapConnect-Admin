@@ -200,9 +200,11 @@ export default function ListingDetails() {
                 <div>
                   <select
                     id="condition"
-                    className="w-full border rounded px-3 py-2 text-sm bg-gray-50"
+                    className="w-full border text-black font-bold rounded px-3 py-2 text-sm bg-gray-50"
                   >
-                    <option value="condition">Condition tag</option>
+                    <option value="condition" className="font-bold text-black">
+                      Condition tag
+                    </option>
 
                     <option value="used">Excellent</option>
                     <option value="new">Good</option>
@@ -212,9 +214,11 @@ export default function ListingDetails() {
                 <div>
                   <select
                     id="verification"
-                    className="w-full border rounded px-3 py-2 text-sm bg-gray-50"
+                    className="w-full border text-black font-bold rounded px-3 py-2 text-sm bg-gray-50"
                   >
-                    <option value="verified">Verification status</option>
+                    <option value="verified" className="font-bold">
+                      Verification status
+                    </option>
                     <option value="pending">Verify</option>
                     <option value="rejected">Warranty</option>
                   </select>

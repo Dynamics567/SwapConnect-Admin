@@ -53,7 +53,7 @@ export default function UserDetailsPage() {
   const token = useAuthToken();
   const [loading, setLoading] = useState(false);
   //   const router = useRouter();
-  const { userId } = params;
+  const userId = params?.userId;
   const [activeTab, setActiveTab] = useState<
     "personal" | "orders" | "payments"
   >("personal");
@@ -78,6 +78,8 @@ export default function UserDetailsPage() {
           },
         });
         const data = await response.json();
+        console.log("userId:", userId); // should not be undefined
+
         console.log("User Details:", data);
         if (data) {
           setUsers(data); // Assuming the API returns a single user object

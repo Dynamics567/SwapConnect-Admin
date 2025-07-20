@@ -1,36 +1,115 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Filter, MoreVertical, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/config";
+import { useAuthToken } from "@/hooks/useAuthToken";
 
-const stores = [
-  {
-    name: "SwapConnect Ikeja",
-    location: "Ikeja, Lagos",
-    contact: "08012345678",
-  },
-  {
-    name: "SwapConnect Abuja",
-    location: "Wuse, Abuja",
-    contact: "08123456789",
-  },
-  {
-    name: "SwapConnect PH",
-    location: "GRA, Port Harcourt",
-    contact: "09087654321",
-  },
-];
+interface Store {
+  id: string;
+  name: string;
+  address: string;
+  contact: string;
+}
 
 export default function PhysicalStore() {
   const [search, setSearch] = useState("");
   const [actionMenuIdx, setActionMenuIdx] = useState<number | null>(null);
-  const router = useRouter();
+  const [stores, setStores] = useState<Store[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  const filteredStores = stores.filter(
-    (store) =>
-      store.name.toLowerCase().includes(search.toLowerCase()) ||
-      store.location.toLowerCase().includes(search.toLowerCase()) ||
-      store.contact.includes(search)
+  const router = useRouter();
+  const token = useAuthToken();
+
+  useEffect(() => {
+    const fetchStores = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/api/admin/store`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        console.log("Store Listings:", data);
+        if (Array.isArray(data.data)) {
+          setStores(data.data);
+        } else {
+          setStores([]);
+        }
+      } catch {
+        setStores([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStores();
+  }, [token]);
+
+  const handleEdit = (id: string) => {
+    router.push(`/dashboard/store/edit/${id}`);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedStoreId) return;
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/admin/store/${selectedStoreId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+      console.log("Delete result:", result);
+
+      if (response.ok) {
+        setStores((prev) =>
+          prev.filter((store) => store.id !== selectedStoreId)
+        );
+        setShowConfirm(false);
+        setShowSuccess(true);
+      } else {
+        alert(result?.message || "Failed to delete store");
+      }
+    } catch (error) {
+      console.error("Error deleting store:", error);
+      alert("An error occurred while deleting the store");
+    }
+  };
+
+  const renderActions = (id: string, idx: number) => (
+    <div className="absolute z-10 right-6 mt-2 w-32 bg-white border rounded shadow-lg">
+      <button
+        className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
+        onClick={() => {
+          setActionMenuIdx(null);
+          handleEdit(id);
+        }}
+      >
+        Edit
+      </button>
+      <button
+        className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-red-600 text-sm"
+        onClick={() => {
+          setSelectedStoreId(id);
+          setShowConfirm(true);
+          setActionMenuIdx(null);
+        }}
+      >
+        Delete
+      </button>
+    </div>
   );
 
   return (
@@ -44,7 +123,7 @@ export default function PhysicalStore() {
           onClick={() => router.push("/dashboard/store/add")}
         >
           <Plus size={18} />
-          Add new store{" "}
+          Add new store
         </button>
       </div>
 
@@ -66,125 +145,125 @@ export default function PhysicalStore() {
         </button>
       </div>
 
-      {/* Desktop Table */}
-      <div className="hidden md:block bg-white rounded-xl shadow p-4 w-full overflow-x-auto">
-        <table className="w-full table-auto">
-          <thead>
-            <tr className="bg-[#CCDCD4] text-[#505050] text-left">
-              <th className="py-2 px-4 font-normal text-sm">Store Name</th>
-              <th className="py-2 px-4 font-normal text-sm">Location</th>
-              <th className="py-2 px-4 font-normal text-sm">Contact</th>
-              <th className="py-2 px-4 font-normal text-sm">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredStores.map((store, idx) => (
-              <tr key={idx} className="text-[#434343] text-sm relative">
-                <td className="py-2 px-4">{store.name}</td>
-                <td className="py-2 px-4">{store.location}</td>
-                <td className="py-2 px-4">{store.contact}</td>
-                <td className="py-2 px-4">
-                  <button
-                    className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
-                    onClick={() =>
-                      setActionMenuIdx(actionMenuIdx === idx ? null : idx)
-                    }
-                    type="button"
-                  >
-                    <MoreVertical size={18} />
-                  </button>
-                  {actionMenuIdx === idx && (
-                    <div className="absolute z-10 right-6 mt-2 w-32 bg-white border rounded shadow-lg">
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
-                        onClick={() => {
-                          setActionMenuIdx(null);
-                          // handle edit logic here
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-red-600 text-sm"
-                        onClick={() => {
-                          setActionMenuIdx(null);
-                          // handle delete logic here
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {filteredStores.length === 0 && (
-              <tr>
-                <td colSpan={4} className="py-4 text-center text-gray-400">
-                  No stores found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile Card View */}
-      <div className="block md:hidden">
-        <div className="flex flex-col gap-4">
-          {filteredStores.length === 0 ? (
-            <div className="text-center text-gray-400 py-8">
-              No stores found.
+      {/* Confirmation Dialog */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-[#F8F9FB] bg-opacity-30 flex justify-center items-center z-50">
+          <div className="bg-white p-6 flex flex-col  justify-between rounded shadow-lg h-50 w-90">
+            <div className="flex flex-col items-center justify-center">
+              <p className="text-[#101828] text-[18px]">Deactivate</p>
+              <p className="text-sm mb-4 text-[#667085]">
+                Are you sure you want to delete this store?
+              </p>
             </div>
-          ) : (
-            filteredStores.map((store, idx) => (
-              <div
-                key={idx}
-                className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 relative"
+
+            <div className="flex justify-between gap-4">
+              <button
+                className="text-gray-500 border px-4 rounded border-[#037F44] hover:text-gray-700"
+                onClick={() => setShowConfirm(false)}
               >
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-[#353535]">
-                    {store.name}
-                  </span>
-                  <button
-                    className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
-                    onClick={() =>
-                      setActionMenuIdx(actionMenuIdx === idx ? null : idx)
-                    }
-                    type="button"
-                  >
-                    <MoreVertical size={18} />
-                  </button>
-                  {actionMenuIdx === idx && (
-                    <div className="absolute z-10 right-4 top-12 w-32 bg-white border rounded shadow-lg">
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
-                        onClick={() => {
-                          setActionMenuIdx(null);
-                          // handle edit logic here
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-red-600 text-sm"
-                        onClick={() => {
-                          setActionMenuIdx(null);
-                          // handle delete logic here
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <div className="text-sm text-[#505050]">{store.location}</div>
-                <div className="text-sm text-[#505050]">{store.contact}</div>
-              </div>
-            ))
-          )}
+                Cancel
+              </button>
+              <button
+                className="bg-[#037F44] text-white px-4 py-1 rounded hover:bg-red-700"
+                onClick={handleDelete}
+              >
+                Proceed
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+      {/* Success Modal */}
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-xl w-[90%] max-w-md text-center">
+            <h3 className="text-xl font-semibold text-[#037F44]">Deleted</h3>
+            <p className="text-sm text-[#667085] mt-2">
+              Store has been successfully deleted.
+            </p>
+            <button
+              className="mt-4 bg-[#037F44] text-white px-6 py-2 rounded-lg"
+              onClick={() => setShowSuccess(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="text-center py-8 text-[#037F44] font-medium">
+          Loading stores...
+        </div>
+      ) : (
+        <>
+          {/* Desktop Table */}
+          <div className="hidden md:block bg-white rounded-xl shadow p-4 w-full overflow-x-auto">
+            <table className="w-full table-auto">
+              <thead>
+                <tr className="bg-[#CCDCD4] text-[#505050] text-left">
+                  <th className="py-2 px-4 font-normal text-sm">Store Name</th>
+                  <th className="py-2 px-4 font-normal text-sm">Location</th>
+                  <th className="py-2 px-4 font-normal text-sm">Contact</th>
+                  <th className="py-2 px-4 font-normal text-sm">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stores.map((store, idx) => (
+                  <tr
+                    key={store.id}
+                    className="text-[#434343] text-sm relative"
+                  >
+                    <td className="py-2 px-4">{store.name}</td>
+                    <td className="py-2 px-4">{store.address}</td>
+                    <td className="py-2 px-4">{store.contact}</td>
+                    <td className="py-2 px-4">
+                      <button
+                        className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
+                        onClick={() =>
+                          setActionMenuIdx(actionMenuIdx === idx ? null : idx)
+                        }
+                      >
+                        <MoreVertical size={18} />
+                      </button>
+                      {actionMenuIdx === idx && renderActions(store.id, idx)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile View */}
+          <div className="block md:hidden">
+            <div className="flex flex-col gap-4">
+              {stores.map((store, idx) => (
+                <div
+                  key={store.id}
+                  className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 relative"
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-[#353535]">
+                      {store.name}
+                    </span>
+                    <button
+                      className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
+                      onClick={() =>
+                        setActionMenuIdx(actionMenuIdx === idx ? null : idx)
+                      }
+                    >
+                      <MoreVertical size={18} />
+                    </button>
+                    {actionMenuIdx === idx && renderActions(store.id, idx)}
+                  </div>
+                  <div className="text-sm text-[#505050]">{store.address}</div>
+                  <div className="text-sm text-[#505050]">{store.contact}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

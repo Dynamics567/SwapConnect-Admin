@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { API_URL } from "@/lib/config";
 import { useRouter } from "next/navigation";
-// import { useAuthToken } from "@/hooks/useAuthToken";
+import { useAuthToken } from "@/hooks/useAuthToken";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -12,7 +12,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  // const token = useAuthToken();
+  const token = useAuthToken();
 
   //clear error on input change
   useEffect(() => {
@@ -32,7 +32,7 @@ const LoginPage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ email, password }),
       });

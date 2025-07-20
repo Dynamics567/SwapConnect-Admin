@@ -279,9 +279,10 @@ export default function UserPage() {
                       <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-10">
                         <button
                           className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44]"
-                          onClick={() =>
-                            router.push("/dashboard/user/[userId]")
-                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/dashboard/user/${user.id}`);
+                          }}
                         >
                           View
                         </button>
@@ -347,7 +348,7 @@ export default function UserPage() {
                     className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
                     onClick={(e) => {
                       e.stopPropagation();
-                      router.push("/dashboard/user/[userId]");
+                      router.push(`/dashboard/user/${user.id}`);
 
                       // handle view
                     }}
