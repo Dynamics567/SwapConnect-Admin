@@ -88,7 +88,7 @@ export default function PhysicalStore() {
     }
   };
 
-  const renderActions = (id: string, idx: number) => (
+  const renderActions = (id: string, _idx: number) => (
     <div className="absolute z-10 right-6 mt-2 w-32 bg-white border rounded shadow-lg">
       <button
         className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
@@ -209,7 +209,7 @@ export default function PhysicalStore() {
                 </tr>
               </thead>
               <tbody>
-                {stores.map((store, idx) => (
+                {stores.map((store, _idx) => (
                   <tr
                     key={store.id}
                     className="text-[#434343] text-sm relative"
@@ -221,12 +221,12 @@ export default function PhysicalStore() {
                       <button
                         className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
                         onClick={() =>
-                          setActionMenuIdx(actionMenuIdx === idx ? null : idx)
+                          setActionMenuIdx(actionMenuIdx === _idx ? null : _idx)
                         }
                       >
                         <MoreVertical size={18} />
                       </button>
-                      {actionMenuIdx === idx && renderActions(store.id, idx)}
+                      {actionMenuIdx === _idx && renderActions(store.id, _idx)}
                     </td>
                   </tr>
                 ))}
