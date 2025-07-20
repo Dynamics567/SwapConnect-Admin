@@ -46,7 +46,7 @@ export default function AddStorePage() {
       setAddress("");
       setContact("");
       setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);

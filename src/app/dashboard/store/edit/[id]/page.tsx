@@ -39,8 +39,8 @@ export default function EditStorePage() {
         setName(data.data.name);
         setAddress(data.data.address);
         setContact(data.data.contact);
-      } catch (err: any) {
-        setError(err.message);
+      } catch {
+        setError("Something went wrong. Please try again.");
       } finally {
         setLoading(false);
       }
