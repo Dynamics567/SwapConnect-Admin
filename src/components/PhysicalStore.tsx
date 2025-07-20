@@ -209,7 +209,7 @@ export default function PhysicalStore() {
                 </tr>
               </thead>
               <tbody>
-                {stores.map((store, _idx) => (
+                {stores.map((store) => (
                   <tr
                     key={store.id}
                     className="text-[#434343] text-sm relative"
@@ -239,7 +239,7 @@ export default function PhysicalStore() {
           {/* Mobile View */}
           <div className="block md:hidden">
             <div className="flex flex-col gap-4">
-              {stores.map((store, idx) => (
+              {stores.map((store) => (
                 <div
                   key={store.id}
                   className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 relative"
