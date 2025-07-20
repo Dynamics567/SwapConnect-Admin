@@ -14,7 +14,7 @@ interface Store {
 
 export default function PhysicalStore() {
   const [search, setSearch] = useState("");
-  const [actionMenuIdx, setActionMenuIdx] = useState<number | null>(null);
+  const [actionMenuId, setActionMenuId] = useState<string | null>(null);
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
@@ -88,12 +88,12 @@ export default function PhysicalStore() {
     }
   };
 
-  const renderActions = (id: string, _idx: number) => (
+  const renderActions = (id: string) => (
     <div className="absolute z-10 right-6 mt-2 w-32 bg-white border rounded shadow-lg">
       <button
         className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
         onClick={() => {
-          setActionMenuIdx(null);
+          setActionMenuId(null);
           handleEdit(id);
         }}
       >
@@ -104,7 +104,7 @@ export default function PhysicalStore() {
         onClick={() => {
           setSelectedStoreId(id);
           setShowConfirm(true);
-          setActionMenuIdx(null);
+          setActionMenuId(null);
         }}
       >
         Delete
@@ -221,12 +221,14 @@ export default function PhysicalStore() {
                       <button
                         className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
                         onClick={() =>
-                          setActionMenuIdx(actionMenuIdx === _idx ? null : _idx)
+                          setActionMenuId(
+                            actionMenuId === store.id ? null : store.id
+                          )
                         }
                       >
                         <MoreVertical size={18} />
                       </button>
-                      {actionMenuIdx === _idx && renderActions(store.id, _idx)}
+                      {actionMenuId === store.id && renderActions(store.id)}
                     </td>
                   </tr>
                 ))}
@@ -249,12 +251,14 @@ export default function PhysicalStore() {
                     <button
                       className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
                       onClick={() =>
-                        setActionMenuIdx(actionMenuIdx === idx ? null : idx)
+                        setActionMenuId(
+                          actionMenuId === store.id ? null : store.id
+                        )
                       }
                     >
                       <MoreVertical size={18} />
                     </button>
-                    {actionMenuIdx === idx && renderActions(store.id, idx)}
+                    {actionMenuId === store.id && renderActions(store.id)}
                   </div>
                   <div className="text-sm text-[#505050]">{store.address}</div>
                   <div className="text-sm text-[#505050]">{store.contact}</div>
