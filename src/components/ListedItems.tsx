@@ -39,6 +39,7 @@ export default function NewItems() {
           },
         });
         const data = await response.json();
+
         if (data) {
           setItems(data?.listings);
           setPage(data.pagination.currentPage);

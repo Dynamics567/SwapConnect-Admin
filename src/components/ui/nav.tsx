@@ -91,7 +91,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
           return;
         }
         const data = await response.json();
-        console.log("API Respone", data);
+        // console.log("API Respone", data);
         if (data.admin && typeof data.admin === "object") {
           const userData = {
             ...data.admin,
@@ -100,7 +100,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
             email: data.admin.email || "",
           };
           setUser(userData);
-          console.log("data:", data);
+          // console.log("data:", data);
         } else {
           setUserError("Invalid user data");
           console.log("Unexpected user data format:", data);

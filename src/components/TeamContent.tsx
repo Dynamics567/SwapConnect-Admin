@@ -12,6 +12,7 @@ import PageButton from "./PageButton";
 //   { name: "Alice Lee", email: "alice@example.com", role: "Viewer" },
 // ];
 interface Teams {
+  id: string;
   name: string;
   email: string;
   role: string;
@@ -208,11 +209,7 @@ export default function TeamContent() {
                             className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
                             onClick={() => {
                               setActionMenuIdx(null);
-                              router.push(
-                                `/dashboard/team/edit/${encodeURIComponent(
-                                  team.email
-                                )}`
-                              );
+                              router.push(`/dashboard/team/edit/${team.id}`);
                             }}
                           >
                             Edit

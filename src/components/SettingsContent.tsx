@@ -2,6 +2,19 @@
 import React, { useState } from "react";
 import { Pencil, ToggleLeft, ToggleRight } from "lucide-react";
 import Image from "next/image";
+import { useAuthToken } from "@/hooks/useAuthToken";
+import { API_URL } from "@/lib/config";
+import { useEffect } from "react";
+
+interface AdminUpdateFields {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  twoFactorEnabled?: boolean;
+  emailNotificationsEnabled?: boolean;
+  pushNotificationsEnabled?: boolean;
+}
 
 export default function SettingsContent() {
   const [activeTab, setActiveTab] = useState<
@@ -14,7 +27,7 @@ export default function SettingsContent() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-
+  const token = useAuthToken();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [twoFAEnabled, setTwoFAEnabled] = useState(false);
   const [emailEnabled, setEmailEnabled] = useState(false);
@@ -23,6 +36,90 @@ export default function SettingsContent() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setImage(URL.createObjectURL(e.target.files[0]));
+    }
+  };
+
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/admin`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        console.log("ADMIN", data);
+
+        if (res.ok) {
+          setFirstName(data.data.firstName || "");
+          setLastName(data.data.lastName || "");
+          setEmail(data.data.email || "");
+          setPhone(data.data.phone || "");
+          setTwoFAEnabled(data.data.twoFactorEnabled || false);
+          setEmailEnabled(data.data.emailNotificationsEnabled || false);
+          setSmsEnabled(data.data.pushNotificationsEnabled || false);
+          // Optionally handle image if you get one
+        } else {
+          console.error("Failed to fetch admin data:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching admin data:", error);
+      }
+    };
+
+    if (token) {
+      fetchAdminData();
+    }
+  }, [token]);
+
+  const submitSettingsUpdate = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/admin/edit-admin`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          phone,
+          twoFactorEnabled: twoFAEnabled,
+          emailNotificationsEnabled: emailEnabled,
+          pushNotificationsEnabled: smsEnabled,
+          // image: profileImageFile (if you're sending an image, use FormData instead)
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        console.log("Settings updated:", data);
+        alert("Settings updated successfully!");
+      } else {
+        console.error("Update failed:", data.message);
+        alert(`Update failed: ${data.message}`);
+      }
+    } catch (err) {
+      console.error("Error updating settings", err);
+      alert("An error occurred while updating settings.");
+    }
+  };
+
+  const updateSettings = async (updatedFields: AdminUpdateFields) => {
+    try {
+      await fetch(`${API_URL}/api/admin/edit-admin`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedFields),
+      });
+    } catch (err) {
+      console.error("Failed to update settings", err);
     }
   };
 
@@ -63,7 +160,13 @@ export default function SettingsContent() {
 
       <div className="w-full max-w-2xl mx-auto bg-white rounded-xl shadow p-6 mt-0">
         {activeTab === "personal" && (
-          <form className="flex flex-col gap-4">
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              submitSettingsUpdate();
+            }}
+          >
             <div className="flex flex-col items-center mb-4">
               <label htmlFor="profile-image" className="cursor-pointer">
                 <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border">
@@ -96,7 +199,7 @@ export default function SettingsContent() {
                 </label>
                 <input
                   type="text"
-                  className="w-full border rounded px-3 py-2 text-sm bg-gray-50"
+                  className="w-full border text-black rounded px-3 py-2 text-sm bg-gray-50"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                 />
@@ -107,7 +210,7 @@ export default function SettingsContent() {
                 </label>
                 <input
                   type="text"
-                  className="w-full border rounded px-3 py-2 text-sm bg-gray-50"
+                  className="w-full border text-black rounded px-3 py-2 text-sm bg-gray-50"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                 />
@@ -120,7 +223,7 @@ export default function SettingsContent() {
                 </label>
                 <input
                   type="email"
-                  className="w-full border rounded px-3 py-2 text-sm bg-gray-50"
+                  className="w-full border text-black rounded px-3 py-2 text-sm bg-gray-50"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -131,7 +234,7 @@ export default function SettingsContent() {
                 </label>
                 <input
                   type="tel"
-                  className="w-full border rounded px-3 py-2 text-sm bg-gray-50"
+                  className="w-full border text-black rounded px-3 py-2 text-sm bg-gray-50"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />
@@ -216,7 +319,11 @@ export default function SettingsContent() {
                       ? "text-[#037F44] hover:text-[#025c32]" // Green when enabled
                       : "text-[#F87171] hover:text-[#d32f2f]" // Red when disabled
                   }`}
-                  onClick={() => setTwoFAEnabled((v) => !v)}
+                  onClick={() => {
+                    const updated = !twoFAEnabled;
+                    setTwoFAEnabled(updated);
+                    updateSettings({ twoFactorEnabled: updated });
+                  }}
                   title={twoFAEnabled ? "Disable 2FA" : "Enable 2FA"}
                 >
                   {twoFAEnabled ? (
@@ -317,7 +424,11 @@ export default function SettingsContent() {
                       ? "text-[#037F44] hover:text-[#025c32]"
                       : "text-[#F87171] hover:text-[#d32f2f]"
                   }`}
-                  onClick={() => setEmailEnabled((v) => !v)}
+                  onClick={() => {
+                    const updated = !emailEnabled;
+                    setEmailEnabled(updated);
+                    updateSettings({ emailNotificationsEnabled: updated });
+                  }}
                   title={emailEnabled ? "Disable Email" : "Enable Email"}
                 >
                   {emailEnabled ? (
@@ -344,7 +455,11 @@ export default function SettingsContent() {
                       ? "text-[#037F44] hover:text-[#025c32]"
                       : "text-[#F87171] hover:text-[#d32f2f]"
                   }`}
-                  onClick={() => setSmsEnabled((v) => !v)}
+                  onClick={() => {
+                    const updated = !smsEnabled;
+                    setSmsEnabled(updated);
+                    updateSettings({ pushNotificationsEnabled: updated });
+                  }}
                   title={smsEnabled ? "Disable In-App" : "Enable In-App"}
                 >
                   {smsEnabled ? (

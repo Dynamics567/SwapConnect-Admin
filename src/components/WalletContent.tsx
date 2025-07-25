@@ -34,7 +34,10 @@ interface Swap {
       id: number;
       name: string;
     };
-    swapProduct: string | null;
+    swapProduct: {
+      id: number;
+      name: string;
+    };
   };
 }
 interface Stats {
@@ -71,8 +74,9 @@ export default function WalletContent() {
           }
         );
         const data = await response.json();
+        console.log("SWAP ITEM:", swaps);
 
-        // console.log("Transaction Data:", data);
+        console.log("Transaction Data:", data);
         if (typeof data.transactions === "object") {
           setTransactions(data.transactions.orders);
           setPage(data.pagination.currentPage);
@@ -243,10 +247,17 @@ export default function WalletContent() {
                       >
                         <td className="py-2 px-4">{transactions.id}</td>
                         <td className="py-2 px-4">
-                          {transactions.order.products[0].name}
+                          {transactions.order?.products?.[0]?.name ?? "N/A"}
                         </td>
                         <td className="py-2 px-4">₦{transactions.amount}</td>
-                        <td className="py-2 px-4">{transactions.createdAt}</td>
+                        <td className="py-2 px-4">
+                          {" "}
+                          {transactions?.createdAt
+                            ? new Date(transactions.createdAt)
+                                .toISOString()
+                                .slice(0, 10)
+                            : "N/A"}
+                        </td>
                         <td className="py-2 px-4 text-green-700">
                           {transactions.status}
                         </td>
@@ -278,10 +289,22 @@ export default function WalletContent() {
                     {swaps.map((swaps) => (
                       <tr key={swaps.id} className=" text-sm text-[#434343]">
                         <td className="py-2 px-4">{swaps.id}</td>
-                        <td className="py-2 px-4">{swaps.bid.product.name}</td>
-                        <td className="py-2 px-4"> {swaps.bid.swapProduct}</td>
+                        <td className="py-2 px-4">
+                          {swaps?.bid?.product?.name?.toString?.() ?? "N/A"}
+                        </td>
+                        <td className="py-2 px-4">
+                          {" "}
+                          {swaps.bid.swapProduct?.name?.toString?.() ?? "N/A"}
+                        </td>
                         <td className="py-2 px-4">₦{swaps.amount}</td>
-                        <td className="py-2 px-4">{swaps.createdAt}</td>
+                        <td className="py-2 px-4">
+                          {" "}
+                          {swaps?.createdAt
+                            ? new Date(swaps.createdAt)
+                                .toISOString()
+                                .slice(0, 10)
+                            : "N/A"}
+                        </td>
                         <td className="py-2 px-4 text-green-700">
                           {swaps.status}
                         </td>
@@ -309,7 +332,7 @@ export default function WalletContent() {
                       {/* Item and Amount on a row */}
                       <div className="flex justify-between items-center">
                         <span className="font-semibold text-[#353535]">
-                          {transaction.order.products[0].name}
+                          {transaction.order?.products?.[0]?.name ?? "N/A"}
                         </span>
                         <span className="font-bold text-[#037F44]">
                           ₦{transaction.amount}
@@ -318,7 +341,11 @@ export default function WalletContent() {
                       {/* Date and Status on a row */}
                       <div className="flex justify-between items-center text-xs mt-1">
                         <span className="text-[#BEBEBE]">
-                          {transaction.createdAt}
+                          {transaction?.createdAt
+                            ? new Date(transaction.createdAt)
+                                .toISOString()
+                                .slice(0, 10)
+                            : "N/A"}
                         </span>
                         <span
                           className={`font-semibold ${
@@ -348,7 +375,7 @@ export default function WalletContent() {
                       {/* Listed Item and Bid Amount */}
                       <div className="flex justify-between items-center">
                         <span className="font-semibold text-[#353535]">
-                          {swap.bid.product.name}
+                          {swap?.bid?.product?.name?.toString?.() ?? "N/A"}
                         </span>
                         <span className="font-bold text-[#037F44]">
                           ₦{swap.amount}
@@ -356,11 +383,18 @@ export default function WalletContent() {
                       </div>
                       {/* Swap Offer */}
                       <div className="text-xs text-[#505050]">
-                        Swap Offer: {swap.bid.swapProduct}
+                        Swap Offer:{" "}
+                        {swap.bid.swapProduct?.name?.toString?.() ?? "N/A"}
                       </div>
                       {/* Date and Status */}
                       <div className="flex justify-between items-center text-xs mt-1">
-                        <span className="text-[#BEBEBE]">{swap.createdAt}</span>
+                        <span className="text-[#BEBEBE]">
+                          {swap?.createdAt
+                            ? new Date(swap.createdAt)
+                                .toISOString()
+                                .slice(0, 10)
+                            : "N/A"}
+                        </span>
                         <span
                           className={`font-semibold ${
                             swap.status === "Pending"

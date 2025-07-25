@@ -45,7 +45,18 @@ interface User {
   phone_number: string;
   amount_spent: string;
   date_joined: string;
-  isSuspended?: boolean; // locally tracked
+  isSuspended?: boolean;
+  hasBadge?: boolean;
+}
+interface ApiUser {
+  _id?: string;
+  id?: string;
+  name: string;
+  email: string;
+  phone_number: string;
+  amount_spent: string;
+  date_joined: string;
+  badge?: boolean;
 }
 
 export default function UserPage() {
@@ -79,7 +90,20 @@ export default function UserPage() {
         const data = await response.json();
         // console.log("API response", data);
         if (data) {
-          setUsers(data?.users);
+          setUsers(
+            (data.users as ApiUser[]).map(
+              (u): User => ({
+                id: u.id || u._id || "",
+                name: u.name,
+                email: u.email,
+                phone_number: u.phone_number,
+                amount_spent: u.amount_spent,
+                date_joined: u.date_joined,
+                hasBadge: u.badge || false,
+              })
+            )
+          );
+
           setPage(data.pagination.currentPage);
           setTotalPages(data.pagination.totalPages);
           setStats([
@@ -116,38 +140,139 @@ export default function UserPage() {
     fetchUser();
   }, [page]);
 
-  const handleSuspendUser = async (userId: string, currentState?: boolean) => {
+  // const handleSuspendUser = async (userId: string, currentState?: boolean) => {
+  //   if (!token) return;
+
+  //   const suspend = !currentState; // toggle state
+
+  //   try {
+  //     const response = await fetch(
+  //       `${API_URL}/api/admin/users/${userId}/suspend`,
+  //       {
+  //         method: "PUT",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //         body: JSON.stringify({ suspend }),
+  //       }
+  //     );
+
+  //     const resText = await response.text();
+
+  //     if (response.ok) {
+  //       setUsers((prev) =>
+  //         prev.map((user) =>
+  //           user.id === userId ? { ...user, isSuspended: suspend } : user
+  //         )
+  //       );
+  //       alert(`User has been ${suspend ? "suspended" : "unsuspended"}`);
+  //     } else {
+  //       console.error("Failed to suspend user:", resText);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error suspending user:", error);
+  //   }
+  // };
+  const handleUserAction = async (
+    userId: string,
+    action: "suspend" | "ban",
+    currentState?: boolean
+  ) => {
     if (!token) return;
 
-    const suspend = !currentState; // toggle state
-
     try {
-      const response = await fetch(
-        `${API_URL}/api/admin/users/${userId}/suspend`,
-        {
+      let response: Response;
+
+      if (action === "ban") {
+        // console.log("Banning user with ID:", users.id);
+
+        // DELETE user
+        response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } else {
+        // SUSPEND or UNSUSPEND user
+        const toggleState = !currentState;
+        response = await fetch(`${API_URL}/api/admin/users/${userId}/suspend`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ suspend }),
-        }
-      );
+          body: JSON.stringify({ suspend: toggleState }),
+        });
+      }
 
       const resText = await response.text();
 
       if (response.ok) {
-        setUsers((prev) =>
-          prev.map((user) =>
-            user.id === userId ? { ...user, isSuspended: suspend } : user
-          )
+        if (action === "ban") {
+          // Remove banned user from local state
+          setUsers((prev) => prev.filter((user) => user.id !== userId));
+        }
+
+        if (action === "suspend") {
+          setUsers((prev) =>
+            prev.map((user) =>
+              user.id === userId
+                ? { ...user, isSuspended: !currentState }
+                : user
+            )
+          );
+        }
+
+        alert(
+          `User has been ${
+            action === "ban"
+              ? "banned (deleted)"
+              : currentState
+              ? "unsuspended"
+              : "suspended"
+          }`
         );
-        alert(`User has been ${suspend ? "suspended" : "unsuspended"}`);
       } else {
-        console.error("Failed to suspend user:", resText);
+        console.error(`Failed to ${action} user:`, resText);
       }
     } catch (error) {
-      console.error("Error suspending user:", error);
+      console.error(`Error trying to ${action} user:`, error);
+    }
+  };
+
+  const handleAssignBadge = async (userId: string) => {
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users/toggle-badge`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ user_id: userId }),
+      });
+
+      const data = await response.json();
+      console.log("Toggling badge for user ID:", userId);
+
+      if (response.ok) {
+        setUsers((prev) =>
+          prev.map((user) =>
+            user.id === userId ? { ...user, hasBadge: data.badge } : user
+          )
+        );
+
+        alert(
+          `Badge has been ${data.badge ? "assigned" : "removed"} successfully!`
+        );
+      } else {
+        console.error("Failed to toggle badge:", data);
+      }
+    } catch (err) {
+      console.error("Error toggling badge:", err);
     }
   };
 
@@ -263,7 +388,9 @@ export default function UserPage() {
                     {user.amount_spent}
                   </td>
                   <td className="py-3 text-[#434343] text-sm px-4">
-                    {user.date_joined}
+                    {user.date_joined
+                      ? new Date(user.date_joined).toISOString().slice(0, 10)
+                      : "N/A"}
                   </td>
                   <td className="py-3 text-[#434343] text-sm px-4">
                     <button
@@ -290,18 +417,37 @@ export default function UserPage() {
                           className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44]"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleSuspendUser(user.id, user.isSuspended);
+                            handleUserAction(
+                              user.id,
+                              "suspend",
+                              user.isSuspended
+                            );
                             setDropdownIdx(null);
                           }}
                         >
                           {user.isSuspended ? "Unsuspend" : "Suspend"}
                         </button>
 
-                        <button className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44]">
+                        <button
+                          className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44]"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleUserAction(user.id, "ban");
+                            // console.log("User object at ban click:", user);
+
+                            setDropdownIdx(null); // only on desktop
+                          }}
+                        >
                           Ban
                         </button>
-                        <button className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44]">
-                          Assign Badge
+                        <button
+                          className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44]"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAssignBadge(user.id);
+                          }}
+                        >
+                          {user.hasBadge ? "Remove Badge" : "Assign Badge"}
                         </button>
                       </div>
                     )}
@@ -359,7 +505,7 @@ export default function UserPage() {
                     className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleSuspendUser(user.id, user.isSuspended);
+                      handleUserAction(user.id, "suspend", user.isSuspended);
                     }}
                   >
                     {user.isSuspended ? "Unsuspend" : "Suspend"}
@@ -369,7 +515,10 @@ export default function UserPage() {
                     className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // handle ban
+                      // console.log("User object at ban click:", user);
+
+                      handleUserAction(user.id, "ban");
+                      // setDropdownIdx(null); // only on desktop
                     }}
                   >
                     Ban
@@ -378,10 +527,10 @@ export default function UserPage() {
                     className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // handle ban
+                      handleAssignBadge(user.id);
                     }}
                   >
-                    Assign badge
+                    {user.hasBadge ? "Remove Badge" : "Assign Badge"}
                   </button>
                 </div>
               </div>
