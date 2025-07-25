@@ -56,7 +56,7 @@ interface ApiUser {
   phone_number: string;
   amount_spent: string;
   date_joined: string;
-  badge?: boolean;
+  badge: boolean;
 }
 
 export default function UserPage() {
@@ -99,7 +99,7 @@ export default function UserPage() {
                 phone_number: u.phone_number,
                 amount_spent: u.amount_spent,
                 date_joined: u.date_joined,
-                hasBadge: u.badge || false,
+                hasBadge: typeof u.badge === "boolean" ? u.badge : false,
               })
             )
           );
@@ -252,27 +252,39 @@ export default function UserPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ user_id: userId }),
+        body: JSON.stringify({ userId }),
       });
 
       const data = await response.json();
-      console.log("Toggling badge for user ID:", userId);
+      console.log("Toggle badge response data:", data);
+
+      console.log("Toggling badge for user ID:", userId, "Response:", data);
 
       if (response.ok) {
-        setUsers((prev) =>
-          prev.map((user) =>
-            user.id === userId ? { ...user, hasBadge: data.badge } : user
+        setUsers((prevUsers) =>
+          prevUsers.map((user) =>
+            user.id === userId
+              ? { ...user, hasBadge: !!data.user.badge } // force boolean
+              : user
           )
         );
 
+        // Log to verify which value is coming
+        console.log("New badge state:", data.badge);
+
+        // Force alert to be accurate
         alert(
-          `Badge has been ${data.badge ? "assigned" : "removed"} successfully!`
+          `Badge has been ${
+            data.user.badge === true ? "assigned" : "removed"
+          } successfully!`
         );
       } else {
         console.error("Failed to toggle badge:", data);
+        alert("Failed to toggle badge.");
       }
     } catch (err) {
       console.error("Error toggling badge:", err);
+      alert("An error occurred while toggling badge.");
     }
   };
 
@@ -527,6 +539,11 @@ export default function UserPage() {
                     className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
                     onClick={(e) => {
                       e.stopPropagation();
+                      console.log(
+                        `User ${user.id} badge state:`,
+                        user.hasBadge
+                      );
+
                       handleAssignBadge(user.id);
                     }}
                   >
