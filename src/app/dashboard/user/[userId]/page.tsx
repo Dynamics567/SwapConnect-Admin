@@ -15,6 +15,12 @@ const tabs = [
   { key: "payments", label: "Payment History" },
 ];
 
+// interface OrderProduct {
+//   id: string;
+//   name: string;
+//   price: string;
+// }
+
 interface User {
   id: string;
   avatar: string;
@@ -34,14 +40,21 @@ interface User {
       date: string;
       amount: string;
       status: string;
+      OrderProducts: [
+        {
+          id: string;
+          name: string;
+          price: string;
+        }
+      ];
     }
   ];
   paymentHistory: [
     {
       id: string;
       name: string;
-      category: string;
-      price: string;
+      purpose: string;
+      amount: string;
       status: string;
     }
   ];
@@ -253,16 +266,23 @@ export default function UserDetailsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.orderHistory.map((order) => (
-                    <tr key={order.id} className="text-sm text-[#434343] ">
-                      <td className="py-2 px-4">{order.id}</td>
-                      <td className="py-2 px-4">{order.product}</td>
-                      <td className="py-2 px-4">{order.category || "-"}</td>
-                      <td className="py-2 px-4">{order.description || "-"}</td>
-                      <td className="py-2 px-4">{order.amount}</td>
-                      <td className="py-2 px-4">{order.status}</td>
-                    </tr>
-                  ))}
+                  {users.orderHistory.map((order) =>
+                    order.OrderProducts.map((product) => (
+                      <tr
+                        key={`${order.id}-${product.id}`}
+                        className="text-sm text-[#434343]"
+                      >
+                        <td className="py-2 px-4">{order.id}</td>
+                        <td className="py-2 px-4">{product.name}</td>
+                        <td className="py-2 px-4">{order.category || "-"}</td>
+                        <td className="py-2 px-4">
+                          {order.description || "-"}
+                        </td>
+                        <td className="py-2 px-4">{product.price}</td>
+                        <td className="py-2 px-4">{order.status}</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             ) : (
@@ -289,8 +309,8 @@ export default function UserDetailsPage() {
                     <tr key={payment.id} className="text-[#434343] text-sm">
                       <td className="py-2 px-4">{payment.id}</td>
                       <td className="py-2 px-4">{payment.name}</td>
-                      <td className="py-2 px-4">{payment.category}</td>
-                      <td className="py-2 px-4">{payment.price}</td>
+                      <td className="py-2 px-4">{payment.purpose}</td>
+                      <td className="py-2 px-4">{payment.amount}</td>
                       <td className="py-2 px-4">{payment.status}</td>
                     </tr>
                   ))}

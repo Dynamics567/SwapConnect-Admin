@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import PageButton from "./PageButton";
-import ProtectedRoute from "./ProtectedRoute";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 // const teamData = [
 //   { name: "Jane Doe", email: "jane@example.com", role: "Admin" },

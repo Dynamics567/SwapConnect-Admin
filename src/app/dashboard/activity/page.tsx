@@ -79,24 +79,6 @@ export default function ActivityLog() {
     fetchLogs();
   }, [token, page]);
 
-  // if (loadings) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       <p className="text-gray-600 text-lg">Checking permissions...</p>
-  //     </div>
-  //   );
-  // }
-
-  // if (role !== "SUPER_ADMIN") {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       <p className="text-red-500 font-semibold text-lg">
-  //         Access Denied: Superadmin only
-  //       </p>
-  //     </div>
-  //   );
-  // }
-
   return (
     <ProtectedRoute allowedRoles={["superadmin"]}>
       <div>
