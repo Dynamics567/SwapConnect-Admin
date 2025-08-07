@@ -291,7 +291,7 @@ const LoginPage = () => {
                 value={verificationCode}
                 onChange={(e) => setVerificationCode(e.target.value)}
                 placeholder="Verification Code"
-                className="w-full px-3 py-2 border rounded mb-4"
+                className="w-full px-3 py-2 border text-black rounded mb-4"
                 required
               />
               <button
