@@ -15,15 +15,17 @@ interface Stat {
 
 function StatsCard() {
   const [stats, setStats] = useState<Stat[]>([]);
+  const [role, setRole] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(true);
   const token = useAuthToken();
 
   useEffect(() => {
-    // console.log("StatsCard token:", token);
     if (!token) {
-      setLoading(false); // If no token, stop loading and don't fetch
+      setLoading(false);
       return;
     }
+
     const fetchStats = async () => {
       try {
         const response = await fetch(`${API_URL}/api/admin/get-dashboard`, {
@@ -33,8 +35,18 @@ function StatsCard() {
             Authorization: `Bearer ${token}`,
           },
         });
+
         const data = await response.json();
-        if (data?.dashboard.totals) {
+        // console.log("Dashboard data:", data);
+        // console.log("Extracted role:", data?.admin?.role || data?.role);
+
+        // 👇 Extract and store the role
+        const adminRole = data?.admin?.role;
+        setRole(adminRole);
+        // console.log("Saved role in state:", adminRole);
+
+        // Only set stats if role is super-admin
+        if (adminRole === "SUPER_ADMIN" && data?.dashboard?.totals) {
           setStats([
             {
               label: "Total Revenue",
@@ -64,15 +76,18 @@ function StatsCard() {
         } else {
           setStats([]);
         }
-      } catch {
+      } catch (error) {
+        console.error("Error fetching dashboard stats:", error);
         setStats([]);
       } finally {
         setLoading(false);
       }
     };
+
     fetchStats();
   }, [token]);
-  return (
+
+  return role === "SUPER_ADMIN" ? (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 md:flex gap-4">
         {loading
@@ -112,7 +127,7 @@ function StatsCard() {
             ))}
       </div>
     </div>
-  );
+  ) : null;
 }
 
 export default StatsCard;

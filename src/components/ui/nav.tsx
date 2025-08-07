@@ -11,6 +11,7 @@ import {
   Settings,
   MapPinCheckInside,
   HelpCircle,
+  Activity,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -23,6 +24,7 @@ interface User {
   name: string;
   avatar: string;
   email: string;
+  role: string;
 }
 
 const menuItems = [
@@ -36,6 +38,11 @@ const menuItems = [
     label: "Physical store",
     url: "/dashboard/store",
     icon: MapPinCheckInside,
+  },
+  {
+    label: "Activity Log",
+    url: "/dashboard/activity",
+    icon: Activity,
   },
   { label: "Settings", url: "/dashboard/setting", icon: Settings },
   { label: "Support", url: "/dashboard/support", icon: HelpCircle },
@@ -91,13 +98,14 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
           return;
         }
         const data = await response.json();
-        // console.log("API Respone", data);
+        console.log("API Respone", data);
         if (data.admin && typeof data.admin === "object") {
           const userData = {
             ...data.admin,
             name: `${data.admin.firstName} ${data.admin.lastName}`,
             avatar: data.admin.avatar || "",
             email: data.admin.email || "",
+            role: data.admin.role || "",
           };
           setUser(userData);
           // console.log("data:", data);

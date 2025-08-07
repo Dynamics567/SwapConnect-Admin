@@ -9,86 +9,132 @@ import {
   Clipboard,
   Receipt,
   MapPinCheckInside,
+  Activity,
 } from "lucide-react";
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+// import { useRole } from "@/hooks/useRole"; // ✅ import your role hook
 
 const menuItems = [
-  { label: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { label: "User management", url: "/dashboard/user", icon: UserRound },
-  { label: "Teams", url: "/dashboard/team", icon: UsersRound }, //
+  {
+    label: "Dashboard",
+    url: "/dashboard",
+    icon: LayoutDashboard,
+    roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+  },
+  {
+    label: "User management",
+    url: "/dashboard/user",
+    icon: UserRound,
+    roles: ["superadmin", "admin"],
+  },
+  {
+    label: "Teams",
+    url: "/dashboard/team",
+    icon: UsersRound,
+    roles: ["superadmin"],
+  }, //
 
-  { label: "Item management", url: "/dashboard/items", icon: Clipboard },
-  { label: "Transaction oversight", url: "/dashboard/wallet", icon: Receipt },
+  {
+    label: "Item management",
+    url: "/dashboard/items",
+    icon: Clipboard,
+    roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+  },
+  {
+    label: "Transaction oversight",
+    url: "/dashboard/wallet",
+    icon: Receipt,
+    roles: ["superadmin", "supportagent", "verificationofficer"],
+  },
   {
     label: "Physical store",
     url: "/dashboard/store",
     icon: MapPinCheckInside,
+    roles: ["superadmin", "admin", "verificationofficer"],
   },
-  { label: "Settings", url: "/dashboard/setting", icon: Settings },
+  {
+    label: "Activity Log",
+    url: "/dashboard/activity",
+    icon: Activity,
+    roles: ["superadmin"],
+  },
+  {
+    label: "Settings",
+    url: "/dashboard/setting",
+    icon: Settings,
+    roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+  },
 ];
 
-const Sidebar: React.FC = () => (
-  <aside className="fixed flex flex-col h-screen w-[280px] bg-white text-[#848484] p-8 shadow-[2px_0_8px_rgba(0,0,0,0.05)] z-100 justify-between">
-    <div>
-      <div className="flex justify-center items-center mb-10">
-        <Image
-          src="/logo.png"
-          width={100}
-          height={100}
-          alt="SwapConnect Logo"
-          className="h-10 w-auto"
-        />
-      </div>{" "}
+const Sidebar: React.FC = () => {
+  // const { role } = useRole(); // ✅ get current user's role
+
+  return (
+    <aside className="fixed flex flex-col h-screen w-[280px] bg-white text-[#848484] p-8 shadow-[2px_0_8px_rgba(0,0,0,0.05)] z-100 justify-between">
+      <div>
+        <Link
+          href="/dashboard"
+          className="flex justify-center items-center mb-10"
+        >
+          <Image
+            src="/logo.png"
+            width={100}
+            height={100}
+            alt="SwapConnect Logo"
+            className="h-10 w-auto"
+          />
+        </Link>{" "}
+        <nav>
+          <ul className="list-none">
+            {menuItems.map((item) => (
+              <li key={item.label}>
+                <Link
+                  href={item.url}
+                  className="flex items-center cursor-pointer py-3  text-base transition-colors duration-200 hover:text-[#037F44]"
+                >
+                  <span className="mr-[16px] text-[20px]">
+                    <item.icon size={20} />
+                  </span>
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
       <nav>
         <ul className="list-none">
-          {menuItems.map((item) => (
-            <li key={item.label}>
-              <Link
-                href={item.url}
-                className="flex items-center cursor-pointer py-3  text-base transition-colors duration-200 hover:text-[#037F44]"
-              >
-                <span className="mr-[16px] text-[20px]">
-                  <item.icon size={20} />
-                </span>
-                {item.label}
-              </Link>
-            </li>
-          ))}
+          <li>
+            <Link
+              href="/dashboard/support"
+              className="flex items-center cursor-pointer py-3 text-[17px] transition-colors duration-200 hover:text-[#037F44]"
+            >
+              <span className="text-[20px] mr-[16px]">
+                <HelpCircle size={20} />
+              </span>
+              Support
+            </Link>
+          </li>
+          <li>
+            <button
+              className="flex items-center w-full cursor-pointer py-3 text-[17px] transition-colors duration-200 hover:text-[#037F44] bg-transparent border-none outline-none"
+              onClick={() => {
+                localStorage.removeItem("token");
+                window.location.replace("/");
+              }}
+            >
+              <span className="text-[20px] mr-[16px]">
+                <LogOut size={20} />
+              </span>
+              Log out
+            </button>
+          </li>
         </ul>
       </nav>
-    </div>
-    <nav>
-      <ul className="list-none">
-        <li>
-          <Link
-            href="/dashboard/support"
-            className="flex items-center cursor-pointer py-3 text-[17px] transition-colors duration-200 hover:text-[#037F44]"
-          >
-            <span className="text-[20px] mr-[16px]">
-              <HelpCircle size={20} />
-            </span>
-            Support
-          </Link>
-        </li>
-        <li>
-          <button
-            className="flex items-center w-full cursor-pointer py-3 text-[17px] transition-colors duration-200 hover:text-[#037F44] bg-transparent border-none outline-none"
-            onClick={() => {
-              localStorage.removeItem("token");
-              window.location.replace("/");
-            }}
-          >
-            <span className="text-[20px] mr-[16px]">
-              <LogOut size={20} />
-            </span>
-            Log out
-          </button>
-        </li>
-      </ul>
-    </nav>
-  </aside>
-);
+    </aside>
+  );
+};
 
 export default Sidebar;

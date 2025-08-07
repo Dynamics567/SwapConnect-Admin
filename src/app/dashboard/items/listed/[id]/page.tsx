@@ -31,6 +31,10 @@ interface Item {
   };
   metaData: {
     color: string;
+    battery: string;
+    ram: string;
+    storage: string;
+    os: string;
   };
   otherImages: string[];
 }
@@ -60,7 +64,7 @@ export default function ListingDetails() {
           }
         );
         const data = await response.json();
-        // console.log("Recent Listings:", data);
+        console.log("Recent Listings:", data);
         if (data) {
           setItem(data);
         } else {
@@ -116,7 +120,7 @@ export default function ListingDetails() {
               </div>
               <div className="mt-6 border border-[#F3F3F3] p-4 rounded-xl flex items-center gap-4">
                 <Image
-                  src="https://randomuser.me/api/portraits/men/75.jpg"
+                  src={item?.Account?.avatar || "/Card.png"}
                   alt="Seller"
                   width={48}
                   height={48}
@@ -149,17 +153,17 @@ export default function ListingDetails() {
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col">
                     <span className="text-gray-500">MODEL</span>
-                    <span>Iphone 8</span>
+                    <span>{item?.metaData?.os}</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-gray-500">BATTERY HEALTH</span>
-                    <span>85%</span>
+                    <span>{item?.metaData?.battery}</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col">
                     <span className="text-gray-500">RAM</span>
-                    <span>2 GB</span>
+                    <span>{item?.metaData?.ram}</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-gray-500">COLOR</span>
@@ -168,7 +172,7 @@ export default function ListingDetails() {
                 </div>
 
                 <span className="text-gray-500">STORAGE</span>
-                <span>64 GB</span>
+                <span>{item?.metaData?.storage}</span>
               </div>
             </div>
           </div>

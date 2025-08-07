@@ -16,8 +16,9 @@ interface Item {
   price: number;
   used: string;
   brand: string;
-  condition: string;
+  conditionTag: string;
   model: string;
+  verificationStatus: string;
   batteryHealth: string;
   ram: string;
   color: string;
@@ -27,16 +28,24 @@ interface Item {
     lastName: string;
     phone: string;
     avatar: string;
-    verified: string;
+    verified: boolean;
   };
   metaData: {
     color: string;
+    ram: string;
+    storage: string;
+    battery: string;
   };
   otherImages: string[];
 }
 export default function ListingDetails() {
   const [loading, setLoading] = useState(false);
   const token = useAuthToken();
+  const [selectedConditionTag, setSelectedConditionTag] = useState("");
+  const [selectedVerificationStatus, setSelectedVerificationStatus] =
+    useState("");
+  const [isVerified, setIsVerified] = useState(false);
+
   const [item, setItem] = useState<Item | null>(null);
   const params = useParams();
   const productId = params.id;
@@ -74,6 +83,44 @@ export default function ListingDetails() {
     fetchOrders();
   }, [token, productId]);
 
+  const handleVerifyProduct = async () => {
+    if (!selectedConditionTag || !selectedVerificationStatus) {
+      alert("Please select both Condition Tag and Verification Status.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/admin/product/${productId}/verify-product`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            conditionTag: selectedConditionTag,
+            verificationStatus: selectedVerificationStatus,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Product verified successfully!");
+        // console.log("Response:", data);
+        setIsVerified(true); // ✅ Update verification state
+      } else {
+        console.error("Error:", data);
+        alert(data.message || "Something went wrong");
+      }
+    } catch (error) {
+      console.error("Error submitting verification:", error);
+      alert("Network or server error.");
+    }
+  };
+
   return (
     <div className="flex flex-col gap-8 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
       <div className="flex items-center gap-2  text-sm font-medium text-[#037F44]">
@@ -99,7 +146,7 @@ export default function ListingDetails() {
                 alt="Main"
                 width={340}
                 height={200}
-                className="rounded-xl object-cover w-full h-48"
+                className="rounded-xl object-cover w-auto h-auto"
               />
               <div className="flex mt-2 gap-2">
                 {item?.otherImages?.map((image, i) => (
@@ -109,13 +156,13 @@ export default function ListingDetails() {
                     alt="product image"
                     width={64}
                     height={64}
-                    className="w-16 h-16 rounded-md object-cover"
+                    className="w-auto h-auto rounded-md object-cover"
                   />
                 ))}
               </div>
               <div className="mt-6 border border-[#F3F3F3] p-4 rounded-xl flex items-center gap-4">
                 <Image
-                  src="https://randomuser.me/api/portraits/men/75.jpg"
+                  src={item?.Account?.avatar || "/Card.png"}
                   alt="Seller"
                   width={48}
                   height={48}
@@ -129,7 +176,12 @@ export default function ListingDetails() {
                     {item?.Account?.phone}
                   </p>
                 </div>
-                <CheckCircle className="text-green-600 ml-auto" />
+                {item?.Account?.verified && (
+                  <CheckCircle
+                    className="text-green-600 ml-auto"
+                    // title="Verified"
+                  />
+                )}
               </div>
             </div>
             {/* Main content */}
@@ -152,13 +204,13 @@ export default function ListingDetails() {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-gray-500">BATTERY HEALTH</span>
-                    <span>85%</span>
+                    <span>{item?.metaData?.battery}</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col">
                     <span className="text-gray-500">RAM</span>
-                    <span>2 GB</span>
+                    <span>{item?.metaData?.ram}</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-gray-500">COLOR</span>
@@ -167,7 +219,7 @@ export default function ListingDetails() {
                 </div>
 
                 <span className="text-gray-500">STORAGE</span>
-                <span>64 GB</span>
+                <span>{item?.metaData.storage}</span>
               </div>
             </div>
           </div>
@@ -197,36 +249,54 @@ export default function ListingDetails() {
                 </div>
               </div>
               <div className="flex flex-col gap-3 mb-4">
-                <div>
-                  <select
-                    id="condition"
-                    className="w-full border text-black font-bold rounded px-3 py-2 text-sm bg-gray-50"
-                  >
-                    <option value="condition" className="font-bold text-black">
-                      Condition tag
-                    </option>
-
-                    <option value="used">Excellent</option>
-                    <option value="new">Good</option>
-                    <option value="refurbished">Fair</option>
-                  </select>
-                </div>
-                <div>
-                  <select
-                    id="verification"
-                    className="w-full border text-black font-bold rounded px-3 py-2 text-sm bg-gray-50"
-                  >
-                    <option value="verified" className="font-bold">
-                      Verification status
-                    </option>
-                    <option value="pending">Verify</option>
-                    <option value="rejected">Warranty</option>
-                  </select>
-                </div>
+                {isVerified ? (
+                  <p className="text-green-700 font-semibold text-center">
+                    Swap offer verified
+                  </p>
+                ) : (
+                  <>
+                    <div>
+                      <select
+                        id="condition"
+                        className="w-full border text-black font-bold rounded px-3 py-2 text-sm bg-gray-50"
+                        value={selectedConditionTag}
+                        onChange={(e) =>
+                          setSelectedConditionTag(e.target.value)
+                        }
+                      >
+                        <option value="" disabled>
+                          Condition tag
+                        </option>
+                        <option value="Excellent">Excellent</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                      </select>
+                    </div>
+                    <div>
+                      <select
+                        id="verification"
+                        className="w-full border text-black font-bold rounded px-3 py-2 text-sm bg-gray-50"
+                        value={selectedVerificationStatus}
+                        onChange={(e) =>
+                          setSelectedVerificationStatus(e.target.value)
+                        }
+                      >
+                        <option value="" disabled>
+                          Verification status
+                        </option>
+                        <option value="Verify">Verify</option>
+                        <option value="Warranty">Warranty</option>
+                      </select>
+                    </div>
+                    <button
+                      className="bg-green-700 text-white rounded-lg py-2 w-full mb-3 hover:bg-green-800"
+                      onClick={handleVerifyProduct}
+                    >
+                      Submit
+                    </button>
+                  </>
+                )}
               </div>
-              <button className="bg-green-700 text-white rounded-lg py-2 w-full mb-3 hover:bg-green-800">
-                Submit{" "}
-              </button>
             </div>
           </div>
         </div>
