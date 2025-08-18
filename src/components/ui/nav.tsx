@@ -28,24 +28,61 @@ interface User {
 }
 
 const menuItems = [
-  { label: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { label: "User management", url: "/dashboard/user", icon: UserRound },
-  { label: "Teams", url: "/dashboard/team", icon: UsersRound }, //
+  {
+    label: "Dashboard",
+    url: "/dashboard",
+    icon: LayoutDashboard,
+    roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+  },
+  {
+    label: "User management",
+    url: "/dashboard/user",
+    icon: UserRound,
+    roles: ["superadmin", "admin"],
+  },
+  {
+    label: "Teams",
+    url: "/dashboard/team",
+    icon: UsersRound,
+    roles: ["superadmin"],
+  }, //
 
-  { label: "Item management", url: "/dashboard/items", icon: Clipboard },
-  { label: "Transaction oversight", url: "/dashboard/wallet", icon: Receipt },
+  {
+    label: "Item management",
+    url: "/dashboard/items",
+    icon: Clipboard,
+    roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+  },
+  {
+    label: "Transaction oversight",
+    url: "/dashboard/wallet",
+    icon: Receipt,
+    roles: ["superadmin", "supportagent", "verificationofficer"],
+  },
   {
     label: "Physical store",
     url: "/dashboard/store",
     icon: MapPinCheckInside,
+    roles: ["superadmin", "admin", "verificationofficer"],
   },
   {
     label: "Activity Log",
     url: "/dashboard/activity",
     icon: Activity,
+    roles: ["superadmin"],
   },
-  { label: "Settings", url: "/dashboard/setting", icon: Settings },
-  { label: "Support", url: "/dashboard/support", icon: HelpCircle },
+  {
+    label: "Settings",
+    url: "/dashboard/setting",
+    icon: Settings,
+    roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+  },
+  {
+    label: "Support",
+    url: "/dashboard/support",
+    icon: HelpCircle,
+    roles: ["supportagent"],
+  },
 ];
 
 interface NavProps {
@@ -59,6 +96,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
   const [userLoading, setUserLoading] = useState(true);
 
   const token = useAuthToken(); // Use the hook
+  const hasAvatar = !!user?.avatar && user.avatar.trim() !== "";
 
   useEffect(() => {
     // console.log("Token in Navbar:", token); // Debug line
@@ -98,7 +136,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
           return;
         }
         const data = await response.json();
-        console.log("API Respone", data);
+        // console.log("API Respone", data);
         if (data.admin && typeof data.admin === "object") {
           const userData = {
             ...data.admin,
@@ -144,13 +182,15 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
           <button className="flex cursor-pointer" aria-label="Notifications">
             <Bell size={24} color="#848484" />
           </button>
+          <div className="h-8 w-px bg-gray-300" />
+
           <div className="flex items-center gap-[12px]">
             <span className="font-normal text-[#3E344F] text-[16px]">
               {userLoading ? "Loading..." : userError ? "Error" : displayName}
             </span>
 
             {/* Show initials if avatar is null, else show image */}
-            {user?.avatar ? (
+            {hasAvatar ? (
               <Image
                 src={user.avatar}
                 alt="Profile"
@@ -161,13 +201,12 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
             ) : (
               <div
                 className="w-[40px] h-[40px] rounded-full flex items-center justify-center text-white font-bold text-lg"
-                style={{
-                  background: "#00B9AE",
-                }}
+                style={{ background: "#00B9AE" }}
               >
                 {getInitials(user?.name ?? "")}
               </div>
             )}
+
             {/* <span className="text-[13px] text-[#037F44]">
               {userLoading ? "" : userError ? "" : displayEmail}
             </span> */}

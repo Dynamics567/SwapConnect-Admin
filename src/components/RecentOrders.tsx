@@ -47,7 +47,7 @@ function RecentOrders() {
         });
         const data = await response.json();
 
-        console.log("Recent Orders data:", data);
+        // console.log("Recent Orders data:", data);
         if (data?.dashboard?.recentOrders) {
           setOrders(data.dashboard.recentOrders || []);
         } else {

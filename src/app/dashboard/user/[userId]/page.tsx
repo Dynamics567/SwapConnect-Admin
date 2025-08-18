@@ -34,17 +34,19 @@ interface User {
   orderHistory: [
     {
       id: string;
-      product: string;
-      category: string;
-      description: string;
       date: string;
-      amount: string;
       status: string;
+
       OrderProducts: [
         {
           id: string;
           name: string;
           price: string;
+          description: string;
+          Category: {
+            id: string;
+            name: string;
+          };
         }
       ];
     }
@@ -274,9 +276,11 @@ export default function UserDetailsPage() {
                       >
                         <td className="py-2 px-4">{order.id}</td>
                         <td className="py-2 px-4">{product.name}</td>
-                        <td className="py-2 px-4">{order.category || "-"}</td>
                         <td className="py-2 px-4">
-                          {order.description || "-"}
+                          {product.Category?.name || "-"}
+                        </td>
+                        <td className="py-2 px-4">
+                          {product.description || "-"}
                         </td>
                         <td className="py-2 px-4">{product.price}</td>
                         <td className="py-2 px-4">{order.status}</td>

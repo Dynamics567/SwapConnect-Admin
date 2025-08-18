@@ -32,10 +32,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const data = await res.json();
         if (data?.admin?.role) {
           setRole(data.admin.role.replace(/_/g, "").toLowerCase()); // ✅ "SUPER_ADMIN" -> "superadmin"
-          console.log(
-            "Normalized role:",
-            data.admin.role.replace(/_/g, "").toLowerCase()
-          );
+          // console.log(
+          //   "Normalized role:",
+          //   data.admin.role.replace(/_/g, "").toLowerCase()
+          // );
         }
       } catch (err) {
         console.error("Error fetching admin role:", err);
