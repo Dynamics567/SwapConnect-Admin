@@ -257,7 +257,8 @@ const LoginPage = () => {
               </div>
               <button
                 type="submit"
-                className="w-full bg-[#037F44] text-white py-2 rounded  transition-colors"
+                className={`w-full bg-[#037F44] text-white py-2 rounded transition-colors 
+    ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#026c34]"}`}
                 disabled={loading}
               >
                 {loading ? (
@@ -269,6 +270,7 @@ const LoginPage = () => {
                   "Sign in"
                 )}
               </button>
+
               <div className="mt-4 text-center">
                 <span className="text-sm text-black hover:underline cursor-pointer">
                   Forgot password?{" "}
@@ -296,7 +298,8 @@ const LoginPage = () => {
               />
               <button
                 type="submit"
-                className="w-full bg-[#037F44] text-white py-2 rounded"
+                className={`w-full bg-[#037F44] text-white py-2 rounded transition-colors 
+    ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#026c34]"}`}
                 disabled={loading}
               >
                 {loading ? (
@@ -305,9 +308,10 @@ const LoginPage = () => {
                     <span className="ml-2 inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   </>
                 ) : (
-                  "Verify & Proceed"
+                  "verified"
                 )}
               </button>
+
               <div className="mt-2 text-sm text-gray-500">
                 Didn’t get the code?{" "}
                 <button
