@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import Link from "next/link";
+import { useState } from "react";
 import Image from "next/image";
 // import { useRole } from "@/hooks/useRole"; // ✅ import your role hook
 
@@ -70,6 +71,13 @@ const menuItems = [
 
 const Sidebar: React.FC = () => {
   // const { role } = useRole(); // ✅ get current user's role
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = (url: string) => {
+    if (loading) return; // prevent double click
+    setLoading(true);
+    window.location.href = url; // let Next.js handle navigation
+  };
 
   return (
     <aside className="fixed flex flex-col h-screen w-[280px] bg-white text-[#848484] p-8 shadow-[2px_0_8px_rgba(0,0,0,0.05)] z-100 justify-between">
@@ -90,15 +98,20 @@ const Sidebar: React.FC = () => {
           <ul className="list-none">
             {menuItems.map((item) => (
               <li key={item.label}>
-                <Link
-                  href={item.url}
-                  className="flex items-center cursor-pointer py-3  text-base transition-colors duration-200 hover:text-[#037F44]"
+                <button
+                  onClick={() => handleClick(item.url)}
+                  disabled={loading}
+                  className={`flex items-center w-full py-3 text-base cursor-pointer transition-colors duration-200 ${
+                    loading
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:text-[#037F44]"
+                  }`}
                 >
                   <span className="mr-[16px] text-[20px]">
                     <item.icon size={20} />
                   </span>
                   {item.label}
-                </Link>
+                </button>
               </li>
             ))}
           </ul>

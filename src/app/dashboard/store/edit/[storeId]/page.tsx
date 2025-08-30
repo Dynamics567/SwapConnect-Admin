@@ -6,7 +6,6 @@ import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 
 export default function EditStorePage() {
-  const { id } = useParams();
   const router = useRouter();
   const token = useAuthToken();
 
@@ -17,19 +16,21 @@ export default function EditStorePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-
+const params = useParams();
+  const storeId = params.storeId;
   // Fetch store data by ID
   useEffect(() => {
+    if (!token) return;
     const fetchStore = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/admin/store/${id}`, {
+        const res = await fetch(`${API_URL}/api/admin/store/${storeId}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         const data = await res.json();
-        console.log("store Id:", id);
+        // console.log("store Id:", id);
         console.log("API raw response:", data);
 
         if (!res.ok) {
@@ -46,8 +47,8 @@ export default function EditStorePage() {
       }
     };
 
-    if (id) fetchStore();
-  }, [id]);
+    if (storeId) fetchStore();
+  }, [token, storeId]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +61,7 @@ export default function EditStorePage() {
     setSubmitting(true);
     setError("");
     try {
-      const response = await fetch(`${API_URL}/api/admin/store/${id}`, {
+      const response = await fetch(`${API_URL}/api/admin/store/${storeId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

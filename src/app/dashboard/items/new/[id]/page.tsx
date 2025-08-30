@@ -195,36 +195,36 @@ export default function ListingDetails() {
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col">
                     <span className="text-gray-500">BRAND</span>
-                    <span>{item?.brand}</span>
+                    <span className="text-black">{item?.brand}</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-gray-500">CONDITION</span>
-                    <span>Used</span>
+                    <span className="text-black">Used</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col">
                     <span className="text-gray-500">MODEL</span>
-                    <span>{item?.metaData?.os}</span>
+                    <span className="text-black">{item?.metaData?.os}</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-gray-500">BATTERY HEALTH</span>
-                    <span>{item?.metaData?.battery}</span>
+                    <span className="text-black">{item?.metaData?.battery}</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col">
                     <span className="text-gray-500">RAM</span>
-                    <span>{item?.metaData?.ram}</span>
+                    <span className="text-black">{item?.metaData?.ram}</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-gray-500">COLOR</span>
-                    <span>{item?.metaData?.color}</span>
+                    <span className="text-black">{item?.metaData?.color}</span>
                   </div>
                 </div>
 
                 <span className="text-gray-500">STORAGE</span>
-                <span>{item?.metaData?.storage}</span>
+                <span className="text-black">{item?.metaData?.storage}</span>
               </div>
             </div>
           </div>

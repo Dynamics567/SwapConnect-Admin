@@ -26,6 +26,7 @@ export default function PhysicalStore() {
   const token = useAuthToken();
 
   useEffect(() => {
+    if (!token) return;
     const fetchStores = async () => {
       setLoading(true);
       try {
@@ -37,7 +38,7 @@ export default function PhysicalStore() {
           },
         });
         const data = await response.json();
-        console.log("Store Listings:", data);
+        // console.log("Store Listings:", data);
         if (Array.isArray(data.data)) {
           setStores(data.data);
         } else {

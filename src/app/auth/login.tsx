@@ -308,7 +308,7 @@ const LoginPage = () => {
                     <span className="ml-2 inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   </>
                 ) : (
-                  "verified"
+                  "verify"
                 )}
               </button>
 
