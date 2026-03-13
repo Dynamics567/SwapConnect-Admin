@@ -177,11 +177,11 @@ export default function TeamContent() {
         {activeTab === "teams" ? (
           <div className="bg-white rounded-xl shadow p-4 w-full overflow-x-auto">
             {loading ? (
-              <p>Loading orders...</p>
+              <p>Loading Team...</p>
             ) : team.length === 0 ? (
               <div>
                 <p className="text-center text-[#848484] mt-6">
-                  No orders found
+                  No teams found
                 </p>
               </div>
             ) : (

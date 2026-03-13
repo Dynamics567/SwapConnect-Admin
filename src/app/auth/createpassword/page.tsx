@@ -1,5 +1,6 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useState, useEffect} from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { API_URL } from "@/lib/config";
 
@@ -13,13 +14,23 @@ const CreatePasswordPage: React.FC = () => {
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState("");
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get("token");
+    const storedToken = localStorage.getItem("tempToken");
+
+    setToken(urlToken || storedToken || "");
+  }, []);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true);
 
     if (!passwordRegex.test(password)) {
       setError(
@@ -31,13 +42,18 @@ const CreatePasswordPage: React.FC = () => {
       setError("Passwords do not match.");
       return;
     }
+    if (!token) {
+      setError( "Token is missing. Please use the link provided in your email.");
+      setLoading(false);
+      return;
+    }
     try {
       const response = await fetch(`${API_URL}/api/admin/add-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({token, password }),
       });
       const data = await response.json();
       if (!response.ok) {

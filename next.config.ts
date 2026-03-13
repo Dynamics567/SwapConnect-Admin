@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
       "avatars.githubusercontent.com",
       "cdn.jsdelivr.net",
       "images.unsplash.com",
+      "www.vectorstock.com",
     ],
   },
   /* config options here */

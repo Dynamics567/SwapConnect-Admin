@@ -13,7 +13,6 @@ import {
   HelpCircle,
   Activity,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 // import { useRouter, useSearchParams } from "next/navigation";
 import { API_URL } from "../../lib/config";
@@ -96,7 +95,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
   const [userLoading, setUserLoading] = useState(true);
 
   const token = useAuthToken(); // Use the hook
-  const hasAvatar = !!user?.avatar && user.avatar.trim() !== "";
+  // const hasAvatar = !!user?.avatar && user.avatar.trim() !== "";
 
   useEffect(() => {
     // console.log("Token in Navbar:", token); // Debug line
@@ -141,7 +140,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
           const userData = {
             ...data.admin,
             name: `${data.admin.firstName} ${data.admin.lastName}`,
-            avatar: data.admin.avatar || "",
+            // avatar: data.admin.avatar || "",
             email: data.admin.email || "",
             role: data.admin.role || "",
           };
@@ -164,7 +163,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
   }, [token]);
   const displayName = user?.name || "User";
   // const displayEmail = user?.email || "";
-  const displayAvatar = user?.avatar || ""; // Remove Elipse 5.svg/png fallback
+  // const displayAvatar = user?.avatar || ""; // Remove Elipse 5.svg/png fallback
 
   function getInitials(name: string) {
     if (!name) return "OO";
@@ -190,22 +189,12 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
             </span>
 
             {/* Show initials if avatar is null, else show image */}
-            {hasAvatar ? (
-              <Image
-                src={user.avatar}
-                alt="Profile"
-                width={40}
-                height={40}
-                className="w-[40px] h-[40px] rounded-full object-cover border-2 border-[#eee]"
-              />
-            ) : (
-              <div
-                className="w-[40px] h-[40px] rounded-full flex items-center justify-center text-white font-bold text-lg"
-                style={{ background: "#00B9AE" }}
-              >
-                {getInitials(user?.name ?? "")}
-              </div>
-            )}
+            <div
+              className="w-[40px] h-[40px] rounded-full flex items-center justify-center text-white font-bold text-lg"
+              style={{ background: "#00B9AE" }}
+            >
+              {getInitials(user?.name ?? "")}
+            </div>
 
             {/* <span className="text-[13px] text-[#037F44]">
               {userLoading ? "" : userError ? "" : displayEmail}
@@ -216,24 +205,12 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
       {/* Mobile: user, image/initials, bell, hamburger */}
       <div className="flex md:hidden items-center justify-between w-full">
         <div className="flex items-center gap-1 md:gap-3">
-          {user?.avatar ? (
-            <Image
-              src={displayAvatar}
-              alt="Profile"
-              width={36}
-              height={36}
-              className="w-9 h-9 rounded-full object-cover border-2 border-[#eee]"
-            />
-          ) : (
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-base"
-              style={{
-                background: "#00B9AE",
-              }}
-            >
-              {getInitials(user?.name ?? "")}
-            </div>
-          )}
+          <div
+            className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-base"
+            style={{ background: "#00B9AE" }}
+          >
+            {getInitials(user?.name ?? "")}
+          </div>
           <span className="font-normal text-[#353535] text-[16px]">
             {userLoading ? "Loading..." : userError ? "Error" : displayName}
           </span>
