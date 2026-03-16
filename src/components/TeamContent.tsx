@@ -69,14 +69,14 @@ export default function TeamContent() {
     // Here you would also call your API to deactivate the user
   };
   useEffect(() => {
-    // if (!token) {
-    //   setLoading(false);
-    //   return;
-    // }
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     const fetchTeams = async () => {
       try {
         const response = await fetch(
-          `${API_URL}/api/admin/users/all?role=admin&page=${page}&limit=10`,
+          `${API_URL}/api/admin/all-admins`,
           {
             method: "GET",
             headers: {
@@ -85,8 +85,10 @@ export default function TeamContent() {
             },
           }
         );
+        // console.log("Status:", response.status);
+        // console.log("Token being sent:", token); 
         const data = await response.json();
-        // console.log("API Response", data);
+        console.log("API Response", data);
         if (data) {
           setTeam(data?.users);
           setPage(data?.pagination.currentPage || 1);
@@ -101,7 +103,7 @@ export default function TeamContent() {
       }
     };
     fetchTeams();
-  }, [page]);
+  }, [token, page]);
   return (
     <ProtectedRoute allowedRoles={["superadmin"]}>
       <div className="w-full flex flex-col gap-6 relative">

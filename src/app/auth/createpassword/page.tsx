@@ -36,6 +36,7 @@ const CreatePasswordPage: React.FC = () => {
       setError(
         "Password must be at least 8 characters, include 1 uppercase letter, 1 number, and 1 special character."
       );
+      setLoading(false);
       return;
     }
     if (password !== confirm) {
@@ -52,6 +53,7 @@ const CreatePasswordPage: React.FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({token, password }),
       });
