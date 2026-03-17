@@ -66,18 +66,42 @@ const filteredTeams = (team || []).filter((t) => {
   );
 });
 
-  const handleDeactivate = () => {
-    setConfirmIdx(null);
-    setActionMenuIdx(null);
-    setSuccessDeactivate(true);
-    setTimeout(() => setSuccessDeactivate(false), 2000);
-    // Here you would also call your API to deactivate the user
+  const handleDeactivate = async (id: string) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/api/admin/users/${id}/demote`, 
+        {
+          method: "PUT", // or DELETE depending on your backend
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+      console.log("Deactivate response:", data);
+
+      if (!response.ok) {
+        throw new Error("Failed to deactivate");
+      }
+
+      // ✅ Remove user from UI immediately
+      setTeam((prev) => prev.filter((user) => user._id !== id));
+
+      setSuccessDeactivate(true);
+      setTimeout(() => setSuccessDeactivate(false), 2000);
+    } catch (error) {
+      console.log("Error:", error);
+    } finally {
+      setConfirmIdx(null);
+      setActionMenuIdx(null);
+    }
   };
 
-  // console.log("TOKEN:", token);
   useEffect(() => {
     if (!token) {
-      // setLoading(false);
+      setLoading(false);
       return;
     }
     const fetchTeams = async () => {
@@ -263,7 +287,7 @@ const filteredTeams = (team || []).filter((t) => {
                                 </button>
                                 <button
                                   className="px-6 py-2 rounded bg-red-600 text-white"
-                                  onClick={() => handleDeactivate}
+                                  onClick={() => handleDeactivate(team._id)}
                                 >
                                   Yes, Deactivate
                                 </button>
@@ -360,7 +384,7 @@ const filteredTeams = (team || []).filter((t) => {
                               </button>
                               <button
                                 className="px-6 py-2 rounded bg-red-600 text-white"
-                                onClick={() => handleDeactivate}
+                                onClick={() => handleDeactivate(team._id)}
                               >
                                 Proceed
                               </button>
