@@ -13,8 +13,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 //   { name: "Alice Lee", email: "alice@example.com", role: "Viewer" },
 // ];
 interface Teams {
-  id: string;
-  name: string;
+  _id: string;
+  firstName: string;
   email: string;
   role: string;
 }
@@ -46,7 +46,7 @@ export default function TeamContent() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
+  const [totalPages] = useState(0);
   const [team, setTeam] = useState<Teams[]>([]);
   const [actionMenuIdx, setActionMenuIdx] = useState<number | null>(null);
   const [confirmIdx, setConfirmIdx] = useState<number | null>(null);
@@ -54,12 +54,17 @@ export default function TeamContent() {
   const router = useRouter();
   const token = useAuthToken();
 
-  const filteredTeams = team.filter(
-    (team) =>
-      team.name.toLowerCase().includes(search.toLowerCase()) ||
-      team.email.toLowerCase().includes(search.toLowerCase()) ||
-      team.role.toLowerCase().includes(search.toLowerCase())
+const filteredTeams = (team || []).filter((t) => {
+  const searchTerm = search.toLowerCase().trim();
+
+  if (!searchTerm) return true; // ✅ show all when empty
+
+  return (
+    t.firstName?.toLowerCase().includes(searchTerm) ||
+    t.email?.toLowerCase().includes(searchTerm) ||
+    t.role?.toLowerCase().includes(searchTerm)
   );
+});
 
   const handleDeactivate = () => {
     setConfirmIdx(null);
@@ -68,9 +73,11 @@ export default function TeamContent() {
     setTimeout(() => setSuccessDeactivate(false), 2000);
     // Here you would also call your API to deactivate the user
   };
+
+  // console.log("TOKEN:", token);
   useEffect(() => {
     if (!token) {
-      setLoading(false);
+      // setLoading(false);
       return;
     }
     const fetchTeams = async () => {
@@ -85,14 +92,13 @@ export default function TeamContent() {
             },
           }
         );
-        // console.log("Status:", response.status);
-        // console.log("Token being sent:", token); 
+        
         const data = await response.json();
         console.log("API Response", data);
-        if (data) {
-          setTeam(data?.users);
-          setPage(data?.pagination.currentPage || 1);
-          setTotalPages(data?.pagination.totalPages || 1);
+        if (data?.data) {
+          setTeam(data?.data);
+          // setPage(data?.pagination.currentPage || 1);
+          // setTotalPages(data?.pagination.totalPages || 1);
         } else {
           setTeam([]);
         }
@@ -103,7 +109,7 @@ export default function TeamContent() {
       }
     };
     fetchTeams();
-  }, [token, page]);
+  }, [token]);
   return (
     <ProtectedRoute allowedRoles={["superadmin"]}>
       <div className="w-full flex flex-col gap-6 relative">
@@ -180,7 +186,7 @@ export default function TeamContent() {
           <div className="bg-white rounded-xl shadow p-4 w-full overflow-x-auto">
             {loading ? (
               <p>Loading Team...</p>
-            ) : team.length === 0 ? (
+            ) : filteredTeams.length === 0 ? (
               <div>
                 <p className="text-center text-[#848484] mt-6">
                   No teams found
@@ -197,9 +203,9 @@ export default function TeamContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTeams.map((team, idx) => (
+                  {team.map((team, idx) => (
                     <tr key={idx} className="text-[#434343] text-sm relative">
-                      <td className="py-2 px-4">{team.name}</td>
+                      <td className="py-2 px-4">{team.firstName}</td>
                       <td className="py-2 px-4">{team.email}</td>
                       <td className="py-2 px-4">{team.role}</td>
                       <td className="py-2 px-4">
@@ -218,7 +224,7 @@ export default function TeamContent() {
                               className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
                               onClick={() => {
                                 setActionMenuIdx(null);
-                                router.push(`/dashboard/team/edit/${team.id}`);
+                                router.push(`/dashboard/team/edit/${team._id}`);
                               }}
                             >
                               Edit
@@ -244,7 +250,7 @@ export default function TeamContent() {
                               <p className="mb-6 text-gray-700">
                                 Are you sure you want to deactivate{" "}
                                 <span className="font-semibold">
-                                  {team.name}
+                                  {team.firstName}
                                 </span>
                                 ?
                               </p>
@@ -316,8 +322,8 @@ export default function TeamContent() {
                               setActionMenuIdx(null);
                               router.push(
                                 `/dashboard/team/editrole/${encodeURIComponent(
-                                  role.role
-                                )}`
+                                  role.role,
+                                )}`,
                               );
                             }}
                           >
@@ -342,7 +348,8 @@ export default function TeamContent() {
                               Deactivate Member
                             </p>
                             <p className="mb-6 text-gray-700">
-                              Are you sure you want to deactivate this role?{" "}
+                              Are you sure you want to deactivate this
+                              role?{" "}
                             </p>
                             <div className="flex gap-4 justify-center">
                               <button
