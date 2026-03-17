@@ -384,7 +384,7 @@ const filteredTeams = (team || []).filter((t) => {
                               </button>
                               <button
                                 className="px-6 py-2 rounded bg-red-600 text-white"
-                                onClick={() => handleDeactivate(team._id)}
+                                onClick={() => handleDeactivate}
                               >
                                 Proceed
                               </button>
