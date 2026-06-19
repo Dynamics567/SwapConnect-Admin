@@ -1,0 +1,96 @@
+name: Admin Panel Sync Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  type-check:
+    name: TypeScript Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint
+        run: npm run lint
+
+  token-key-check:
+    name: Auth Token Key Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure no customer token key used in admin
+        run: |
+          VIOLATIONS=$(grep -rn "getItem('authToken')\|getItem(\"authToken\")" src/ \
+            --include="*.ts" --include="*.tsx" || true)
+          if [ -n "$VIOLATIONS" ]; then
+            echo "::error::Customer token key 'authToken' found in admin. Admin should use 'token'."
+            echo "$VIOLATIONS"
+            exit 1
+          fi
+          echo "Token key check passed — admin uses 'token'"
+
+  auth-guard-check:
+    name: Dashboard Auth Guard Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify dashboard layout has auth guard
+        run: |
+          if grep -q "useAuthToken\|router.replace" src/app/dashboard/layout.tsx; then
+            echo "Auth guard present in dashboard layout"
+          else
+            echo "::error::Dashboard layout.tsx is missing auth guard. Add token check + redirect."
+            exit 1
+          fi
+
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_URL: https://placeholder.swapconnect.ng
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build

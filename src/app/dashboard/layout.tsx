@@ -1,10 +1,11 @@
 "use client";
-// import { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "../globals.css";
 import Sidebar from "../../components/ui/sidebar";
 import Navbar from "../../components/ui/nav";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useAuthToken } from "@/hooks/useAuthToken";
 
 const inter = Inter({
   weight: ["400", "500", "700", "800", "900"],
@@ -22,12 +23,26 @@ function getTitleFromPath(pathname: string) {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const token = useAuthToken();
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (hydrated && !token) {
+      router.replace("/auth/login");
+    }
+  }, [hydrated, token, router]);
+
+  if (!hydrated || !token) return null;
 
   const title = getTitleFromPath(pathname);
 
   return (
     <div className={`${inter.className} flex min-h-screen w-full`}>
-      {/* Only render sidebar on md+ screens */}
       <div className="hidden md:block">
         <Sidebar />
       </div>
