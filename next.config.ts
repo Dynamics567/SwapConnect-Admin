@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
       "cdn.jsdelivr.net",
       "images.unsplash.com",
       "www.vectorstock.com",
+      "jqtaxkbvfjhyxotzjyyd.supabase.co",
     ],
   },
   /* config options here */

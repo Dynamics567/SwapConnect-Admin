@@ -1,4 +1,5 @@
-const API_URL = "https://api.swapconnect.africa";
-// const API_URL = "http://localhost:3001";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://swapconnectbe-production.up.railway.app";
 
 export { API_URL };
