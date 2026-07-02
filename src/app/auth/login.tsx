@@ -272,9 +272,9 @@ const LoginPage = () => {
               </button>
 
               <div className="mt-4 text-center">
-                <span className="text-sm text-black hover:underline cursor-pointer">
+                <span className="text-sm text-black">
                   Forgot password?{" "}
-                  <a href="#" className="text-[#037F44]">
+                  <a href="/auth/forgotpassword" className="text-[#037F44] hover:underline">
                     Reset
                   </a>
                 </span>
