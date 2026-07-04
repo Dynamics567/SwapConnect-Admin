@@ -7,6 +7,8 @@ import {
   Search,
   Filter,
   MoreVertical,
+  UserPlus,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuthToken } from "@/hooks/useAuthToken";
@@ -62,6 +64,13 @@ export default function UserPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const [totalPages, setTotalPages] = useState(0);
+
+  // Onboard user modal state
+  const [showOnboardModal, setShowOnboardModal] = useState(false);
+  const [onboardForm, setOnboardForm] = useState({ firstName: "", lastName: "", email: "", accountType: "BUYER" });
+  const [onboardLoading, setOnboardLoading] = useState(false);
+  const [onboardError, setOnboardError] = useState("");
+  const [onboardSuccess, setOnboardSuccess] = useState("");
 
   const handleRowClick = (userId: string) => {
     router.push(`/dashboard/user/${userId}`);
@@ -238,6 +247,29 @@ export default function UserPage() {
     }
   };
 
+  const handleOnboardUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+    setOnboardError("");
+    setOnboardSuccess("");
+    setOnboardLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/onboard-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(onboardForm),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to onboard user");
+      setOnboardSuccess("User onboarded! Setup email sent.");
+      setOnboardForm({ firstName: "", lastName: "", email: "", accountType: "BUYER" });
+    } catch (err: unknown) {
+      setOnboardError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setOnboardLoading(false);
+    }
+  };
+
   const handleAssignBadge = async (userId: string) => {
     if (!token) return;
 
@@ -328,7 +360,7 @@ export default function UserPage() {
 
         {/* Search and Filter */}
         <div className="flex items-center gap-3">
-          <div className="relative w-full md:w-[918px]">
+          <div className="relative w-full md:w-[750px]">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
               <Search size={18} />
             </span>
@@ -340,11 +372,118 @@ export default function UserPage() {
               className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300 bg-white"
             />
           </div>
-          <button className="hidden md:flex items-center gap-2 bg-[#037F44] text-white px-4 py-2 rounded hover:bg-[#025e2e] transition-colors">
+          <button className="hidden md:flex items-center gap-2 bg-white border border-[#037F44] text-[#037F44] px-4 py-2 rounded hover:bg-[#f0faf5] transition-colors">
             <Filter size={18} />
             Filter
           </button>
+          <button
+            onClick={() => { setShowOnboardModal(true); setOnboardError(""); setOnboardSuccess(""); }}
+            className="flex items-center gap-2 bg-[#037F44] text-white px-4 py-2 rounded hover:bg-[#025e2e] transition-colors whitespace-nowrap"
+          >
+            <UserPlus size={18} />
+            Onboard User
+          </button>
         </div>
+
+        {/* Onboard User Modal */}
+        {showOnboardModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-lg font-bold text-[#353535]">Onboard New User</h2>
+                <button onClick={() => setShowOnboardModal(false)} className="text-[#848484] hover:text-[#353535]">
+                  <X size={20} />
+                </button>
+              </div>
+
+              {onboardSuccess ? (
+                <div className="text-center py-6 space-y-3">
+                  <div className="w-14 h-14 rounded-full bg-[#e6f9f0] flex items-center justify-center mx-auto">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                      <path d="M5 13l4 4L19 7" stroke="#037F44" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <p className="text-[#037F44] font-medium">{onboardSuccess}</p>
+                  <p className="text-sm text-[#848484]">The user will receive an email with a link to set up their password.</p>
+                  <button
+                    onClick={() => { setShowOnboardModal(false); setOnboardSuccess(""); }}
+                    className="mt-2 bg-[#037F44] text-white px-6 py-2 rounded hover:bg-[#025e2e] transition-colors text-sm"
+                  >
+                    Done
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleOnboardUser} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-[#505050] mb-1">First Name <span className="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        required
+                        value={onboardForm.firstName}
+                        onChange={(e) => setOnboardForm(f => ({ ...f, firstName: e.target.value }))}
+                        className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring focus:border-[#037F44]"
+                        placeholder="John"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[#505050] mb-1">Last Name</label>
+                      <input
+                        type="text"
+                        value={onboardForm.lastName}
+                        onChange={(e) => setOnboardForm(f => ({ ...f, lastName: e.target.value }))}
+                        className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring focus:border-[#037F44]"
+                        placeholder="Doe"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[#505050] mb-1">Email Address <span className="text-red-500">*</span></label>
+                    <input
+                      type="email"
+                      required
+                      value={onboardForm.email}
+                      onChange={(e) => setOnboardForm(f => ({ ...f, email: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring focus:border-[#037F44]"
+                      placeholder="user@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[#505050] mb-1">Account Type</label>
+                    <select
+                      value={onboardForm.accountType}
+                      onChange={(e) => setOnboardForm(f => ({ ...f, accountType: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring focus:border-[#037F44] bg-white"
+                    >
+                      <option value="BUYER">Buyer</option>
+                      <option value="STORE_OWNER">Store Owner</option>
+                    </select>
+                  </div>
+                  {onboardError && (
+                    <p className="text-red-500 text-sm">{onboardError}</p>
+                  )}
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowOnboardModal(false)}
+                      className="flex-1 px-4 py-2 border border-[#e5e7eb] rounded text-sm text-[#505050] hover:bg-[#F7F8FB] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={onboardLoading}
+                      className={`flex-1 px-4 py-2 bg-[#037F44] text-white rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${onboardLoading ? "opacity-60 cursor-not-allowed" : "hover:bg-[#025e2e]"}`}
+                    >
+                      {onboardLoading && <span className="inline-block h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                      {onboardLoading ? "Sending..." : "Send Invite"}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Users Table (Desktop Only) */}
         <div className="hidden md:block bg-white rounded-lg shadow p-6">

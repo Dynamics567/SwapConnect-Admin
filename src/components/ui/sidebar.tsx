@@ -11,6 +11,7 @@ import {
   MapPinCheckInside,
   Activity,
   RefreshCw,
+  BarChart2,
 } from "lucide-react";
 import React from "react";
 import Link from "next/link";
@@ -61,6 +62,12 @@ const menuItems = [
     url: "/dashboard/trade-ins",
     icon: RefreshCw,
     roles: ["superadmin", "admin", "supportagent"],
+  },
+  {
+    label: "Reports",
+    url: "/dashboard/reports",
+    icon: BarChart2,
+    roles: ["superadmin", "admin"],
   },
   {
     label: "Activity Log",
