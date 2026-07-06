@@ -14,10 +14,16 @@ const inter = Inter({
 
 function getTitleFromPath(pathname: string) {
   if (pathname === "/dashboard") return "Dashboard";
-  if (pathname.startsWith("/dashboard/products")) return "Products";
-  if (pathname.startsWith("/dashboard/orders")) return "Orders";
-  if (pathname.startsWith("/dashboard/wallet")) return "Wallet";
-  if (pathname.startsWith("/dashboard/settings")) return "Settings";
+  if (pathname.startsWith("/dashboard/user")) return "User Management";
+  if (pathname.startsWith("/dashboard/team")) return "Teams";
+  if (pathname.startsWith("/dashboard/items")) return "Item Management";
+  if (pathname.startsWith("/dashboard/wallet")) return "Transaction Oversight";
+  if (pathname.startsWith("/dashboard/store")) return "Physical Store";
+  if (pathname.startsWith("/dashboard/trade-ins")) return "Trade-Ins";
+  if (pathname.startsWith("/dashboard/reports")) return "Reports";
+  if (pathname.startsWith("/dashboard/activity")) return "Activity Log";
+  if (pathname.startsWith("/dashboard/setting")) return "Settings";
+  if (pathname.startsWith("/dashboard/support")) return "Support";
   return "Dashboard";
 }
 
