@@ -10,25 +10,20 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const userSignUpData = [
-  { name: "Mon", users: 2000 },
-  { name: "Tue", users: 1500 },
-  { name: "Wed", users: 2500 },
-  { name: "Thur", users: 1700 },
-  { name: "Fri", users: 2000 },
-  { name: "Sat", users: 5500 },
-  { name: "Sun", users: 2000 },
-];
+interface RevenuePoint {
+  date: string;
+  amount: number;
+}
 
-const revenueData = [
-  { name: "Mon", revenue: 2000 },
-  { name: "Tue", revenue: 1500 },
-  { name: "Wed", revenue: 2500 },
-  { name: "Thur", revenue: 1700 },
-  { name: "Fri", revenue: 2000 },
-  { name: "Sat", revenue: 5500 },
-  { name: "Sun", revenue: 2000 },
-];
+interface StatGraphProps {
+  revenueData: RevenuePoint[];
+  loading: boolean;
+}
+
+function formatChartDate(dateStr: string) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-NG", { month: "short", day: "numeric" });
+}
 
 function UserSignUpGraph() {
   return (
@@ -36,52 +31,54 @@ function UserSignUpGraph() {
       <span className="font-semibold text-lg text-[#1D1D1D] mb-2">
         User Sign Ups
       </span>
-      <ResponsiveContainer width="100%" height={180}>
-        <LineChart data={userSignUpData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Line
-            type="monotone"
-            dataKey="users"
-            stroke="#037F44"
-            strokeWidth={2}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <div className="flex-1 flex items-center justify-center text-sm text-[#BEBEBE] text-center px-6">
+        Daily sign-up trends aren&apos;t tracked by the backend yet.
+      </div>
     </div>
   );
 }
 
-function RevenueGraph() {
+function RevenueGraph({ revenueData, loading }: StatGraphProps) {
+  const chartData = revenueData.map((point) => ({
+    name: formatChartDate(point.date),
+    revenue: point.amount,
+  }));
+
   return (
     <div className="bg-white rounded-lg shadow w-full md:w-[504px] p-4 h-64 flex flex-col mb-4">
       <span className="font-semibold text-lg text-[#1D1D1D] mb-2">Revenue</span>
-      <ResponsiveContainer width="100%" height={180}>
-        <LineChart data={revenueData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Line
-            type="monotone"
-            dataKey="revenue"
-            stroke="#037F44"
-            strokeWidth={2}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      {loading ? (
+        <div className="flex-1 animate-pulse bg-gray-100 rounded" />
+      ) : chartData.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center text-sm text-[#BEBEBE]">
+          No revenue in the last 30 days.
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={180}>
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Line
+              type="monotone"
+              dataKey="revenue"
+              stroke="#037F44"
+              strokeWidth={2}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      )}
     </div>
   );
 }
 
-function StatGraph() {
+function StatGraph({ revenueData, loading }: StatGraphProps) {
   return (
     <div>
       <div className="md:flex-row flex flex-col gap-4">
         <UserSignUpGraph />
-        <RevenueGraph />
+        <RevenueGraph revenueData={revenueData} loading={loading} />
       </div>
     </div>
   );

@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { useAuthToken } from "@/hooks/useAuthToken";
-import { API_URL } from "@/lib/config";
+import React from "react";
 
 interface Category {
   id: number;
@@ -25,44 +23,12 @@ interface Order {
   OrderProducts: OrderProduct[];
 }
 
-function RecentOrders() {
-  const token = useAuthToken();
-  const [loading, setLoading] = useState(true);
-  const [orders, setOrders] = useState<Order[]>([]);
+interface RecentOrdersProps {
+  orders: Order[];
+  loading: boolean;
+}
 
-  useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchOrders = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/admin/get-dashboard`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await response.json();
-
-        // console.log("Recent Orders data:", data);
-        if (data?.dashboard?.recentOrders) {
-          setOrders(data.dashboard.recentOrders || []);
-        } else {
-          setOrders([]);
-        }
-      } catch (error) {
-        console.error("Failed to fetch recent orders:", error);
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOrders();
-  }, [token]);
-
+function RecentOrders({ orders, loading }: RecentOrdersProps) {
   return (
     <div>
       {loading ? (

@@ -2,9 +2,6 @@
 import React from "react";
 import type { JSX } from "react";
 import { CircleDollarSign, Store, Users, Repeat } from "lucide-react";
-import { useState, useEffect } from "react";
-import { API_URL } from "@/lib/config";
-import { useAuthToken } from "@/hooks/useAuthToken";
 
 interface Stat {
   label: string;
@@ -13,79 +10,54 @@ interface Stat {
   icon: JSX.Element;
 }
 
-function StatsCard() {
-  const [stats, setStats] = useState<Stat[]>([]);
-  const [role, setRole] = useState<string | null>(null);
+interface DashboardTotals {
+  totalRevenue?: string | number;
+  users?: number;
+  newListings?: number;
+  activeSwaps?: number;
+}
 
-  const [loading, setLoading] = useState(true);
-  const token = useAuthToken();
+interface StatsCardProps {
+  data: {
+    admin?: { role?: string } | null;
+    dashboard?: { totals?: DashboardTotals } | null;
+  } | null;
+  loading: boolean;
+}
 
-  useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+function StatsCard({ data, loading }: StatsCardProps) {
+  const role = data?.admin?.role ?? null;
+  const totals = data?.dashboard?.totals;
 
-    const fetchStats = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/admin/get-dashboard`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+  const stats: Stat[] =
+    role === "SUPER_ADMIN" && totals
+      ? [
+          {
+            label: "Total Revenue",
+            value: `₦${totals.totalRevenue ?? 0}`,
+            key: "revenue",
+            icon: <CircleDollarSign size={24} className="text-[#037F44]" />,
           },
-        });
-
-        const data = await response.json();
-        // console.log("Dashboard data:", data);
-        // console.log("Extracted role:", data?.admin?.role || data?.role);
-
-        // 👇 Extract and store the role
-        const adminRole = data?.admin?.role;
-        setRole(adminRole);
-        // console.log("Saved role in state:", adminRole);
-
-        // Only set stats if role is super-admin
-        if (adminRole === "SUPER_ADMIN" && data?.dashboard?.totals) {
-          setStats([
-            {
-              label: "Total Revenue",
-              value: `₦${data.dashboard.totals.totalRevenue ?? 0}`,
-              key: "revenue",
-              icon: <CircleDollarSign size={24} className="text-[#037F44]" />,
-            },
-            {
-              label: "Total Users",
-              value: data.dashboard.totals.users ?? 0,
-              key: "users",
-              icon: <Users size={24} className="text-[#037F44]" />,
-            },
-            {
-              label: "Total Items Listed",
-              value: data.dashboard.totals.newListings ?? 0,
-              key: "items",
-              icon: <Store size={24} className="text-[#037F44]" />,
-            },
-            {
-              label: "Active Swaps",
-              value: data.dashboard.totals.activeSwaps ?? 0,
-              key: "swaps",
-              icon: <Repeat size={24} className="text-[#037F44]" />,
-            },
-          ]);
-        } else {
-          setStats([]);
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard stats:", error);
-        setStats([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, [token]);
+          {
+            label: "Total Users",
+            value: totals.users ?? 0,
+            key: "users",
+            icon: <Users size={24} className="text-[#037F44]" />,
+          },
+          {
+            label: "Total Items Listed",
+            value: totals.newListings ?? 0,
+            key: "items",
+            icon: <Store size={24} className="text-[#037F44]" />,
+          },
+          {
+            label: "Active Swaps",
+            value: totals.activeSwaps ?? 0,
+            key: "swaps",
+            icon: <Repeat size={24} className="text-[#037F44]" />,
+          },
+        ]
+      : [];
 
   return role === "SUPER_ADMIN" ? (
     <div>
