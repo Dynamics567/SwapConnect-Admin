@@ -9,7 +9,7 @@ interface OrderProduct {
   name: string;
   price: string;
   description: string;
-  Category: Category;
+  Category?: Category;
   // add more fields if needed
 }
 
@@ -66,7 +66,7 @@ function RecentOrders({ orders, loading }: RecentOrdersProps) {
                         {product.name}
                       </td>
                       <td className="py-2 text-[#434343] pr-4">
-                        {product.Category.name}
+                        {product.Category?.name ?? "Uncategorized"}
                       </td>
                       <td className="py-2 text-[#434343] pr-4">
                         {product.description}
