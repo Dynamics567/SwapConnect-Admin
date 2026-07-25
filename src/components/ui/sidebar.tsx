@@ -13,6 +13,7 @@ import {
   RefreshCw,
   BarChart2,
   ShieldAlert,
+  ShieldCheck,
 } from "lucide-react";
 import React from "react";
 import Link from "next/link";
@@ -69,6 +70,12 @@ const menuItems = [
     url: "/dashboard/disputes",
     icon: ShieldAlert,
     roles: ["superadmin", "admin", "supportagent"],
+  },
+  {
+    label: "Seller Verification",
+    url: "/dashboard/seller-verification",
+    icon: ShieldCheck,
+    roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
   },
   {
     label: "Reports",
