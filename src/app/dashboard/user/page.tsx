@@ -34,6 +34,7 @@ interface User {
   phone_number: string;
   amount_spent: string;
   date_joined: string;
+  accountType?: string;
   isSuspended?: boolean;
   hasBadge?: boolean;
 }
@@ -45,7 +46,33 @@ interface ApiUser {
   phone_number: string;
   amount_spent: string;
   date_joined: string;
+  accountType?: string;
+  isSuspended?: boolean;
   badge: boolean;
+}
+
+const ACCOUNT_TYPE_LABELS: Record<string, string> = {
+  BUYER: "Buyer",
+  STORE_OWNER: "Store Owner",
+  STAFF: "Staff",
+};
+const ACCOUNT_TYPE_STYLES: Record<string, string> = {
+  BUYER: "bg-[#e6f9f0] text-[#037F44]",
+  STORE_OWNER: "bg-[#fef9ec] text-[#a9791f]",
+  STAFF: "bg-[#F7F8FB] text-[#505050]",
+};
+
+function AccountTypeBadge({ accountType }: { accountType?: string }) {
+  const key = accountType || "BUYER";
+  return (
+    <span
+      className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${
+        ACCOUNT_TYPE_STYLES[key] || ACCOUNT_TYPE_STYLES.BUYER
+      }`}
+    >
+      {ACCOUNT_TYPE_LABELS[key] || key}
+    </span>
+  );
 }
 
 export default function UserPage() {
@@ -53,7 +80,6 @@ export default function UserPage() {
   const [dropdownIdx, setDropdownIdx] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  // const [category, setCategory] = useState();
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<Stats[]>([]);
   const router = useRouter();
@@ -64,6 +90,18 @@ export default function UserPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const [totalPages, setTotalPages] = useState(0);
+
+  // Filter state
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "suspended">("all");
+  const [accountTypeFilter, setAccountTypeFilter] = useState<"all" | "BUYER" | "STORE_OWNER" | "STAFF">("all");
+
+  // Message user modal state
+  const [messageUserTarget, setMessageUserTarget] = useState<User | null>(null);
+  const [messageSubject, setMessageSubject] = useState("");
+  const [messageBody, setMessageBody] = useState("");
+  const [messageSending, setMessageSending] = useState(false);
+  const [messageError, setMessageError] = useState("");
 
   // Onboard user modal state
   const [showOnboardModal, setShowOnboardModal] = useState(false);
@@ -82,8 +120,12 @@ export default function UserPage() {
     }
     const fetchUser = async () => {
       try {
+        const params = new URLSearchParams({ role: "user", page: String(page), limit: "10" });
+        if (statusFilter !== "all") params.set("suspended", String(statusFilter === "suspended"));
+        if (accountTypeFilter !== "all") params.set("accountType", accountTypeFilter);
+
         const response = await fetch(
-          `${API_URL}/api/admin/users/all?role=user&page=${page}&limit=10`,
+          `${API_URL}/api/admin/users/all?${params.toString()}`,
           {
             method: "GET",
             headers: {
@@ -104,6 +146,8 @@ export default function UserPage() {
                 phone_number: u.phone_number,
                 amount_spent: u.amount_spent,
                 date_joined: u.date_joined,
+                accountType: u.accountType,
+                isSuspended: !!u.isSuspended,
                 hasBadge: typeof u.badge === "boolean" ? u.badge : false,
               })
             )
@@ -143,7 +187,7 @@ export default function UserPage() {
       }
     };
     fetchUser();
-  }, [token, page]);
+  }, [token, page, statusFilter, accountTypeFilter]);
 
   // const handleSuspendUser = async (userId: string, currentState?: boolean) => {
   //   if (!token) return;
@@ -270,6 +314,34 @@ export default function UserPage() {
     }
   };
 
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !messageUserTarget) return;
+    if (!messageSubject.trim() || !messageBody.trim()) {
+      setMessageError("Subject and message are both required");
+      return;
+    }
+    setMessageError("");
+    setMessageSending(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/users/${messageUserTarget.id}/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ subject: messageSubject, message: messageBody }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to send message");
+      alert(`Message sent to ${messageUserTarget.name}`);
+      setMessageUserTarget(null);
+      setMessageSubject("");
+      setMessageBody("");
+    } catch (err: unknown) {
+      setMessageError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setMessageSending(false);
+    }
+  };
+
   const handleAssignBadge = async (userId: string) => {
     if (!token) return;
 
@@ -372,10 +444,65 @@ export default function UserPage() {
               className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300 bg-white"
             />
           </div>
-          <button className="hidden md:flex items-center gap-2 bg-white border border-[#037F44] text-[#037F44] px-4 py-2 rounded hover:bg-[#f0faf5] transition-colors">
-            <Filter size={18} />
-            Filter
-          </button>
+          <div className="relative hidden md:block">
+            <button
+              onClick={() => setShowFilterPanel((v) => !v)}
+              className="flex items-center gap-2 bg-white border border-[#037F44] text-[#037F44] px-4 py-2 rounded hover:bg-[#f0faf5] transition-colors"
+            >
+              <Filter size={18} />
+              Filter
+              {(statusFilter !== "all" || accountTypeFilter !== "all") && (
+                <span className="w-2 h-2 rounded-full bg-[#037F44]" />
+              )}
+            </button>
+            {showFilterPanel && (
+              <div className="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-lg z-20 p-4 space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#505050] mb-2">Status</label>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => {
+                      setStatusFilter(e.target.value as typeof statusFilter);
+                      setPage(1);
+                    }}
+                    className="w-full px-3 py-2 border rounded text-sm bg-white focus:outline-none focus:ring focus:border-[#037F44]"
+                  >
+                    <option value="all">All</option>
+                    <option value="active">Active</option>
+                    <option value="suspended">Suspended</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#505050] mb-2">Account Type</label>
+                  <select
+                    value={accountTypeFilter}
+                    onChange={(e) => {
+                      setAccountTypeFilter(e.target.value as typeof accountTypeFilter);
+                      setPage(1);
+                    }}
+                    className="w-full px-3 py-2 border rounded text-sm bg-white focus:outline-none focus:ring focus:border-[#037F44]"
+                  >
+                    <option value="all">All</option>
+                    <option value="BUYER">Buyer</option>
+                    <option value="STORE_OWNER">Store Owner</option>
+                    <option value="STAFF">Staff</option>
+                  </select>
+                </div>
+                {(statusFilter !== "all" || accountTypeFilter !== "all") && (
+                  <button
+                    onClick={() => {
+                      setStatusFilter("all");
+                      setAccountTypeFilter("all");
+                      setPage(1);
+                    }}
+                    className="text-xs text-[#037F44] hover:underline"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
           <button
             onClick={() => { setShowOnboardModal(true); setOnboardError(""); setOnboardSuccess(""); }}
             className="flex items-center gap-2 bg-[#037F44] text-white px-4 py-2 rounded hover:bg-[#025e2e] transition-colors whitespace-nowrap"
@@ -500,6 +627,9 @@ export default function UserPage() {
                   PHONE NO
                 </th>
                 <th className="py-3 px-4 text-[#505050] text-sm font-normal">
+                  CATEGORY
+                </th>
+                <th className="py-3 px-4 text-[#505050] text-sm font-normal">
                   AMOUNT SPENT
                 </th>
                 <th className="py-3 px-4 text-[#505050] text-sm font-normal">
@@ -531,6 +661,9 @@ export default function UserPage() {
                     </td>
                     <td className="py-3 text-[#434343] text-sm px-4">
                       {user.phone_number}
+                    </td>
+                    <td className="py-3 text-[#434343] text-sm px-4">
+                      <AccountTypeBadge accountType={user.accountType} />
                     </td>
                     <td className="py-3 text-[#434343] text-sm px-4">
                       {user.amount_spent}
@@ -596,6 +729,17 @@ export default function UserPage() {
                           >
                             {user.hasBadge ? "Remove Badge" : "Assign Badge"}
                           </button>
+                          <button
+                            className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44]"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMessageUserTarget(user);
+                              setMessageError("");
+                              setDropdownIdx(null);
+                            }}
+                          >
+                            Message
+                          </button>
                         </div>
                       )}
                     </td>
@@ -617,6 +761,78 @@ export default function UserPage() {
           title="Ban User"
           message="Are you sure you want to permanently ban this user? This action cannot be undone."
         />
+
+        {/* Message User Modal */}
+        {messageUserTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="text-lg font-bold text-[#353535]">Message {messageUserTarget.name}</h2>
+                  <p className="text-xs text-[#848484] mt-0.5">
+                    Sent as an in-app notification and an email to {messageUserTarget.email}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setMessageUserTarget(null)}
+                  className="text-[#848484] hover:text-[#353535]"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <form onSubmit={handleSendMessage} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-[#505050] mb-1">
+                    Subject <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={messageSubject}
+                    onChange={(e) => setMessageSubject(e.target.value)}
+                    className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring focus:border-[#037F44]"
+                    placeholder="e.g. Following up on your order"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[#505050] mb-1">
+                    Message <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    required
+                    rows={5}
+                    value={messageBody}
+                    onChange={(e) => setMessageBody(e.target.value)}
+                    className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring focus:border-[#037F44]"
+                    placeholder="Write your message..."
+                  />
+                </div>
+                {messageError && <p className="text-red-500 text-sm">{messageError}</p>}
+                <div className="flex gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setMessageUserTarget(null)}
+                    className="flex-1 px-4 py-2 border border-[#e5e7eb] rounded text-sm text-[#505050] hover:bg-[#F7F8FB] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={messageSending}
+                    className={`flex-1 px-4 py-2 bg-[#037F44] text-white rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                      messageSending ? "opacity-60 cursor-not-allowed" : "hover:bg-[#025e2e]"
+                    }`}
+                  >
+                    {messageSending && (
+                      <span className="inline-block h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    )}
+                    {messageSending ? "Sending..." : "Send Message"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Mobile Card View */}
         <div className="block md:hidden">
@@ -647,6 +863,9 @@ export default function UserPage() {
                     <span className="font-bold text-[#037F44]">
                       {user.amount_spent}
                     </span>
+                  </div>
+                  <div>
+                    <AccountTypeBadge accountType={user.accountType} />
                   </div>
                   <div className="flex gap-2 mt-2">
                     <button
@@ -693,6 +912,16 @@ export default function UserPage() {
                       }}
                     >
                       {user.hasBadge ? "Remove Badge" : "Assign Badge"}
+                    </button>
+                    <button
+                      className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMessageUserTarget(user);
+                        setMessageError("");
+                      }}
+                    >
+                      Message
                     </button>
                   </div>
                 </div>
