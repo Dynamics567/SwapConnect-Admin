@@ -12,6 +12,7 @@ import {
   MapPinCheckInside,
   HelpCircle,
   Activity,
+  ShieldAlert,
 } from "lucide-react";
 import Link from "next/link";
 // import { useRouter, useSearchParams } from "next/navigation";
@@ -63,6 +64,12 @@ const menuItems = [
     url: "/dashboard/store",
     icon: MapPinCheckInside,
     roles: ["superadmin", "admin", "verificationofficer"],
+  },
+  {
+    label: "Disputes",
+    url: "/dashboard/disputes",
+    icon: ShieldAlert,
+    roles: ["superadmin", "admin", "supportagent"],
   },
   {
     label: "Activity Log",

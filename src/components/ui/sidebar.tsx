@@ -12,6 +12,7 @@ import {
   Activity,
   RefreshCw,
   BarChart2,
+  ShieldAlert,
 } from "lucide-react";
 import React from "react";
 import Link from "next/link";
@@ -61,6 +62,12 @@ const menuItems = [
     label: "Trade-Ins",
     url: "/dashboard/trade-ins",
     icon: RefreshCw,
+    roles: ["superadmin", "admin", "supportagent"],
+  },
+  {
+    label: "Disputes",
+    url: "/dashboard/disputes",
+    icon: ShieldAlert,
     roles: ["superadmin", "admin", "supportagent"],
   },
   {
