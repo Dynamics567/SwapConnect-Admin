@@ -134,7 +134,7 @@ export default function DisputesPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      setDisputes(data.disputes ?? []);
+      setDisputes(data.data?.disputes ?? []);
     } finally {
       setLoading(false);
     }
@@ -156,7 +156,7 @@ export default function DisputesPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        const full: Dispute | undefined = data.dispute ?? data;
+        const full: Dispute | undefined = data.data?.dispute;
         if (full && full.id) {
           setSelected(full);
           setAdminNotes(full.adminNotes ?? "");
@@ -202,7 +202,7 @@ export default function DisputesPage() {
         setActionError(data.error ?? "Failed to assign dispute.");
         return;
       }
-      await refreshAfterAction(data.dispute);
+      await refreshAfterAction(data.data?.dispute);
     } catch {
       setActionError("Failed to assign dispute.");
     } finally {
@@ -243,7 +243,7 @@ export default function DisputesPage() {
         setActionError(data.error ?? "Failed to resolve dispute.");
         return;
       }
-      await refreshAfterAction(data.dispute);
+      await refreshAfterAction(data.data?.dispute);
     } catch {
       setActionError("Failed to resolve dispute.");
     } finally {
@@ -279,7 +279,7 @@ export default function DisputesPage() {
         setActionError(data.error ?? "Failed to close dispute.");
         return;
       }
-      await refreshAfterAction(data.dispute);
+      await refreshAfterAction(data.data?.dispute);
     } catch {
       setActionError("Failed to close dispute.");
     } finally {
