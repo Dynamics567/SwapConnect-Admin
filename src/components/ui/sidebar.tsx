@@ -14,6 +14,8 @@ import {
   BarChart2,
   ShieldAlert,
   ShieldCheck,
+  AlertTriangle,
+  Tag,
 } from "lucide-react";
 import React from "react";
 import Link from "next/link";
@@ -72,9 +74,21 @@ const menuItems = [
     roles: ["superadmin", "admin", "supportagent"],
   },
   {
+    label: "Risk & Fraud Review",
+    url: "/dashboard/risk",
+    icon: AlertTriangle,
+    roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+  },
+  {
     label: "Seller Verification",
     url: "/dashboard/seller-verification",
     icon: ShieldCheck,
+    roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+  },
+  {
+    label: "Coupons & Campaigns",
+    url: "/dashboard/coupons",
+    icon: Tag,
     roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
   },
   {

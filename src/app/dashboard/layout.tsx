@@ -22,6 +22,7 @@ function getTitleFromPath(pathname: string) {
   if (pathname.startsWith("/dashboard/trade-ins")) return "Trade-Ins";
   if (pathname.startsWith("/dashboard/disputes")) return "Dispute Resolution";
   if (pathname.startsWith("/dashboard/seller-verification")) return "Seller Verification";
+  if (pathname.startsWith("/dashboard/coupons")) return "Coupons & Campaigns";
   if (pathname.startsWith("/dashboard/reports")) return "Reports";
   if (pathname.startsWith("/dashboard/activity")) return "Activity Log";
   if (pathname.startsWith("/dashboard/setting")) return "Settings";
