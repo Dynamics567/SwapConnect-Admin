@@ -3,6 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+
+type PendingAction =
+  | { kind: "resolve"; resolution: "refund_buyer" | "release_seller"; title: string; message: string; variant: "warning" | "danger" }
+  | { kind: "close"; title: string; message: string; variant: "default" };
 
 type DisputeStatus =
   | "open"
@@ -122,6 +127,7 @@ export default function DisputesPage() {
     "assign" | "refund" | "release" | "close" | null
   >(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
 
   const fetchDisputes = useCallback(async () => {
     if (!token) return;
@@ -210,56 +216,75 @@ export default function DisputesPage() {
     }
   };
 
-  const handleResolve = async (resolution: "refund_buyer" | "release_seller") => {
-    if (!selected || !token) return;
-
+  const requestResolve = (resolution: "refund_buyer" | "release_seller") => {
+    if (!selected) return;
     const amount =
       resolution === "refund_buyer"
         ? formatNGN(selected.Order?.totalAmount)
         : formatNGN(selected.Order?.sellerPayoutAmount);
-    const confirmMessage =
+    setPendingAction(
       resolution === "refund_buyer"
-        ? `This will refund ${amount} to the buyer and the seller will not be paid. Continue?`
-        : `This will release ${amount} to the seller and the buyer will not be refunded. Continue?`;
-
-    if (!window.confirm(confirmMessage)) return;
-
-    setActionLoading(resolution === "refund_buyer" ? "refund" : "release");
-    setActionError(null);
-    try {
-      const res = await fetch(
-        `${API_URL}/api/admin/disputes/${selected.id}/resolve`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ resolution, adminNotes }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) {
-        setActionError(data.error ?? "Failed to resolve dispute.");
-        return;
-      }
-      await refreshAfterAction(data.data?.dispute);
-    } catch {
-      setActionError("Failed to resolve dispute.");
-    } finally {
-      setActionLoading(null);
-    }
+        ? {
+            kind: "resolve",
+            resolution,
+            title: "Refund the buyer?",
+            message: `This will refund ${amount} to the buyer and the seller will not be paid. This can't be undone.`,
+            variant: "danger",
+          }
+        : {
+            kind: "resolve",
+            resolution,
+            title: "Release funds to the seller?",
+            message: `This will release ${amount} to the seller and the buyer will not be refunded. This can't be undone.`,
+            variant: "warning",
+          }
+    );
   };
 
-  const handleClose = async () => {
-    if (!selected || !token) return;
-    if (
-      !window.confirm(
-        "This will close the dispute without moving any money. Continue?"
-      )
-    )
-      return;
+  const requestClose = () => {
+    setPendingAction({
+      kind: "close",
+      title: "Close this dispute?",
+      message: "This closes the dispute without moving any money -- escrow proceeds on its normal schedule.",
+      variant: "default",
+    });
+  };
 
+  const confirmPendingAction = async () => {
+    if (!selected || !token || !pendingAction) return;
+
+    if (pendingAction.kind === "resolve") {
+      const { resolution } = pendingAction;
+      setActionLoading(resolution === "refund_buyer" ? "refund" : "release");
+      setActionError(null);
+      try {
+        const res = await fetch(
+          `${API_URL}/api/admin/disputes/${selected.id}/resolve`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ resolution, adminNotes }),
+          }
+        );
+        const data = await res.json();
+        if (!res.ok) {
+          setActionError(data.error ?? "Failed to resolve dispute.");
+          return;
+        }
+        await refreshAfterAction(data.data?.dispute);
+      } catch {
+        setActionError("Failed to resolve dispute.");
+      } finally {
+        setActionLoading(null);
+        setPendingAction(null);
+      }
+      return;
+    }
+
+    // kind === "close"
     setActionLoading("close");
     setActionError(null);
     try {
@@ -284,6 +309,7 @@ export default function DisputesPage() {
       setActionError("Failed to close dispute.");
     } finally {
       setActionLoading(null);
+      setPendingAction(null);
     }
   };
 
@@ -547,21 +573,21 @@ export default function DisputesPage() {
               {canResolveOrClose && (
                 <>
                   <button
-                    onClick={() => handleResolve("refund_buyer")}
+                    onClick={() => requestResolve("refund_buyer")}
                     disabled={actionLoading !== null}
                     className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60"
                   >
                     {actionLoading === "refund" ? "Processing…" : "Refund Buyer"}
                   </button>
                   <button
-                    onClick={() => handleResolve("release_seller")}
+                    onClick={() => requestResolve("release_seller")}
                     disabled={actionLoading !== null}
                     className="w-full bg-[#037F44] text-white py-3 rounded-lg font-semibold hover:bg-[#026835] transition-colors disabled:opacity-60"
                   >
                     {actionLoading === "release" ? "Processing…" : "Release to Seller"}
                   </button>
                   <button
-                    onClick={handleClose}
+                    onClick={requestClose}
                     disabled={actionLoading !== null}
                     className="w-full bg-white border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors disabled:opacity-60"
                   >
@@ -580,6 +606,17 @@ export default function DisputesPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!pendingAction}
+        title={pendingAction?.title ?? ""}
+        message={pendingAction?.message ?? ""}
+        variant={pendingAction?.variant ?? "default"}
+        confirmLabel={pendingAction?.kind === "close" ? "Close Dispute" : "Confirm"}
+        loading={actionLoading !== null}
+        onConfirm={confirmPendingAction}
+        onClose={() => setPendingAction(null)}
+      />
     </div>
   );
 }

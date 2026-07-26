@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+
+type PendingAction = { kind: "approve" | "reject" | "pro"; title: string; message: string };
 
 type VerificationStatus = "not_submitted" | "pending_review" | "approved" | "rejected";
 type VerificationTier = "unverified" | "pending" | "verified" | "pro";
@@ -100,6 +103,7 @@ export default function SellerVerificationPage() {
   const [reviewNotes, setReviewNotes] = useState("");
   const [actionLoading, setActionLoading] = useState<"approve" | "reject" | "pro" | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
 
   const fetchSubmissions = useCallback(async () => {
     if (!token) return;
@@ -142,64 +146,90 @@ export default function SellerVerificationPage() {
     await fetchSubmissions();
   };
 
-  const handleApprove = async () => {
-    if (!selected || !token) return;
-    if (!window.confirm(`Approve this submission and mark ${selected.User?.firstName} as a Verified Seller?`)) return;
-
-    setActionLoading("approve");
-    setActionError(null);
-    try {
-      const res = await fetch(`${API_URL}/api/admin/seller-verification/${selected.id}/approve`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ reviewNotes }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setActionError(data.message ?? "Failed to approve submission.");
-        return;
-      }
-      await refreshAfterAction(data.data);
-    } catch {
-      setActionError("Failed to approve submission.");
-    } finally {
-      setActionLoading(null);
-    }
+  const requestApprove = () => {
+    if (!selected) return;
+    setPendingAction({
+      kind: "approve",
+      title: "Approve this submission?",
+      message: `${selected.User?.firstName} ${selected.User?.lastName ?? ""} will be marked as a Verified Seller and notified.`,
+    });
   };
 
-  const handleReject = async () => {
-    if (!selected || !token) return;
+  const requestReject = () => {
+    if (!selected) return;
     if (!reviewNotes.trim()) {
       setActionError("Please explain why this submission is being rejected -- the seller will see this note.");
       return;
     }
-    if (!window.confirm("Reject this submission? The seller will be notified with your note.")) return;
-
-    setActionLoading("reject");
-    setActionError(null);
-    try {
-      const res = await fetch(`${API_URL}/api/admin/seller-verification/${selected.id}/reject`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ reviewNotes }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setActionError(data.message ?? "Failed to reject submission.");
-        return;
-      }
-      await refreshAfterAction(data.data);
-    } catch {
-      setActionError("Failed to reject submission.");
-    } finally {
-      setActionLoading(null);
-    }
+    setPendingAction({
+      kind: "reject",
+      title: "Reject this submission?",
+      message: "The seller will be notified with your note and can submit new documents any time.",
+    });
   };
 
-  const handleGrantPro = async () => {
-    if (!selected || !token) return;
-    if (!window.confirm(`Grant Pro Seller tier to ${selected.User?.firstName} ${selected.User?.lastName}? This is a manual business decision, not part of the document review.`)) return;
+  const requestGrantPro = () => {
+    if (!selected) return;
+    setPendingAction({
+      kind: "pro",
+      title: "Grant Pro Seller status?",
+      message: `${selected.User?.firstName} ${selected.User?.lastName ?? ""} will be recognized as a Pro Seller. This is a manual business decision, separate from the document review.`,
+    });
+  };
 
+  const confirmPendingAction = async () => {
+    if (!selected || !token || !pendingAction) return;
+    const { kind } = pendingAction;
+
+    if (kind === "approve") {
+      setActionLoading("approve");
+      setActionError(null);
+      try {
+        const res = await fetch(`${API_URL}/api/admin/seller-verification/${selected.id}/approve`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ reviewNotes }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setActionError(data.message ?? "Failed to approve submission.");
+          return;
+        }
+        await refreshAfterAction(data.data);
+      } catch {
+        setActionError("Failed to approve submission.");
+      } finally {
+        setActionLoading(null);
+        setPendingAction(null);
+      }
+      return;
+    }
+
+    if (kind === "reject") {
+      setActionLoading("reject");
+      setActionError(null);
+      try {
+        const res = await fetch(`${API_URL}/api/admin/seller-verification/${selected.id}/reject`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ reviewNotes }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setActionError(data.message ?? "Failed to reject submission.");
+          return;
+        }
+        await refreshAfterAction(data.data);
+      } catch {
+        setActionError("Failed to reject submission.");
+      } finally {
+        setActionLoading(null);
+        setPendingAction(null);
+      }
+      return;
+    }
+
+    // kind === "pro"
     setActionLoading("pro");
     setActionError(null);
     try {
@@ -217,6 +247,8 @@ export default function SellerVerificationPage() {
     } catch {
       setActionError("Failed to grant Pro tier.");
     } finally {
+      setActionLoading(null);
+      setPendingAction(null);
       setActionLoading(null);
     }
   };
@@ -404,14 +436,14 @@ export default function SellerVerificationPage() {
               {canReview && (
                 <>
                   <button
-                    onClick={handleApprove}
+                    onClick={requestApprove}
                     disabled={actionLoading !== null}
                     className="w-full bg-[#037F44] text-white py-3 rounded-lg font-semibold hover:bg-[#026835] transition-colors disabled:opacity-60"
                   >
                     {actionLoading === "approve" ? "Approving…" : "Approve — Verified Seller"}
                   </button>
                   <button
-                    onClick={handleReject}
+                    onClick={requestReject}
                     disabled={actionLoading !== null}
                     className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-60"
                   >
@@ -422,7 +454,7 @@ export default function SellerVerificationPage() {
 
               {canGrantPro && (
                 <button
-                  onClick={handleGrantPro}
+                  onClick={requestGrantPro}
                   disabled={actionLoading !== null}
                   className="w-full bg-[#d7a825] text-white py-3 rounded-lg font-semibold hover:bg-[#b8911e] transition-colors disabled:opacity-60"
                 >
@@ -440,6 +472,17 @@ export default function SellerVerificationPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!pendingAction}
+        title={pendingAction?.title ?? ""}
+        message={pendingAction?.message ?? ""}
+        variant={pendingAction?.kind === "reject" ? "danger" : pendingAction?.kind === "pro" ? "warning" : "default"}
+        confirmLabel={pendingAction?.kind === "reject" ? "Reject" : pendingAction?.kind === "pro" ? "Grant Pro" : "Approve"}
+        loading={actionLoading !== null}
+        onConfirm={confirmPendingAction}
+        onClose={() => setPendingAction(null)}
+      />
     </div>
   );
 }
