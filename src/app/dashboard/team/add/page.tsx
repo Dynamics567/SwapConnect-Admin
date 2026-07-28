@@ -40,6 +40,12 @@ export default function AddTeamMemberPage() {
       });
       const data = await response.json();
       if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem("token");
+          setError("Your session has expired. Redirecting you to log in again…");
+          setTimeout(() => { window.location.href = "/auth/login"; }, 1500);
+          return;
+        }
         setError(data.message || "Failed to send invitation. Please try again.");
         return;
       }

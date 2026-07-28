@@ -128,11 +128,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
           if (response.status === 401) {
             localStorage.removeItem("token");
             setUserError("Unauthorized");
-
-            // const currentUrl = window.location.href;
-            // window.location.href = `http://localhost:3000/auth/login?redirect=${encodeURIComponent(
-            //   currentUrl
-            // )}`;
+            window.location.href = "/auth/login";
             return;
           } else {
             setUserError(`Error: ${response.status}`);
