@@ -6,6 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
+import { useAuthContext } from "@/context/AuthContext";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 // Mock users data (replace with real data fetching in production)
 
@@ -66,12 +68,49 @@ export default function UserDetailsPage() {
   const params = useParams();
   const [users, setUsers] = useState<User | null>(null);
   const token = useAuthToken();
+  const { role } = useAuthContext();
   const [loading, setLoading] = useState(false);
   //   const router = useRouter();
   const userId = params?.userId;
   const [activeTab, setActiveTab] = useState<
     "personal" | "orders" | "payments"
   >("personal");
+
+  const [showChangeEmail, setShowChangeEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [changingEmail, setChangingEmail] = useState(false);
+  const [changeEmailError, setChangeEmailError] = useState<string | null>(null);
+
+  const handleConfirmChangeEmail = async () => {
+    if (!newEmail.trim() || !newEmail.includes("@")) {
+      setChangeEmailError("Enter a valid email address.");
+      return;
+    }
+    setChangingEmail(true);
+    setChangeEmailError(null);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users/${userId}/email`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ newEmail: newEmail.trim() }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setChangeEmailError(data.message || "Failed to change email.");
+        return;
+      }
+      setUsers((prev) => (prev ? { ...prev, email: newEmail.trim() } : prev));
+      setShowChangeEmail(false);
+      setNewEmail("");
+    } catch {
+      setChangeEmailError("Something went wrong. Please try again.");
+    } finally {
+      setChangingEmail(false);
+    }
+  };
 
   // Find user by _id
   // const user = users.find((u) => u._id === userId);
@@ -179,18 +218,32 @@ export default function UserDetailsPage() {
                   <UserCircle size={96} className="text-gray-300" />
                 )}
               </div>
-              {/* Status Button */}
-              <button
-                className={`px-4 py-2 rounded-full text-xs font-semibold ${
-                  users.status === "Active"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-gray-200 text-gray-600"
-                }`}
-                style={{ minWidth: 90 }}
-                disabled
-              >
-                {users.status}
-              </button>
+              <div className="flex items-center gap-3">
+                {role === "superadmin" && (
+                  <button
+                    onClick={() => {
+                      setNewEmail(users.email ?? "");
+                      setChangeEmailError(null);
+                      setShowChangeEmail(true);
+                    }}
+                    className="px-4 py-2 rounded-full text-xs font-semibold bg-[#f0faf5] text-[#037F44] hover:bg-[#dcf3e7] transition-colors"
+                  >
+                    Change Email
+                  </button>
+                )}
+                {/* Status Button */}
+                <button
+                  className={`px-4 py-2 rounded-full text-xs font-semibold ${
+                    users.status === "Active"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-200 text-gray-600"
+                  }`}
+                  style={{ minWidth: 90 }}
+                  disabled
+                >
+                  {users.status}
+                </button>
+              </div>
             </div>
             <div className="flex gap-4 mb-4">
               <div className="w-1/2">
@@ -326,6 +379,38 @@ export default function UserDetailsPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={showChangeEmail}
+        title="Change user's email"
+        message={
+          <div className="flex flex-col gap-2">
+            <p>
+              This changes the email immediately, with no verification code sent
+              — only use this when the user has lost access to their old email
+              and asked for help.
+            </p>
+            <input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="new@example.com"
+              className="w-full px-3 py-2 border rounded text-base text-gray-800"
+              autoFocus
+            />
+            {changeEmailError && (
+              <p className="text-red-600 text-xs">{changeEmailError}</p>
+            )}
+          </div>
+        }
+        confirmLabel="Change Email"
+        loading={changingEmail}
+        onConfirm={handleConfirmChangeEmail}
+        onClose={() => {
+          setShowChangeEmail(false);
+          setChangeEmailError(null);
+        }}
+      />
     </div>
   );
 }
