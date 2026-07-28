@@ -53,15 +53,20 @@ const CreatePasswordPage: React.FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({token, password }),
+        body: JSON.stringify({ token, password }),
       });
       const data = await response.json();
       if (!response.ok) {
         setError(data.message || "Failed to set password");
         setLoading(false);
         return;
+      }
+      // This endpoint issues a real session token on success -- store it so
+      // the redirect below lands on an authenticated dashboard instead of
+      // bouncing straight back to login with no session at all.
+      if (data.token) {
+        localStorage.setItem("token", data.token);
       }
       setSuccess("Password set successfully!");
       setPassword("");

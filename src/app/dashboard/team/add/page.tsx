@@ -1,12 +1,20 @@
 "use client";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
-import React, { useState } from "react";
+import { useState } from "react";
+import { UserPlus, CheckCircle2 } from "lucide-react";
+
+const ROLE_OPTIONS = [
+  { value: "SUPER_ADMIN", label: "Super Admin" },
+  { value: "ADMIN", label: "Admin" },
+  { value: "SUPPORT_AGENT", label: "Support Agent" },
+  { value: "VERIFICATION_OFFICER", label: "Verification Officer" },
+];
 
 export default function AddTeamMemberPage() {
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("super admin");
+  const [role, setRole] = useState("ADMIN");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -14,103 +22,120 @@ export default function AddTeamMemberPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName || !email || !role){
-      alert("Please fill in all fields.");
+    if (!firstName.trim() || !email.trim() || !role) {
+      setError("Please fill in all fields.");
       return;
     }
     setLoading(true);
     setError("");
-    setSuccess(false);
 
-    try{
-      const response = await fetch(`${API_URL}/api/admin/add`, {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/team/invite`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ firstName, email, role }),
+        body: JSON.stringify({ firstName: firstName.trim(), email: email.trim(), role }),
       });
       const data = await response.json();
-      console.log("Add Team Member Response", data);
       if (!response.ok) {
-        setError(data.message || "Failed to add team member. Please try again.");
+        setError(data.message || "Failed to send invitation. Please try again.");
         return;
       }
-       setSuccess(true);
-    setFirstName("");
-    setEmail("");
-    setRole("");
-    setTimeout(() => setSuccess(false), 2000);
-    } catch { 
+      setSuccess(true);
+      setFirstName("");
+      setEmail("");
+      setRole("ADMIN");
+      setTimeout(() => setSuccess(false), 2500);
+    } catch {
       setError("Something went wrong. Please try again.");
-    }finally{
+    } finally {
       setLoading(false);
     }
-   
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#F8F9FB] px-4">
-      <div className="bg-white rounded-xl shadow p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-[#037F44]">
-          Add New Member
-        </h2>
+      <div className="bg-white rounded-2xl shadow p-8 w-full max-w-md">
+        <div className="flex items-center gap-3 mb-1">
+          <span className="bg-[#f0faf5] rounded-full p-2.5">
+            <UserPlus size={20} className="text-[#037F44]" />
+          </span>
+          <h2 className="text-xl font-bold text-[#353535]">Invite Team Member</h2>
+        </div>
+        <p className="text-sm text-[#848484] mb-6 ml-[52px]">
+          They&apos;ll get an email to set their own password -- nothing to share here.
+        </p>
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="block text-sm mb-1 text-[#505050]">Name</label>
+            <label className="block text-sm font-medium mb-1.5 text-[#353535]">Name</label>
             <input
               type="text"
-              className="w-full text-black border rounded px-3 py-2 text-sm bg-gray-50"
+              className="w-full text-[#353535] border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-[#037f44]/20 focus:border-[#037f44]"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
+              placeholder="e.g. Tolu Olatoye"
               required
             />
           </div>
           <div>
-            <label className="block text-sm mb-1 text-[#505050]">Email</label>
+            <label className="block text-sm font-medium mb-1.5 text-[#353535]">Email</label>
             <input
               type="email"
-              className="w-full text-black border rounded px-3 py-2 text-sm bg-gray-50"
+              className="w-full text-[#353535] border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-[#037f44]/20 focus:border-[#037f44]"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
               required
             />
           </div>
           <div>
-            <label className="block text-sm mb-1 text-[#505050]">Role</label>
+            <label className="block text-sm font-medium mb-1.5 text-[#353535]">Role</label>
             <select
-              className="w-full text-black border rounded px-3 py-2 text-sm bg-gray-50"
+              className="w-full text-[#353535] border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-[#037f44]/20 focus:border-[#037f44]"
               value={role}
               onChange={(e) => setRole(e.target.value)}
               required
             >
-              <option value="super admin">Super Admin</option>
-              <option value="admin">Admin</option>
-              <option value="customer support">Customer Support</option>
+              {ROLE_OPTIONS.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
             </select>
           </div>
+
+          {error && (
+            <div className="bg-[#fef2f2] border border-[#fecaca] text-[#b91c1c] text-sm rounded-lg px-3 py-2.5">
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full bg-[#037F44] text-white py-2 rounded mt-2 hover:bg-[#025e2e] transition"
+            disabled={loading}
+            className="w-full bg-[#037F44] text-white py-2.5 rounded-lg font-semibold text-sm mt-1 hover:bg-[#026835] transition-colors disabled:opacity-60"
           >
-            {loading ? "Submitting..." : "Add Member"}
+            {loading ? "Sending invite…" : "Send Invitation"}
           </button>
         </form>
-        {error && (
-          <div className="mt-4 text-red-600 text-sm text-center">{error}</div>
-        )}
-        {success && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-              <p className="text-lg text-[#037F44] font-semibold mb-2">
-                Success!
-              </p>
-              <p className="text-gray-700">Team member added successfully.</p>
-            </div>
-          </div>
-        )}
       </div>
+
+      {success && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-xs w-full">
+            <span className="bg-[#e6f9f0] rounded-full p-3 inline-flex mb-3">
+              <CheckCircle2 size={24} className="text-[#037f44]" />
+            </span>
+            <p className="text-base font-bold text-[#353535] mb-1">Invitation sent</p>
+            <p className="text-sm text-[#848484]">
+              They&apos;ll receive an email with a link to set their password.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
