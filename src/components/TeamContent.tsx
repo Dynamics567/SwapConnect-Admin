@@ -18,26 +18,31 @@ interface Teams {
   email: string;
   role: string;
 }
+// These are SwapConnect's real, fixed staff roles -- baked into the backend's
+// route middleware (src/utils/enum.js + authorizeRoles checks), not
+// database-backed records. There's no custom role/permission system to
+// create or edit roles against, so this table is read-only and the
+// descriptions below reflect what each role can actually do today.
 const rolesData = [
   {
     role: "Super Admin",
-    permission: "All Access",
+    permission:
+      "Full access -- manage admin/staff accounts, change any user's email, delete or promote/demote accounts, plus everything below",
   },
   {
     role: "Admin",
-    permission: "Manage users, View reports",
+    permission:
+      "Manage users (suspend, badges, approve/reject listings), onboard staff, view all reports & dashboards",
   },
   {
-    role: "Customer Support",
-    permission: "View tickets, Respond to users",
+    role: "Support Agent",
+    permission:
+      "View users, orders, transactions & disputes; message users; review seller verifications",
   },
   {
-    role: "Editor",
-    permission: "Edit content, Manage posts",
-  },
-  {
-    role: "Viewer",
-    permission: "View only",
+    role: "Verification Officer",
+    permission:
+      "Review and approve/reject seller verification submissions; same view access as Support Agent",
   },
 ];
 
@@ -140,21 +145,13 @@ const filteredTeams = (team || []).filter((t) => {
         {/* Header row */}
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-[#037F44]">Teams Section</h2>
-          {activeTab === "teams" ? (
+          {activeTab === "teams" && (
             <button
               className="flex items-center gap-2 bg-[#037F44] text-white px-4 py-2 rounded-lg hover:bg-[#025e2e] transition"
               onClick={() => router.push("/dashboard/team/add")}
             >
               <Plus size={18} />
               Add new team member{" "}
-            </button>
-          ) : (
-            <button
-              className="flex items-center gap-2 bg-[#037F44] text-white px-4 py-2 rounded-lg hover:bg-[#025e2e] transition"
-              onClick={() => router.push("/dashboard/team/addroles")}
-            >
-              <Plus size={18} />
-              Create new role &amp; permission
             </button>
           )}
         </div>
@@ -315,89 +312,25 @@ const filteredTeams = (team || []).filter((t) => {
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow p-4 w-full overflow-x-auto">
+            <p className="text-xs text-[#848484] mb-3">
+              These are SwapConnect&apos;s fixed staff roles, enforced by the backend for every admin action. They aren&apos;t custom or editable here.
+            </p>
             <table className="w-full table-auto">
               <thead>
                 <tr className="bg-[#CCDCD4] text-[#505050] text-left">
                   <th className="py-2 px-4 font-normal text-sm">Role</th>
                   <th className="py-2 px-4 font-normal text-sm">Permission</th>
-                  <th className="py-2 px-4 font-normal text-sm">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {rolesData.map((role, idx) => (
-                  <tr key={idx} className="text-[#434343] text-sm ">
-                    <td className="py-2 px-4">{role.role}</td>
+                  <tr key={idx} className="text-[#434343] text-sm">
+                    <td className="py-2 px-4 font-medium">{role.role}</td>
                     <td className="py-2 px-4">{role.permission}</td>
-                    <td className="py-2 px-4">
-                      <button
-                        className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
-                        onClick={() =>
-                          setActionMenuIdx(actionMenuIdx === idx ? null : idx)
-                        }
-                        type="button"
-                      >
-                        <MoreVertical size={18} />
-                      </button>
-                      {actionMenuIdx === idx && (
-                        <div className="absolute z-10 right-6 mt-2 w-36 bg-white border rounded shadow-lg">
-                          <button
-                            className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
-                            onClick={() => {
-                              setActionMenuIdx(null);
-                              router.push(
-                                `/dashboard/team/editrole/${encodeURIComponent(
-                                  role.role,
-                                )}`,
-                              );
-                            }}
-                          >
-                            Edit Role
-                          </button>
-                          <button
-                            className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-red-600 text-sm"
-                            onClick={() => {
-                              setActionMenuIdx(null);
-                              setConfirmIdx(idx);
-                            }}
-                          >
-                            Deactivate
-                          </button>
-                        </div>
-                      )}
-                      {/* Confirm Deactivate Popup */}
-                      {confirmIdx === idx && (
-                        <div className="fixed inset-0 flex items-center justify-center  bg-opacity-30 z-50">
-                          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-                            <p className="text-lg font-semibold mb-4 text-[#037F44]">
-                              Deactivate Member
-                            </p>
-                            <p className="mb-6 text-gray-700">
-                              Are you sure you want to deactivate this
-                              role?{" "}
-                            </p>
-                            <div className="flex gap-4 justify-center">
-                              <button
-                                className="px-6 py-2 rounded bg-gray-200 text-gray-700"
-                                onClick={() => setConfirmIdx(null)}
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                className="px-6 py-2 rounded bg-red-600 text-white"
-                                onClick={() => handleDeactivate}
-                              >
-                                Proceed
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <PageButton page={page} setPage={setPage} totalPages={totalPages} />
           </div>
         )}
         {/* Success Popup */}
