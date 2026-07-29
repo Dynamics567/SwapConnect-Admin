@@ -7,6 +7,11 @@ interface RevenuePoint {
   amount: number;
 }
 
+interface SignupPoint {
+  date: string;
+  count: number;
+}
+
 interface OrderProduct {
   id: number;
   name: string;
@@ -40,6 +45,7 @@ interface DashboardData {
   dashboard: {
     totals: Totals;
     revenueData: RevenuePoint[];
+    signupsData: SignupPoint[];
     recentOrders: Order[];
   } | null;
 }

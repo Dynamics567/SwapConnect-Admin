@@ -14,7 +14,7 @@ export default function Page() {
       {/* First Column: Stats Cards */}
       <StatsCard data={data} loading={loading} />
       {/* Second Column: Graphs */}
-      <StatGraph revenueData={data?.dashboard?.revenueData ?? []} loading={loading} />
+      <StatGraph revenueData={data?.dashboard?.revenueData ?? []} signupsData={data?.dashboard?.signupsData ?? []} loading={loading} />
       {/* Third Column: Recent Orders Table */}
       <RecentOrders orders={data?.dashboard?.recentOrders ?? []} loading={loading} />
     </div>

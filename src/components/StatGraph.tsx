@@ -15,8 +15,14 @@ interface RevenuePoint {
   amount: number;
 }
 
+interface SignupPoint {
+  date: string;
+  count: number;
+}
+
 interface StatGraphProps {
   revenueData: RevenuePoint[];
+  signupsData: SignupPoint[];
   loading: boolean;
 }
 
@@ -25,20 +31,44 @@ function formatChartDate(dateStr: string) {
   return d.toLocaleDateString("en-NG", { month: "short", day: "numeric" });
 }
 
-function UserSignUpGraph() {
+function UserSignUpGraph({ signupsData, loading }: { signupsData: SignupPoint[]; loading: boolean }) {
+  const chartData = signupsData.map((point) => ({
+    name: formatChartDate(point.date),
+    signups: point.count,
+  }));
+
   return (
     <div className="bg-white rounded-lg shadow w-full md:w-[504px] p-4 h-64 flex flex-col mb-4">
       <span className="font-semibold text-lg text-[#1D1D1D] mb-2">
         User Sign Ups
       </span>
-      <div className="flex-1 flex items-center justify-center text-sm text-[#BEBEBE] text-center px-6">
-        Daily sign-up trends aren&apos;t tracked by the backend yet.
-      </div>
+      {loading ? (
+        <div className="flex-1 animate-pulse bg-gray-100 rounded" />
+      ) : chartData.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center text-sm text-[#BEBEBE]">
+          No sign-ups in the last 30 days.
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={180}>
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Line
+              type="monotone"
+              dataKey="signups"
+              stroke="#037F44"
+              strokeWidth={2}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      )}
     </div>
   );
 }
 
-function RevenueGraph({ revenueData, loading }: StatGraphProps) {
+function RevenueGraph({ revenueData, loading }: { revenueData: RevenuePoint[]; loading: boolean }) {
   const chartData = revenueData.map((point) => ({
     name: formatChartDate(point.date),
     revenue: point.amount,
@@ -73,11 +103,11 @@ function RevenueGraph({ revenueData, loading }: StatGraphProps) {
   );
 }
 
-function StatGraph({ revenueData, loading }: StatGraphProps) {
+function StatGraph({ revenueData, signupsData, loading }: StatGraphProps) {
   return (
     <div>
       <div className="md:flex-row flex flex-col gap-4">
-        <UserSignUpGraph />
+        <UserSignUpGraph signupsData={signupsData} loading={loading} />
         <RevenueGraph revenueData={revenueData} loading={loading} />
       </div>
     </div>
