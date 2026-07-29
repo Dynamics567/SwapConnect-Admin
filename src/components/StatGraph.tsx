@@ -39,13 +39,13 @@ function UserSignUpGraph({ signupsData, loading }: { signupsData: SignupPoint[];
 
   return (
     <div className="bg-white rounded-lg shadow w-full md:w-[504px] p-4 h-64 flex flex-col mb-4">
-      <span className="font-semibold text-lg text-[#1D1D1D] mb-2">
+      <span className="font-semibold text-lg text-[#353535] mb-2">
         User Sign Ups
       </span>
       {loading ? (
         <div className="flex-1 animate-pulse bg-gray-100 rounded" />
       ) : chartData.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-sm text-[#BEBEBE]">
+        <div className="flex-1 flex items-center justify-center text-sm text-[#6b6b6b]">
           No sign-ups in the last 30 days.
         </div>
       ) : (
@@ -76,11 +76,11 @@ function RevenueGraph({ revenueData, loading }: { revenueData: RevenuePoint[]; l
 
   return (
     <div className="bg-white rounded-lg shadow w-full md:w-[504px] p-4 h-64 flex flex-col mb-4">
-      <span className="font-semibold text-lg text-[#1D1D1D] mb-2">Revenue</span>
+      <span className="font-semibold text-lg text-[#353535] mb-2">Revenue</span>
       {loading ? (
         <div className="flex-1 animate-pulse bg-gray-100 rounded" />
       ) : chartData.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-sm text-[#BEBEBE]">
+        <div className="flex-1 flex items-center justify-center text-sm text-[#6b6b6b]">
           No revenue in the last 30 days.
         </div>
       ) : (

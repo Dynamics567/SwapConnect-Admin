@@ -29,6 +29,8 @@ interface RecentOrdersProps {
 }
 
 function RecentOrders({ orders, loading }: RecentOrdersProps) {
+  const isEmpty = !loading && orders.length === 0;
+
   return (
     <div>
       {loading ? (
@@ -47,34 +49,34 @@ function RecentOrders({ orders, loading }: RecentOrdersProps) {
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="text-left bg-[#CCDCD4] text-gray-500">
-                  <th className="py-2 pl-4 text-[#505050] pr-4">ORDER ID</th>
-                  <th className="py-2 text-[#505050] pr-4">PRODUCT NAME</th>
-                  <th className="py-2  text-[#505050] pr-4">CATEGORY</th>
-                  <th className="py-2  text-[#505050] pr-4">DESCRIPTION</th>
-                  <th className="py-2  text-[#505050] pr-4">PRICE</th>
-                  <th className="py-2 text-[#505050]">Date</th>
+                  <th className="py-2 pl-4 text-[#6b6b6b] pr-4">ORDER ID</th>
+                  <th className="py-2 text-[#6b6b6b] pr-4">PRODUCT NAME</th>
+                  <th className="py-2  text-[#6b6b6b] pr-4">CATEGORY</th>
+                  <th className="py-2  text-[#6b6b6b] pr-4">DESCRIPTION</th>
+                  <th className="py-2  text-[#6b6b6b] pr-4">PRICE</th>
+                  <th className="py-2 text-[#6b6b6b]">Date</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map((order) =>
                   order.OrderProducts?.map((product) => (
                     <tr key={`${order.id}-${product.id}`} className="border-t">
-                      <td className="py-2 pl-4 text-[#434343] pr-4">
+                      <td className="py-2 pl-4 text-[#353535] pr-4">
                         {order.id}
                       </td>
-                      <td className="py-2 text-[#434343] pr-4">
+                      <td className="py-2 text-[#353535] pr-4">
                         {product.name}
                       </td>
-                      <td className="py-2 text-[#434343] pr-4">
+                      <td className="py-2 text-[#353535] pr-4">
                         {product.Category?.name ?? "Uncategorized"}
                       </td>
-                      <td className="py-2 text-[#434343] pr-4">
+                      <td className="py-2 text-[#353535] pr-4">
                         {product.description}
                       </td>
-                      <td className="py-2 text-[#434343] pr-4">
+                      <td className="py-2 text-[#353535] pr-4">
                         ₦{product.price}
                       </td>
-                      <td className="py-2 text-[#434343]">
+                      <td className="py-2 text-[#353535]">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </td>
                     </tr>
@@ -82,6 +84,11 @@ function RecentOrders({ orders, loading }: RecentOrdersProps) {
                 )}
               </tbody>
             </table>
+            {isEmpty && (
+              <p className="text-center text-[#6b6b6b] text-sm py-8">
+                No orders yet.
+              </p>
+            )}
           </div>
 
           {/* Mobile/Card View */}
@@ -89,34 +96,40 @@ function RecentOrders({ orders, loading }: RecentOrdersProps) {
             <h3 className="font-semibold text-[#353535] mb-4 text-lg">
               Recent Orders
             </h3>
-            <div className="flex flex-col gap-4">
-              {orders.map((order) =>
-                order.OrderProducts?.map((product) => (
-                  <div
-                    key={`${order.id}-${product.id}`}
-                    className="border rounded-lg p-4 shadow-sm bg-[#F7F8FB]"
-                  >
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-semibold text-[#353535]">
-                        {product.name}
-                      </span>
-                      <span className="font-bold text-[#037F44]">
-                        ₦{product.price}
-                      </span>
+            {isEmpty ? (
+              <p className="text-center text-[#6b6b6b] text-sm py-8">
+                No orders yet.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {orders.map((order) =>
+                  order.OrderProducts?.map((product) => (
+                    <div
+                      key={`${order.id}-${product.id}`}
+                      className="border rounded-lg p-4 shadow-sm bg-[#F7F8FB]"
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-semibold text-[#353535]">
+                          {product.name}
+                        </span>
+                        <span className="font-bold text-[#037F44]">
+                          ₦{product.price}
+                        </span>
+                      </div>
+                      <div className="text-xs text-[#6b6b6b] mb-1">
+                        Payment: {order.paymentMode}
+                      </div>
+                      <div className="flex justify-between items-center text-xs text-[#6b6b6b]">
+                        <span>Status: {order.status}</span>
+                        <span>
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-xs text-[#505050] mb-1">
-                      Payment: {order.paymentMode}
-                    </div>
-                    <div className="flex justify-between items-center text-xs text-[#BEBEBE]">
-                      <span>Status: {order.status}</span>
-                      <span>
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </>
       )}
