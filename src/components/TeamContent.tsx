@@ -17,6 +17,8 @@ interface Teams {
   firstName: string;
   email: string;
   role: string;
+  suspended?: boolean;
+  suspensionReason?: string | null;
 }
 // These are SwapConnect's real, fixed staff roles -- baked into the backend's
 // route middleware (src/utils/enum.js + authorizeRoles checks), not
@@ -54,53 +56,88 @@ export default function TeamContent() {
   const [totalPages] = useState(0);
   const [team, setTeam] = useState<Teams[]>([]);
   const [actionMenuIdx, setActionMenuIdx] = useState<number | null>(null);
-  const [confirmIdx, setConfirmIdx] = useState<number | null>(null);
-  const [successDeactivate, setSuccessDeactivate] = useState(false);
+  // Which confirm dialog is open, and for which row -- replaces the old
+  // single confirmIdx, since there are now three distinct destructive
+  // actions (deactivate / activate / delete) instead of just one.
+  const [pendingAction, setPendingAction] = useState<{ type: "deactivate" | "activate" | "delete"; idx: number } | null>(null);
+  const [deactivateReason, setDeactivateReason] = useState("");
+  const [actionBusy, setActionBusy] = useState(false);
+  const [toast, setToast] = useState<{ text: string; error?: boolean } | null>(null);
+  const showToast = (text: string, error = false) => {
+    setToast({ text, error });
+    setTimeout(() => setToast(null), 2500);
+  };
   const router = useRouter();
   const token = useAuthToken();
 
-const filteredTeams = (team || []).filter((t) => {
-  const searchTerm = search.toLowerCase().trim();
+  const filteredTeams = (team || []).filter((t) => {
+    const searchTerm = search.toLowerCase().trim();
 
-  if (!searchTerm) return true; // ✅ show all when empty
+    if (!searchTerm) return true; // show all when empty
 
-  return (
-    t.firstName?.toLowerCase().includes(searchTerm) ||
-    t.email?.toLowerCase().includes(searchTerm) ||
-    t.role?.toLowerCase().includes(searchTerm)
-  );
-});
+    return (
+      t.firstName?.toLowerCase().includes(searchTerm) ||
+      t.email?.toLowerCase().includes(searchTerm) ||
+      t.role?.toLowerCase().includes(searchTerm)
+    );
+  });
 
-  const handleDeactivate = async (id: string) => {
+  const closeActionDialogs = () => {
+    setPendingAction(null);
+    setActionMenuIdx(null);
+    setDeactivateReason("");
+  };
+
+  const handleToggleSuspend = async (member: Teams, suspend: boolean) => {
+    setActionBusy(true);
     try {
-      const response = await fetch(
-        `${API_URL}/api/admin/users/${id}/demote`, 
-        {
-          method: "PUT", // or DELETE depending on your backend
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_URL}/api/admin/users/${member._id}/suspend`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
-
+        body: JSON.stringify({ suspend, reason: suspend ? deactivateReason || "Deactivated by admin" : undefined }),
+      });
       const data = await response.json();
-      console.log("Deactivate response:", data);
+      if (!response.ok) throw new Error(data.message || "Failed to update account status");
 
-      if (!response.ok) {
-        throw new Error("Failed to deactivate");
-      }
-
-      // ✅ Remove user from UI immediately
-      setTeam((prev) => prev.filter((user) => user._id !== id));
-
-      setSuccessDeactivate(true);
-      setTimeout(() => setSuccessDeactivate(false), 2000);
+      setTeam((prev) =>
+        prev.map((t) =>
+          t._id === member._id ? { ...t, suspended: suspend, suspensionReason: suspend ? data.user?.suspensionReason : null } : t
+        )
+      );
+      showToast(suspend ? `${member.firstName} has been deactivated.` : `${member.firstName} has been reactivated.`);
     } catch (error) {
-      console.log("Error:", error);
+      console.error("Error updating account status:", error);
+      showToast(error instanceof Error ? error.message : "Something went wrong", true);
     } finally {
-      setConfirmIdx(null);
-      setActionMenuIdx(null);
+      setActionBusy(false);
+      closeActionDialogs();
+    }
+  };
+
+  const handleDelete = async (member: Teams) => {
+    setActionBusy(true);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users/${member._id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to delete account");
+
+      setTeam((prev) => prev.filter((t) => t._id !== member._id));
+      showToast(`${member.firstName}'s account has been deleted.`);
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      showToast(error instanceof Error ? error.message : "Something went wrong", true);
+    } finally {
+      setActionBusy(false);
+      closeActionDialogs();
     }
   };
 
@@ -220,15 +257,26 @@ const filteredTeams = (team || []).filter((t) => {
                     <th className="py-2 px-4 font-normal text-sm">Name</th>
                     <th className="py-2 px-4 font-normal text-sm">Email</th>
                     <th className="py-2 px-4 font-normal text-sm">Role</th>
+                    <th className="py-2 px-4 font-normal text-sm">Status</th>
                     <th className="py-2 px-4 font-normal text-sm">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {team.map((team, idx) => (
-                    <tr key={idx} className="text-[#434343] text-sm relative">
-                      <td className="py-2 px-4">{team.firstName}</td>
-                      <td className="py-2 px-4">{team.email}</td>
-                      <td className="py-2 px-4">{team.role}</td>
+                  {filteredTeams.map((member, idx) => (
+                    <tr key={member._id} className="text-[#434343] text-sm relative">
+                      <td className="py-2 px-4">{member.firstName}</td>
+                      <td className="py-2 px-4">{member.email}</td>
+                      <td className="py-2 px-4">{member.role}</td>
+                      <td className="py-2 px-4">
+                        <span
+                          className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                            member.suspended ? "bg-gray-100 text-gray-500" : "bg-[#e6f9f0] text-[#037F44]"
+                          }`}
+                          title={member.suspended && member.suspensionReason ? member.suspensionReason : undefined}
+                        >
+                          {member.suspended ? "Deactivated" : "Active"}
+                        </span>
+                      </td>
                       <td className="py-2 px-4">
                         <button
                           className="text-[#037F44] hover:bg-[#F7F8FB] rounded-full p-1"
@@ -240,53 +288,108 @@ const filteredTeams = (team || []).filter((t) => {
                           <MoreVertical size={18} />
                         </button>
                         {actionMenuIdx === idx && (
-                          <div className="absolute z-10 right-6 mt-2 w-36 bg-white border rounded shadow-lg">
+                          <div className="absolute z-10 right-6 mt-2 w-40 bg-white border rounded shadow-lg">
                             <button
                               className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
                               onClick={() => {
                                 setActionMenuIdx(null);
-                                router.push(`/dashboard/team/edit/${team._id}`);
+                                router.push(`/dashboard/team/edit/${member._id}`);
                               }}
                             >
                               Edit
                             </button>
+                            {member.suspended ? (
+                              <button
+                                className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
+                                onClick={() => setPendingAction({ type: "activate", idx })}
+                              >
+                                Activate
+                              </button>
+                            ) : (
+                              <button
+                                className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-yellow-700 text-sm"
+                                onClick={() => setPendingAction({ type: "deactivate", idx })}
+                              >
+                                Deactivate
+                              </button>
+                            )}
                             <button
                               className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-red-600 text-sm"
-                              onClick={() => {
-                                setActionMenuIdx(null);
-                                setConfirmIdx(idx);
-                              }}
+                              onClick={() => setPendingAction({ type: "delete", idx })}
                             >
-                              Deactivate
+                              Delete
                             </button>
                           </div>
                         )}
-                        {/* Confirm Deactivate Popup */}
-                        {confirmIdx === idx && (
-                          <div className="fixed inset-0 flex items-center justify-center  bg-opacity-30 z-50">
-                            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-                              <p className="text-lg font-semibold mb-4 text-[#037F44]">
-                                Deactivate Member
-                              </p>
-                              <p className="mb-6 text-gray-700">
-                                Are you sure you want to deactivate{" "}
-                                <span className="font-semibold">
-                                  {team.firstName}
-                                </span>
-                                ?
-                              </p>
+
+                        {pendingAction?.idx === idx && (
+                          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+                            <div className="bg-white rounded-lg shadow-lg p-6 text-center w-full max-w-sm">
+                              {pendingAction.type === "delete" ? (
+                                <>
+                                  <p className="text-lg font-semibold mb-4 text-red-600">
+                                    Delete Account
+                                  </p>
+                                  <p className="mb-6 text-gray-700">
+                                    This permanently deletes{" "}
+                                    <span className="font-semibold">{member.firstName}</span>&apos;s
+                                    account. This cannot be undone.
+                                  </p>
+                                </>
+                              ) : pendingAction.type === "activate" ? (
+                                <>
+                                  <p className="text-lg font-semibold mb-4 text-[#037F44]">
+                                    Activate Member
+                                  </p>
+                                  <p className="mb-6 text-gray-700">
+                                    Restore access for{" "}
+                                    <span className="font-semibold">{member.firstName}</span>?
+                                  </p>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="text-lg font-semibold mb-4 text-yellow-700">
+                                    Deactivate Member
+                                  </p>
+                                  <p className="mb-4 text-gray-700">
+                                    <span className="font-semibold">{member.firstName}</span>{" "}
+                                    won&apos;t be able to sign in until reactivated.
+                                  </p>
+                                  <input
+                                    type="text"
+                                    placeholder="Reason (optional)"
+                                    value={deactivateReason}
+                                    onChange={(e) => setDeactivateReason(e.target.value)}
+                                    className="w-full border rounded-lg px-3 py-2 text-sm mb-4"
+                                  />
+                                </>
+                              )}
                               <div className="flex gap-4 justify-center">
                                 <button
                                   className="px-6 py-2 rounded bg-gray-200 text-gray-700"
-                                  onClick={() => setConfirmIdx(null)}
+                                  onClick={closeActionDialogs}
+                                  disabled={actionBusy}
                                 >
                                   Cancel
                                 </button>
                                 <button
-                                  className="px-6 py-2 rounded bg-red-600 text-white"
-                                  onClick={() => handleDeactivate(team._id)}
+                                  className={`px-6 py-2 rounded text-white disabled:opacity-60 ${
+                                    pendingAction.type === "delete" ? "bg-red-600" : "bg-[#037F44]"
+                                  }`}
+                                  disabled={actionBusy}
+                                  onClick={() =>
+                                    pendingAction.type === "delete"
+                                      ? handleDelete(member)
+                                      : handleToggleSuspend(member, pendingAction.type === "deactivate")
+                                  }
                                 >
-                                  Yes, Deactivate
+                                  {actionBusy
+                                    ? "Working…"
+                                    : pendingAction.type === "delete"
+                                      ? "Yes, Delete"
+                                      : pendingAction.type === "activate"
+                                        ? "Yes, Activate"
+                                        : "Yes, Deactivate"}
                                 </button>
                               </div>
                             </div>
@@ -298,7 +401,7 @@ const filteredTeams = (team || []).filter((t) => {
                   {filteredTeams.length === 0 && (
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={5}
                         className="py-4 text-center text-gray-400"
                       >
                         No team members found.
@@ -333,17 +436,14 @@ const filteredTeams = (team || []).filter((t) => {
             </table>
           </div>
         )}
-        {/* Success Popup */}
-        {successDeactivate && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-              <p className="text-lg text-[#037F44] font-semibold mb-2">
-                Success!
-              </p>
-              <p className="text-gray-700">
-                Role has been deactivated successfully.{" "}
-              </p>
-            </div>
+        {/* Success/error toast */}
+        {toast && (
+          <div
+            className={`fixed bottom-6 right-6 text-white px-5 py-3 rounded-xl shadow-lg text-sm font-medium z-[60] ${
+              toast.error ? "bg-red-600" : "bg-[#037F44]"
+            }`}
+          >
+            {toast.text}
           </div>
         )}
       </div>
