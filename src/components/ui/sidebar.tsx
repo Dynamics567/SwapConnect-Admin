@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   AlertTriangle,
   Tag,
+  Sparkles,
 } from "lucide-react";
 import React from "react";
 import Link from "next/link";
@@ -96,6 +97,12 @@ const menuItems = [
     url: "/dashboard/reports",
     icon: BarChart2,
     roles: ["superadmin", "admin"],
+  },
+  {
+    label: "AI Studio",
+    url: "/dashboard/ai-studio",
+    icon: Sparkles,
+    roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
   },
   {
     label: "Activity Log",
