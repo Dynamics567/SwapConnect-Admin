@@ -7,10 +7,13 @@ import {
   DollarSign,
   ArrowUpRight,
   ArrowDownRight,
+  Download,
+  Loader2,
 } from "lucide-react";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { downloadCsv } from "@/lib/csv";
 
 interface DayStat {
   date: string;
@@ -58,6 +61,7 @@ export default function ReportsPage() {
   // Also pull recent signups and transactions from existing endpoints
   const [recentSignups, setRecentSignups] = useState<{ name: string; email: string; date: string }[]>([]);
   const [recentTxns, setRecentTxns] = useState<{ reference: string; amount: number; status: string; date: string }[]>([]);
+  const [exporting, setExporting] = useState<"signups" | "transactions" | "trends" | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -71,18 +75,23 @@ export default function ReportsPage() {
           fetch(`${API_URL}/api/admin/transactions/recent`, { headers }).then((r) => r.json()),
         ]);
         if (rpt.success) setData(rpt.data);
-        if (signups.data) {
+        // Real response shape is { signups: [...] }, not { data: [...] } --
+        // this previously always fell through to "No recent signups".
+        if (signups.signups) {
           setRecentSignups(
-            (signups.data as { firstName?: string; lastName?: string; name?: string; email?: string; createdAt?: string }[]).slice(0, 8).map((u) => ({
+            (signups.signups as { firstName?: string; lastName?: string; name?: string; email?: string; createdAt?: string }[]).slice(0, 8).map((u) => ({
               name: u.name || `${u.firstName || ""} ${u.lastName || ""}`.trim() || "—",
               email: u.email || "—",
               date: u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-NG") : "—",
             }))
           );
         }
-        if (txns.data) {
+        // The real response shape is { transactions: { combined: [...] } },
+        // not a top-level `data` array -- this previously always fell
+        // through to "No recent transactions" regardless of real data.
+        if (txns.transactions?.combined) {
           setRecentTxns(
-            (txns.data as { reference?: string; amount?: number; status?: string; createdAt?: string }[]).slice(0, 8).map((t) => ({
+            (txns.transactions.combined as { reference?: string; amount?: number; status?: string; createdAt?: string }[]).slice(0, 8).map((t) => ({
               reference: t.reference || "—",
               amount: Number(t.amount || 0),
               status: t.status || "—",
@@ -98,6 +107,66 @@ export default function ReportsPage() {
     };
     load();
   }, [token]);
+
+  // These pull a much larger window than the 8-row on-screen preview --
+  // a "download" that only ever exports the same 8 rows shown on screen
+  // wouldn't be a real report.
+  const exportSignups = async () => {
+    setExporting("signups");
+    try {
+      const res = await fetch(`${API_URL}/api/admin/signups/recent?limit=5000&days=3650`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      const rows = (json.signups || []).map((u: { firstName?: string; lastName?: string; email?: string; phone?: string; role?: string; createdAt?: string }) => ({
+        Name: `${u.firstName || ""} ${u.lastName || ""}`.trim() || "—",
+        Email: u.email || "—",
+        Phone: u.phone || "—",
+        Role: u.role || "—",
+        "Joined date": u.createdAt ? new Date(u.createdAt).toISOString() : "—",
+      }));
+      downloadCsv(`swapconnect-signups-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const exportTransactions = async () => {
+    setExporting("transactions");
+    try {
+      const res = await fetch(`${API_URL}/api/admin/transactions/recent?limit=5000`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      const rows = (json.transactions?.combined || []).map((t: { reference?: string; amount?: number; status?: string; createdAt?: string }) => ({
+        Reference: t.reference || "—",
+        "Amount (NGN)": Number(t.amount || 0),
+        Status: t.status || "—",
+        Date: t.createdAt ? new Date(t.createdAt).toISOString() : "—",
+      }));
+      downloadCsv(`swapconnect-transactions-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const exportTrends = () => {
+    if (!data) return;
+    setExporting("trends");
+    const byDate = new Map<string, { date: string; revenue: number; signups: number }>();
+    data.revenueSeries.forEach((d) => {
+      byDate.set(d.date, { date: d.date, revenue: Number(d.revenue ?? 0), signups: byDate.get(d.date)?.signups ?? 0 });
+    });
+    data.signupSeries.forEach((d) => {
+      const existing = byDate.get(d.date);
+      byDate.set(d.date, { date: d.date, revenue: existing?.revenue ?? 0, signups: Number(d.count ?? 0) });
+    });
+    const rows = Array.from(byDate.values())
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((d) => ({ Date: d.date, "Revenue (NGN)": d.revenue, Signups: d.signups }));
+    downloadCsv(`swapconnect-30day-trends-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+    setExporting(null);
+  };
 
   const summary = [
     {
@@ -135,9 +204,37 @@ export default function ReportsPage() {
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
       <div className="w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-10 min-h-screen bg-[#F8F9FB]">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#353535]">Reports</h1>
-          <p className="text-sm text-[#848484] mt-1">Platform overview and activity</p>
+        <div className="mb-6 flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-[#353535]">Reports</h1>
+            <p className="text-sm text-[#848484] mt-1">Platform overview and activity</p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={exportSignups}
+              disabled={exporting !== null}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-white border border-[#e5e7eb] text-[#353535] hover:border-[#037F44] hover:text-[#037F44] transition disabled:opacity-60"
+            >
+              {exporting === "signups" ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+              Signups CSV
+            </button>
+            <button
+              onClick={exportTransactions}
+              disabled={exporting !== null}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-white border border-[#e5e7eb] text-[#353535] hover:border-[#037F44] hover:text-[#037F44] transition disabled:opacity-60"
+            >
+              {exporting === "transactions" ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+              Transactions CSV
+            </button>
+            <button
+              onClick={exportTrends}
+              disabled={exporting !== null || !data}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-white border border-[#e5e7eb] text-[#353535] hover:border-[#037F44] hover:text-[#037F44] transition disabled:opacity-60"
+            >
+              {exporting === "trends" ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+              30-Day Trends CSV
+            </button>
+          </div>
         </div>
 
         {loading ? (
