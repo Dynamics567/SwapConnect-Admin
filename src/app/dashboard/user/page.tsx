@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import {
   Users,
   UserCheck,
@@ -10,14 +10,17 @@ import {
   UserPlus,
   X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
 import { JSX } from "react";
 import PageButton from "@/components/PageButton";
 import ConfirmModal from "@/components/ConfirmModat";
-// import { useAuthContext } from "@/context/AuthContext";
+import { useAuthContext } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import SellerVerificationTab from "@/components/SellerVerificationTab";
+
+type UserTab = "customers" | "verification";
 
 // const PAGE_SIZE = 10;
 interface Stats {
@@ -75,7 +78,7 @@ function AccountTypeBadge({ accountType }: { accountType?: string }) {
   );
 }
 
-export default function UserPage() {
+function UserPageInner() {
   const [search, setSearch] = useState("");
   const [dropdownIdx, setDropdownIdx] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,8 +86,28 @@ export default function UserPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<Stats[]>([]);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const token = useAuthToken();
-  // const { role } = useAuthContext();
+  const { role } = useAuthContext();
+  // "All Customers" was the original, admin/superadmin-only view at this
+  // route; Seller Verification's own page was reachable by all 4 staff
+  // roles. Merging them into one page/URL must not widen or narrow either
+  // capability's original audience -- so the Customers tab stays gated to
+  // the roles that always had it, while Verification stays open to all 4.
+  const canViewCustomers = role === "admin" || role === "superadmin";
+  const [activeTab, setActiveTab] = useState<UserTab>("customers");
+
+  useEffect(() => {
+    if (searchParams.get("tab") === "verification") {
+      setActiveTab("verification");
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (role && !canViewCustomers) {
+      setActiveTab("verification");
+    }
+  }, [role, canViewCustomers]);
 
   const [showBanModal, setShowBanModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -118,6 +141,9 @@ export default function UserPage() {
       setLoading(false);
       return;
     }
+    // Skip the fetch while the Verification tab is active -- no point
+    // loading the customers list for a tab that isn't visible.
+    if (activeTab !== "customers") return;
     const fetchUser = async () => {
       try {
         const params = new URLSearchParams({ role: "user", page: String(page), limit: "10" });
@@ -187,7 +213,7 @@ export default function UserPage() {
       }
     };
     fetchUser();
-  }, [token, page, statusFilter, accountTypeFilter]);
+  }, [token, page, statusFilter, accountTypeFilter, activeTab]);
 
   // const handleSuspendUser = async (userId: string, currentState?: boolean) => {
   //   if (!token) return;
@@ -389,8 +415,36 @@ export default function UserPage() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+    <ProtectedRoute allowedRoles={["admin", "superadmin", "supportagent", "verificationofficer"]}>
       <div className="flex flex-col gap-8 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
+        {/* Tabs */}
+        <div className="flex gap-2 bg-white rounded-xl shadow p-2 w-fit mb-2">
+          {canViewCustomers && (
+            <button
+              className={`px-6 py-2 rounded-lg text-base font-semibold transition ${
+                activeTab === "customers"
+                  ? "bg-[#037F44] text-white"
+                  : "bg-[#F7F8FB] text-[#037F44] hover:bg-[#e6f4ed]"
+              }`}
+              onClick={() => setActiveTab("customers")}
+            >
+              All Customers
+            </button>
+          )}
+          <button
+            className={`px-6 py-2 rounded-lg text-base font-semibold transition ${
+              activeTab === "verification"
+                ? "bg-[#037F44] text-white"
+                : "bg-[#F7F8FB] text-[#037F44] hover:bg-[#e6f4ed]"
+            }`}
+            onClick={() => setActiveTab("verification")}
+          >
+            Seller Verification
+          </button>
+        </div>
+
+        {activeTab === "customers" && canViewCustomers && (
+          <>
         {/* Stat Cards */}
         <div className="md:flex-row flex flex-col gap-4">
           {loading
@@ -929,6 +983,10 @@ export default function UserPage() {
           </div>
           <PageButton page={page} setPage={setPage} totalPages={totalPages} />
         </div>
+          </>
+        )}
+
+        {activeTab === "verification" && <SellerVerificationTab />}
       </div>
     </ProtectedRoute>
   );
@@ -942,4 +1000,12 @@ export default function UserPage() {
   //     </div>
   //   );
   // }
+}
+
+export default function UserPage() {
+  return (
+    <Suspense fallback={null}>
+      <UserPageInner />
+    </Suspense>
+  );
 }
