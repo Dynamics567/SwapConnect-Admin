@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "../globals.css";
 import Sidebar from "../../components/ui/sidebar";
 import Navbar from "../../components/ui/nav";
+import CommandPalette from "../../components/ui/CommandPalette";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuthToken } from "@/hooks/useAuthToken";
@@ -24,6 +25,8 @@ function getTitleFromPath(pathname: string) {
   if (pathname.startsWith("/dashboard/seller-verification")) return "Seller Verification";
   if (pathname.startsWith("/dashboard/coupons")) return "Coupons & Campaigns";
   if (pathname.startsWith("/dashboard/reports")) return "Reports";
+  if (pathname.startsWith("/dashboard/ai-studio")) return "AI Studio";
+  if (pathname.startsWith("/dashboard/risk")) return "Risk & Fraud Review";
   if (pathname.startsWith("/dashboard/activity")) return "Activity Log";
   if (pathname.startsWith("/dashboard/setting")) return "Settings";
   if (pathname.startsWith("/dashboard/support")) return "Support";
@@ -59,6 +62,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <Navbar title={title} />
         <main className="flex-1 w-full">{children}</main>
       </div>
+      <CommandPalette />
     </div>
   );
 }

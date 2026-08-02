@@ -1,20 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import {
-  Bell,
-  Menu,
-  LayoutDashboard,
-  UserRound,
-  UsersRound,
-  Clipboard,
-  Receipt,
-  Settings,
-  MapPinCheckInside,
-  HelpCircle,
-  Activity,
-  ShieldAlert,
-} from "lucide-react";
+import { Bell, Menu, Search } from "lucide-react";
 import Link from "next/link";
+import { navGroups, STANDALONE_ROLES } from "../../lib/navIndex";
+import { useRole } from "../../hooks/useRole";
 // import { useRouter, useSearchParams } from "next/navigation";
 import { API_URL } from "../../lib/config";
 import { useAuthToken } from "../../hooks/useAuthToken";
@@ -27,70 +16,6 @@ interface User {
   role: string;
 }
 
-const menuItems = [
-  {
-    label: "Dashboard",
-    url: "/dashboard",
-    icon: LayoutDashboard,
-    roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
-  },
-  {
-    label: "User management",
-    url: "/dashboard/user",
-    icon: UserRound,
-    roles: ["superadmin", "admin"],
-  },
-  {
-    label: "Teams",
-    url: "/dashboard/team",
-    icon: UsersRound,
-    roles: ["superadmin"],
-  }, //
-
-  {
-    label: "Item management",
-    url: "/dashboard/items",
-    icon: Clipboard,
-    roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
-  },
-  {
-    label: "Transaction oversight",
-    url: "/dashboard/wallet",
-    icon: Receipt,
-    roles: ["superadmin", "supportagent", "verificationofficer"],
-  },
-  {
-    label: "Physical store",
-    url: "/dashboard/store",
-    icon: MapPinCheckInside,
-    roles: ["superadmin", "admin", "verificationofficer"],
-  },
-  {
-    label: "Disputes",
-    url: "/dashboard/disputes",
-    icon: ShieldAlert,
-    roles: ["superadmin", "admin", "supportagent"],
-  },
-  {
-    label: "Activity Log",
-    url: "/dashboard/activity",
-    icon: Activity,
-    roles: ["superadmin"],
-  },
-  {
-    label: "Settings",
-    url: "/dashboard/setting",
-    icon: Settings,
-    roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
-  },
-  {
-    label: "Support",
-    url: "/dashboard/support",
-    icon: HelpCircle,
-    roles: ["supportagent"],
-  },
-];
-
 interface NavProps {
   title: string;
 }
@@ -102,6 +27,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
   const [userLoading, setUserLoading] = useState(true);
 
   const token = useAuthToken(); // Use the hook
+  const { role } = useRole();
   // const hasAvatar = !!user?.avatar && user.avatar.trim() !== "";
 
   useEffect(() => {
@@ -181,6 +107,15 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
       <div className="hidden md:flex items-center justify-between w-full">
         <h2 className="text-[24px] font-bold text-[#353535]">{title}</h2>
         <div className="flex items-center gap-[32px]">
+          <button
+            onClick={() => window.dispatchEvent(new Event("open-admin-command-palette"))}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#e5e7eb] text-[#848484] hover:border-[#037F44] hover:text-[#037F44] transition text-sm"
+            aria-label="Search pages"
+          >
+            <Search size={16} />
+            Search
+            <span className="text-[11px] border border-[#e5e7eb] rounded px-1.5 py-0.5 ml-1">Ctrl K</span>
+          </button>
           <button className="flex cursor-pointer" aria-label="Notifications">
             <Bell size={24} color="#848484" />
           </button>
@@ -231,30 +166,74 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
           </button>
         </div>
       </div>
-      {/* Example mobile menu overlay (implement your sidebar here if needed) */}
+      {/* Mobile menu overlay -- sourced from the same navGroups used by the
+          desktop sidebar (src/lib/navIndex.ts) and role-filtered the same
+          way, instead of the separate, stale, incomplete list this used to
+          hardcode (it was missing half the app's real pages). */}
       {menuOpen && (
         <div className="fixed inset-0 bg-black/40 z-50 flex md:hidden">
-          <div className="bg-white w-64 h-full shadow-lg p-6 flex flex-col justify-between">
+          <div className="bg-white w-72 h-full shadow-lg p-6 flex flex-col justify-between overflow-y-auto">
             <div>
-              <button
-                className="mb-4 text-[#037F44] font-bold"
-                onClick={() => setMenuOpen(false)}
-              >
-                Close
-              </button>
-              <ul className="flex flex-col gap-4">
-                {menuItems.map((item) => (
-                  <li key={item.label}>
-                    <Link
-                      href={item.url}
-                      className="flex items-center gap-3 text-[#353535] text-[16px] font-medium hover:text-[#037F44] transition"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      <item.icon size={20} />
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  className="flex items-center gap-1.5 text-[#037F44] font-medium text-sm"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    window.dispatchEvent(new Event("open-admin-command-palette"));
+                  }}
+                >
+                  <Search size={16} /> Search
+                </button>
+                <button
+                  className="text-[#037F44] font-bold"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Close
+                </button>
+              </div>
+              <ul className="flex flex-col gap-1">
+                {navGroups.map((entry) => {
+                  if (entry.url) {
+                    if (role && !STANDALONE_ROLES.includes(role)) return null;
+                    return (
+                      <li key={entry.label}>
+                        <Link
+                          href={entry.url}
+                          className="flex items-center gap-3 py-2 text-[#353535] text-[15px] font-medium hover:text-[#037F44] transition"
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          <entry.icon size={19} />
+                          {entry.label}
+                        </Link>
+                      </li>
+                    );
+                  }
+                  const children = role
+                    ? (entry.children ?? []).filter((c) => c.roles.includes(role))
+                    : (entry.children ?? []);
+                  if (children.length === 0) return null;
+                  return (
+                    <li key={entry.label} className="mt-3 first:mt-0">
+                      <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-[#c0c0c0] mb-1">
+                        <entry.icon size={13} /> {entry.label}
+                      </p>
+                      <ul className="flex flex-col gap-1 pl-1">
+                        {children.map((child) => (
+                          <li key={child.label}>
+                            <Link
+                              href={child.url}
+                              className="flex items-center gap-3 py-1.5 text-[#353535] text-[14px] font-medium hover:text-[#037F44] transition"
+                              onClick={() => setMenuOpen(false)}
+                            >
+                              <child.icon size={17} />
+                              {child.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
             <button
