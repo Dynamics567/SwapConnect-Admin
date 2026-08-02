@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { Suspense, useState, useEffect, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Tag,
   Plus,
@@ -164,7 +165,7 @@ function CodeChip({ code }: { code: string }) {
   );
 }
 
-export default function CouponsPage() {
+function CouponsPageInner() {
   const token = useAuthToken();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
@@ -199,6 +200,19 @@ export default function CouponsPage() {
   useEffect(() => {
     fetchCoupons();
   }, [fetchCoupons]);
+
+  // Lets a link like /dashboard/coupons?code=SAVE20 (e.g. from the command
+  // palette's record search) open straight to that coupon's redemptions
+  // panel, since this page previously had no URL-addressable way to reach
+  // a specific coupon at all -- opening one was purely in-memory state.
+  const searchParams = useSearchParams();
+  const deepLinkCode = searchParams.get("code");
+  useEffect(() => {
+    if (!deepLinkCode || coupons.length === 0) return;
+    const match = coupons.find((c) => c.code.toLowerCase() === deepLinkCode.toLowerCase());
+    if (match) openRedemptions(match);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkCode, coupons]);
 
   const visibleCoupons = coupons.filter((c) => {
     if (statusFilter === "active") return c.active && !isExpired(c.expiresAt);
@@ -674,5 +688,13 @@ export default function CouponsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CouponsPage() {
+  return (
+    <Suspense fallback={null}>
+      <CouponsPageInner />
+    </Suspense>
   );
 }

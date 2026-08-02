@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -114,7 +115,7 @@ const formatDate = (v: string | null | undefined) =>
 
 const isImageUrl = (url: string) => /\.(png|jpe?g|gif|webp|svg|avif)(\?.*)?$/i.test(url);
 
-export default function DisputesPage() {
+function DisputesPageInner() {
   const token = useAuthToken();
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
@@ -150,14 +151,12 @@ export default function DisputesPage() {
     fetchDisputes();
   }, [fetchDisputes]);
 
-  const openDetail = async (dispute: Dispute) => {
-    setSelected(dispute);
-    setAdminNotes(dispute.adminNotes ?? "");
+  const openDetailById = async (id: string | number) => {
     setActionError(null);
     if (!token) return;
     setDetailLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/admin/disputes/${dispute.id}`, {
+      const res = await fetch(`${API_URL}/api/admin/disputes/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -172,6 +171,25 @@ export default function DisputesPage() {
       setDetailLoading(false);
     }
   };
+
+  const openDetail = async (dispute: Dispute) => {
+    setSelected(dispute);
+    setAdminNotes(dispute.adminNotes ?? "");
+    await openDetailById(dispute.id);
+  };
+
+  // Lets a link like /dashboard/disputes?id=123 (e.g. from the command
+  // palette's record search) open straight to that dispute's detail panel,
+  // since this page previously had no URL-addressable way to reach a
+  // specific record at all.
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const idParam = searchParams.get("id");
+    if (idParam && token) {
+      openDetailById(Number(idParam));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, token]);
 
   const closeDetail = () => {
     setSelected(null);
@@ -618,5 +636,13 @@ export default function DisputesPage() {
         onClose={() => setPendingAction(null)}
       />
     </div>
+  );
+}
+
+export default function DisputesPage() {
+  return (
+    <Suspense fallback={null}>
+      <DisputesPageInner />
+    </Suspense>
   );
 }
