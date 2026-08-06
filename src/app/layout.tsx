@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 
-const inter = Inter({
+// Poppins matches the logo wordmark's own geometric, rounded letterforms --
+// same choice made on the customer frontend so both apps share one
+// typographic identity instead of drifting apart (this file previously
+// loaded Inter here but --font-sans still pointed at an unused Geist
+// variable in globals.css, and the actual body font-family was hardcoded
+// to Arial -- none of the three agreed with each other).
+const poppins = Poppins({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-poppins",
   display: "swap",
 });
 
@@ -21,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${poppins.variable} font-sans antialiased`}>
         <AuthProvider> {children}</AuthProvider>
       </body>
     </html>
