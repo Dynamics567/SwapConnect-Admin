@@ -59,7 +59,7 @@ export default function TeamContent() {
   // Which confirm dialog is open, and for which row -- replaces the old
   // single confirmIdx, since there are now three distinct destructive
   // actions (deactivate / activate / delete) instead of just one.
-  const [pendingAction, setPendingAction] = useState<{ type: "deactivate" | "activate" | "delete"; idx: number } | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ type: "deactivate" | "activate" | "delete" | "reset-password"; idx: number } | null>(null);
   const [deactivateReason, setDeactivateReason] = useState("");
   const [actionBusy, setActionBusy] = useState(false);
   const [toast, setToast] = useState<{ text: string; error?: boolean } | null>(null);
@@ -134,6 +134,28 @@ export default function TeamContent() {
       showToast(`${member.firstName}'s account has been deleted.`);
     } catch (error) {
       console.error("Error deleting account:", error);
+      showToast(error instanceof Error ? error.message : "Something went wrong", true);
+    } finally {
+      setActionBusy(false);
+      closeActionDialogs();
+    }
+  };
+
+  const handleTriggerReset = async (member: Teams) => {
+    setActionBusy(true);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users/${member._id}/trigger-password-reset`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to send reset link");
+      showToast(data.message || `A password reset link has been sent to ${member.email}.`);
+    } catch (error) {
+      console.error("Error triggering password reset:", error);
       showToast(error instanceof Error ? error.message : "Something went wrong", true);
     } finally {
       setActionBusy(false);
@@ -298,6 +320,12 @@ export default function TeamContent() {
                             >
                               Edit
                             </button>
+                            <button
+                              className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
+                              onClick={() => setPendingAction({ type: "reset-password", idx })}
+                            >
+                              Reset Password
+                            </button>
                             {member.suspended ? (
                               <button
                                 className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44] text-sm"
@@ -346,6 +374,17 @@ export default function TeamContent() {
                                     <span className="font-semibold">{member.firstName}</span>?
                                   </p>
                                 </>
+                              ) : pendingAction.type === "reset-password" ? (
+                                <>
+                                  <p className="text-lg font-semibold mb-4 text-[#037F44]">
+                                    Reset Password
+                                  </p>
+                                  <p className="mb-6 text-gray-700">
+                                    Send <span className="font-semibold">{member.firstName}</span> a
+                                    password reset link at {member.email}? This also works if they
+                                    never finished setting up their account.
+                                  </p>
+                                </>
                               ) : (
                                 <>
                                   <p className="text-lg font-semibold mb-4 text-yellow-700">
@@ -380,7 +419,9 @@ export default function TeamContent() {
                                   onClick={() =>
                                     pendingAction.type === "delete"
                                       ? handleDelete(member)
-                                      : handleToggleSuspend(member, pendingAction.type === "deactivate")
+                                      : pendingAction.type === "reset-password"
+                                        ? handleTriggerReset(member)
+                                        : handleToggleSuspend(member, pendingAction.type === "deactivate")
                                   }
                                 >
                                   {actionBusy
@@ -389,7 +430,9 @@ export default function TeamContent() {
                                       ? "Yes, Delete"
                                       : pendingAction.type === "activate"
                                         ? "Yes, Activate"
-                                        : "Yes, Deactivate"}
+                                        : pendingAction.type === "reset-password"
+                                          ? "Send Reset Link"
+                                          : "Yes, Deactivate"}
                                 </button>
                               </div>
                             </div>
