@@ -29,7 +29,6 @@ interface User {
   firstName: string;
   lastName: string;
   email: string;
-  bio: string;
   status: string;
   phone: string;
   role: string;
@@ -132,11 +131,13 @@ export default function UserDetailsPage() {
           },
         });
         const data = await response.json();
-        console.log("userId:", userId); // should not be undefined
-
-        console.log("User Details:", data);
-        if (data) {
-          setUsers(data); // Assuming the API returns a single user object
+        // Previously accepted any parsed JSON body, including an error
+        // response like { message: "..." } -- which has none of the real
+        // user fields, so every input on this page silently rendered blank
+        // instead of showing the "User not found" state that already
+        // existed below but could never actually be reached.
+        if (response.ok && data && data.id) {
+          setUsers(data);
         } else {
           setUsers(null);
         }
@@ -212,6 +213,8 @@ export default function UserDetailsPage() {
                   <Image
                     src={users.avatar}
                     alt={users.firstName}
+                    width={96}
+                    height={96}
                     className="w-24 h-24 rounded-full object-cover"
                   />
                 ) : (
@@ -288,16 +291,6 @@ export default function UserDetailsPage() {
                   className="w-full px-3 py-2 border rounded bg-gray-100 text-base text-gray-700 placeholder:text-gray-500 placeholder:text-xs placeholder:font-medium"
                 />
               </div>
-            </div>
-            <div className="mb-4">
-              <textarea
-                id="bio"
-                value={users.bio ?? ""}
-                readOnly
-                placeholder="Bio"
-                rows={3}
-                className="w-full px-3 py-2 border rounded bg-gray-100 text-base text-gray-700 resize-none placeholder:text-gray-500 placeholder:text-xs placeholder:font-medium"
-              />
             </div>
           </div>
         )}
