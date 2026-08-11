@@ -12,7 +12,7 @@ export default function EditTeamMemberPage() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("admin");
+  const [role, setRole] = useState("ADMIN");
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
 
@@ -58,9 +58,12 @@ export default function EditTeamMemberPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        // editAdminDetails reads req.body.firstName/lastName (lowercase) --
+        // this was sending "Firstname"/"Lastname", so the name update was a
+        // silent no-op every time (the PUT still returned 200 "success").
         body: JSON.stringify({
-          Firstname: firstName,
-          Lastname: lastName,
+          firstName,
+          lastName,
           email,
           role,
         }),
@@ -136,11 +139,18 @@ export default function EditTeamMemberPage() {
               onChange={(e) => setRole(e.target.value)}
               required
             >
-              <option value="super admin">Super Admin</option>
-              <option value="admin">Admin</option>
-              <option value="customer support">Customer Support</option>
-              <option value="Editor">Editor</option>
-              <option value="Viewer">Viewer</option>
+              {/* Real backend Roles enum values (src/utils/enum.js), matching
+                  team/add/page.tsx's ROLE_OPTIONS -- the previous options
+                  ("super admin", "customer support", "Editor", "Viewer")
+                  didn't match GET /users/:id's real `role` value (e.g.
+                  "ADMIN"), so the dropdown never pre-selected correctly, and
+                  saving would overwrite the account's role with a value
+                  authorizeRoles doesn't recognize, locking that staff member
+                  out of every admin endpoint. */}
+              <option value="SUPER_ADMIN">Super Admin</option>
+              <option value="ADMIN">Admin</option>
+              <option value="SUPPORT_AGENT">Support Agent</option>
+              <option value="VERIFICATION_OFFICER">Verification Officer</option>
             </select>
           </div>
           <button
