@@ -8,13 +8,17 @@ import { API_URL } from "@/lib/config";
 import PageButton from "./PageButton";
 import ProtectedRoute from "./ProtectedRoute";
 
+// Matches the real shape GET /api/admin/swaps/active returns
+// (AdminController.getActiveSwaps' formattedSwaps) -- currentBid/swapOffer/
+// listedItem/verified are real fields already sent by the backend.
 type Order = {
   id: string;
   imageUrl: string;
-  name: string;
+  currentBid: string;
+  swapOffer: string;
+  listedItem: string;
   location: string;
-  price: string;
-  used: string;
+  verified: boolean;
 };
 
 // const orders: Order[] = [
@@ -150,14 +154,14 @@ export default function NewItems() {
               >
                 <Image
                   src={swap.imageUrl}
-                  alt={swap.name}
+                  alt={swap.listedItem}
                   width={280}
                   height={160}
                   className="object-cover rounded mb-3"
                 />
                 <div className="flex justify-between items-center w-full mb-2">
                   <div className="text-sm text-[#037F44] font-semibold mb-1 text-center">
-                    Current Bid: $100
+                    Current Bid: {swap.currentBid}
                   </div>
                   <div className="flex items-center gap-1 text-xs text-[#1B2559] mb-1">
                     <MapPin size={14} className="text-[#037F44]" />
@@ -167,18 +171,18 @@ export default function NewItems() {
                 <div className="flex items-center justify-between w-full mb-2">
                   <p className="text-sm text-[#1B2559]">Swap offer</p>
                   <div className="text-sm font-semibold text-[#1B2559] mb-1">
-                    Iphone 8{" "}
+                    {swap.swapOffer}
                   </div>
                 </div>
                 <div className="flex items-center justify-between w-full mb-2">
                   <p className="text-sm text-[#1B2559]">Listed item</p>
                   <div className="text-sm font-semibold text-[#1B2559] mb-1">
-                    Iphone 11
+                    {swap.listedItem}
                   </div>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-[#037F44]">
                   <CheckCircle2 size={14} className="text-[#037F44]" />
-                  {swap.used}
+                  {swap.verified ? "Verified" : "Unverified"}
                 </div>
               </Link>
             ))}
