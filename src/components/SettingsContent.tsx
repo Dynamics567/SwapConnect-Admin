@@ -43,7 +43,11 @@ export default function SettingsContent() {
   useEffect(() => {
     const fetchAdminData = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/admin`, {
+        // GET /api/admin (no route param) was never actually registered on
+        // the backend -- routes/admin.js has no root GET handler, so this
+        // 404'd every time and the form always rendered blank. get-dashboard
+        // already returns the signed-in admin's own record under `admin`.
+        const res = await fetch(`${API_URL}/api/admin/get-dashboard`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -52,14 +56,14 @@ export default function SettingsContent() {
         const data = await res.json();
         console.log("ADMIN", data);
 
-        if (res.ok) {
-          setFirstName(data.data.firstName || "");
-          setLastName(data.data.lastName || "");
-          setEmail(data.data.email || "");
-          setPhone(data.data.phone || "");
-          setTwoFAEnabled(data.data.twoFactorEnabled || false);
-          setEmailEnabled(data.data.emailNotificationsEnabled || false);
-          setSmsEnabled(data.data.pushNotificationsEnabled || false);
+        if (res.ok && data.admin) {
+          setFirstName(data.admin.firstName || "");
+          setLastName(data.admin.lastName || "");
+          setEmail(data.admin.email || "");
+          setPhone(data.admin.phone || "");
+          setTwoFAEnabled(data.admin.twoFactorEnabled || false);
+          setEmailEnabled(data.admin.emailNotificationsEnabled || false);
+          setSmsEnabled(data.admin.pushNotificationsEnabled || false);
           // Optionally handle image if you get one
         } else {
           console.error("Failed to fetch admin data:", data.message);
