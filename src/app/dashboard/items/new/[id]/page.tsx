@@ -99,9 +99,19 @@ export default function ListingDetails() {
       );
       const result = await res.json();
       console.log("Approved:", result);
-      setApprovalStatus("approved");
+      // Previously set "approved" unconditionally, even on a 400/404/500 --
+      // an admin clicking Approve on a listing that failed to approve
+      // (e.g. already approved, product not found) would see a false
+      // "Product approved" success state with no indication anything
+      // went wrong.
+      if (res.ok) {
+        setApprovalStatus("approved");
+      } else {
+        alert(result.message || "Failed to approve listing");
+      }
     } catch (err) {
       console.error("Approval error:", err);
+      alert("Network or server error while approving listing.");
     } finally {
       setLoading(false);
     }
@@ -123,9 +133,16 @@ export default function ListingDetails() {
       );
       const result = await res.json();
       console.log("Rejected:", result);
-      setApprovalStatus("rejected");
+      // Same fix as handleApprove above -- don't show a false success state
+      // on a failed request.
+      if (res.ok) {
+        setApprovalStatus("rejected");
+      } else {
+        alert(result.message || "Failed to reject listing");
+      }
     } catch (err) {
       console.error("Rejection error:", err);
+      alert("Network or server error while rejecting listing.");
     } finally {
       setLoading(false);
     }
