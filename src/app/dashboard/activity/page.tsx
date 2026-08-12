@@ -44,7 +44,10 @@ export default function ActivityLog() {
           limit: String(perPage),
         });
 
-        const response = await fetch(`${API_URL}/api/activity-logs?${params}`, {
+        // /api/activity-logs (no /admin prefix) was never a registered
+        // route -- this 404'd every time and the page always showed "No
+        // activity logs found."
+        const response = await fetch(`${API_URL}/api/admin/activity-logs?${params}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
