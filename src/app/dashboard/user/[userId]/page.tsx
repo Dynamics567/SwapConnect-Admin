@@ -32,6 +32,7 @@ interface User {
   status: string;
   phone: string;
   role: string;
+  productCount: number;
   orderHistory: [
     {
       id: string;
@@ -222,6 +223,9 @@ export default function UserDetailsPage() {
                 )}
               </div>
               <div className="flex items-center gap-3">
+                <div className="px-4 py-2 rounded-full text-xs font-semibold bg-[#f0faf5] text-[#037F44]">
+                  {users.productCount ?? 0} Product{users.productCount === 1 ? "" : "s"} Uploaded
+                </div>
                 {role === "superadmin" && (
                   <button
                     onClick={() => {
