@@ -15,6 +15,9 @@ interface TradeIn {
   deviceType: DeviceType;
   specs: Record<string, string>;
   estimatedValue: string | null;
+  systemEstimatedValue: string | null;
+  flagged: boolean;
+  flagReason: string | null;
   status: TradeInStatus;
   adminNotes: string | null;
   createdAt: string;
@@ -135,7 +138,8 @@ export default function TradeInsTab() {
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Reference</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Device</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Brand / Model</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">AI Estimate</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Claimed Value</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">System Estimate</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
                   <th className="px-4 py-3" />
@@ -150,7 +154,15 @@ export default function TradeInsTab() {
                       <span className="font-medium">{item.specs.brand}</span>
                       {item.specs.model && <span className="text-gray-400 ml-1">{item.specs.model}</span>}
                     </td>
-                    <td className="px-4 py-3 font-semibold text-green-700">{formatNGN(item.estimatedValue)}</td>
+                    <td className="px-4 py-3 font-semibold text-green-700">
+                      {formatNGN(item.estimatedValue)}
+                      {item.flagged && (
+                        <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700 uppercase align-middle">
+                          Flagged
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">{formatNGN(item.systemEstimatedValue)}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLORS[item.status]}`}>
                         {item.status}
@@ -204,10 +216,28 @@ export default function TradeInsTab() {
                 </div>
               </div>
 
-              <div className="mb-4">
-                <p className="text-xs text-gray-500 mb-1">AI Estimated Value</p>
-                <p className="text-2xl font-bold text-green-700">{formatNGN(selected.estimatedValue)}</p>
+              <div className="mb-4 grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Submitter&apos;s Claimed Value</p>
+                  <p className="text-xl font-bold text-green-700">{formatNGN(selected.estimatedValue)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">System Estimate</p>
+                  <p className="text-xl font-bold text-gray-700">{formatNGN(selected.systemEstimatedValue)}</p>
+                </div>
               </div>
+
+              {selected.flagged && (
+                <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-xs font-bold text-red-700 uppercase mb-1">⚠ Flagged for review</p>
+                  <p className="text-sm text-red-800">{selected.flagReason}</p>
+                </div>
+              )}
+              {!selected.flagged && selected.flagReason && (
+                <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <p className="text-xs text-yellow-800">{selected.flagReason}</p>
+                </div>
+              )}
 
               <div className="mb-4">
                 <label className="block text-xs text-gray-500 mb-1">Update Status</label>

@@ -26,6 +26,8 @@ interface SellerVerification {
   tier: VerificationTier;
   documentType: DocumentType | null;
   documentUrls: string[];
+  flagged: boolean;
+  flagReason: string | null;
   status: VerificationStatus;
   reviewedByAdminId: string | number | null;
   reviewNotes: string | null;
@@ -310,6 +312,11 @@ export default function SellerVerificationTab() {
                   <td className="px-4 py-3">
                     <p className="font-medium">
                       {item.User ? `${item.User.firstName} ${item.User.lastName}` : "—"}
+                      {item.flagged && (
+                        <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700 uppercase align-middle">
+                          Flagged
+                        </span>
+                      )}
                     </p>
                     {item.User?.storeName && <p className="text-xs text-gray-400">{item.User.storeName}</p>}
                   </td>
@@ -344,6 +351,13 @@ export default function SellerVerificationTab() {
               <StatusBadge status={selected.status} />
               <TierBadge tier={selected.tier} />
             </div>
+
+            {selected.flagged && (
+              <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-xs font-bold text-red-700 uppercase mb-1">⚠ Flagged -- document reuse detected</p>
+                <p className="text-sm text-red-800">{selected.flagReason}</p>
+              </div>
+            )}
 
             <div className="mb-4">
               <p className="text-xs text-gray-500 mb-2 font-semibold uppercase tracking-wide">Seller</p>
