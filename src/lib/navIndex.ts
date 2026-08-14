@@ -20,6 +20,10 @@ import {
   Wallet,
   Megaphone,
   Landmark,
+  Newspaper,
+  FileText,
+  FolderTree,
+  Images,
   type LucideIcon,
 } from "lucide-react";
 
@@ -110,6 +114,36 @@ export const navGroups: NavEntry[] = [
         url: "/dashboard/wallet",
         icon: Receipt,
         roles: ["superadmin", "supportagent", "verificationofficer"],
+      },
+    ],
+  },
+  {
+    label: "Content & Blog",
+    icon: Newspaper,
+    children: [
+      {
+        label: "Overview",
+        url: "/dashboard/blog",
+        icon: Newspaper,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Posts",
+        url: "/dashboard/blog/posts",
+        icon: FileText,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Categories & Tags",
+        url: "/dashboard/blog/categories",
+        icon: FolderTree,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Media Library",
+        url: "/dashboard/blog/media",
+        icon: Images,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
       },
     ],
   },

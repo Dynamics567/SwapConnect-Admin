@@ -18,6 +18,10 @@ function getTitleFromPath(pathname: string) {
   if (pathname.startsWith("/dashboard/disputes")) return "Dispute Resolution";
   if (pathname.startsWith("/dashboard/seller-verification")) return "Seller Verification";
   if (pathname.startsWith("/dashboard/coupons")) return "Coupons & Campaigns";
+  if (pathname.startsWith("/dashboard/blog/posts")) return "Blog Posts";
+  if (pathname.startsWith("/dashboard/blog/categories")) return "Categories & Tags";
+  if (pathname.startsWith("/dashboard/blog/media")) return "Media Library";
+  if (pathname.startsWith("/dashboard/blog")) return "Content & Blog";
   if (pathname.startsWith("/dashboard/reports")) return "Reports";
   if (pathname.startsWith("/dashboard/ai-studio")) return "AI Studio";
   if (pathname.startsWith("/dashboard/risk")) return "Risk & Fraud Review";
