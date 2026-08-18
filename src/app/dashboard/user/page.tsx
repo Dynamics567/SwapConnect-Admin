@@ -30,6 +30,11 @@ interface Stats {
   icon: JSX.Element;
 }
 
+interface ProfileCompletion {
+  percentage: number;
+  requiredMissing: string[];
+}
+
 interface User {
   id: string;
   name: string;
@@ -40,6 +45,8 @@ interface User {
   accountType?: string;
   isSuspended?: boolean;
   hasBadge?: boolean;
+  profileCompletion?: ProfileCompletion;
+  locationSource?: "AUTO" | "MANUAL" | null;
 }
 interface ApiUser {
   _id?: string;
@@ -52,6 +59,26 @@ interface ApiUser {
   accountType?: string;
   isSuspended?: boolean;
   badge: boolean;
+  profileCompletion?: ProfileCompletion;
+  locationSource?: "AUTO" | "MANUAL" | null;
+}
+
+function ProfileCompletionBar({ profileCompletion }: { profileCompletion?: ProfileCompletion }) {
+  const pct = profileCompletion?.percentage ?? 0;
+  const atFull = pct >= 100;
+  return (
+    <div className="w-28">
+      <div className="flex items-baseline justify-between mb-1">
+        <span className="text-xs font-medium text-[#353535]">{pct}%</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-[#f3f4f6] overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all ${atFull ? "bg-[#037f44]" : "bg-[#a9791f]"}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
 }
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
@@ -175,6 +202,8 @@ function UserPageInner() {
                 accountType: u.accountType,
                 isSuspended: !!u.isSuspended,
                 hasBadge: typeof u.badge === "boolean" ? u.badge : false,
+                profileCompletion: u.profileCompletion,
+                locationSource: u.locationSource,
               })
             )
           );
@@ -684,6 +713,9 @@ function UserPageInner() {
                   CATEGORY
                 </th>
                 <th className="py-3 px-4 text-[#505050] text-sm font-normal">
+                  PROFILE
+                </th>
+                <th className="py-3 px-4 text-[#505050] text-sm font-normal">
                   AMOUNT SPENT
                 </th>
                 <th className="py-3 px-4 text-[#505050] text-sm font-normal">
@@ -718,6 +750,9 @@ function UserPageInner() {
                     </td>
                     <td className="py-3 text-[#434343] text-sm px-4">
                       <AccountTypeBadge accountType={user.accountType} />
+                    </td>
+                    <td className="py-3 text-[#434343] text-sm px-4">
+                      <ProfileCompletionBar profileCompletion={user.profileCompletion} />
                     </td>
                     <td className="py-3 text-[#434343] text-sm px-4">
                       {user.amount_spent}
@@ -918,8 +953,11 @@ function UserPageInner() {
                       {user.amount_spent}
                     </span>
                   </div>
-                  <div>
+                  <div className="flex items-center justify-between gap-3">
                     <AccountTypeBadge accountType={user.accountType} />
+                    <span className="text-xs text-[#505050]">
+                      Profile: <span className="font-semibold text-[#037F44]">{user.profileCompletion?.percentage ?? 0}%</span>
+                    </span>
                   </div>
                   <div className="flex gap-2 mt-2">
                     <button

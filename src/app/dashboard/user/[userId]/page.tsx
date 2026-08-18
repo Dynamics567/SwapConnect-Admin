@@ -23,6 +23,50 @@ const tabs = [
 //   price: string;
 // }
 
+interface ProfileCompletion {
+  percentage: number;
+  missingFields: string[];
+  requiredMissing: string[];
+  optionalMissing: string[];
+}
+
+interface UserLocation {
+  country: string | null;
+  state: string | null;
+  city: string | null;
+  address: string | null;
+  source: "AUTO" | "MANUAL" | null;
+  updatedAt: string | null;
+}
+
+const MISSING_FIELD_LABELS: Record<string, string> = {
+  firstName: "First name",
+  lastName: "Last name",
+  phone: "Phone",
+  country: "Country",
+  state: "State",
+  city: "City",
+  address: "Address",
+  avatar: "Profile photo",
+};
+
+function LocationSourcePill({ source }: { source: "AUTO" | "MANUAL" | null | undefined }) {
+  const label = source === "AUTO" ? "Auto-detected" : source === "MANUAL" ? "Manually entered" : "Not set";
+  const styles =
+    source === "AUTO"
+      ? "bg-[#e6f9f0] text-[#037F44]"
+      : source === "MANUAL"
+      ? "bg-[#F7F8FB] text-[#505050]"
+      : "bg-[#f3f4f6] text-[#9ca3af]";
+  const dot = source === "AUTO" ? "bg-[#037F44]" : source === "MANUAL" ? "bg-[#9ca3af]" : "bg-[#c4c4c4]";
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${styles}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+      {label}
+    </span>
+  );
+}
+
 interface User {
   id: string;
   avatar: string;
@@ -33,6 +77,9 @@ interface User {
   phone: string;
   role: string;
   productCount: number;
+  profileCompletion?: ProfileCompletion;
+  location?: UserLocation;
+  profileUpdatedAt?: string | null;
   orderHistory: [
     {
       id: string;
@@ -295,6 +342,50 @@ export default function UserDetailsPage() {
                   className="w-full px-3 py-2 border rounded bg-gray-100 text-base text-gray-700 placeholder:text-gray-500 placeholder:text-xs placeholder:font-medium"
                 />
               </div>
+            </div>
+
+            {/* Profile & Location */}
+            <div className="mt-6 pt-6 border-t border-[#e5e7eb]">
+              <h3 className="text-sm font-semibold text-[#353535] mb-3">Profile &amp; Location</h3>
+
+              <div className="flex flex-wrap items-center gap-4 mb-3">
+                <div className="w-40">
+                  <div className="flex items-baseline justify-between mb-1">
+                    <span className="text-xs font-medium text-[#353535]">
+                      {users.profileCompletion?.percentage ?? 0}% Complete
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-[#f3f4f6] overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        (users.profileCompletion?.percentage ?? 0) >= 100 ? "bg-[#037F44]" : "bg-[#a9791f]"
+                      }`}
+                      style={{ width: `${users.profileCompletion?.percentage ?? 0}%` }}
+                    />
+                  </div>
+                </div>
+                <LocationSourcePill source={users.location?.source} />
+              </div>
+
+              {(users.profileCompletion?.missingFields?.length ?? 0) > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                  <span className="text-xs text-[#848484]">Missing:</span>
+                  {users.profileCompletion!.missingFields.map((f) => (
+                    <span key={f} className="px-2 py-0.5 rounded-full bg-[#fef9ec] text-[#a9791f] text-xs">
+                      {MISSING_FIELD_LABELS[f] || f}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-sm text-[#505050]">
+                {[users.location?.city, users.location?.state, users.location?.country].filter(Boolean).join(", ") || "No location set"}
+                {users.location?.address ? ` — ${users.location.address}` : ""}
+              </p>
+              <p className="text-xs text-[#848484] mt-1">
+                Last profile update:{" "}
+                {users.profileUpdatedAt ? new Date(users.profileUpdatedAt).toLocaleString() : "Never"}
+              </p>
             </div>
           </div>
         )}
