@@ -19,8 +19,10 @@ import ConfirmModal from "@/components/ConfirmModat";
 import { useAuthContext } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SellerVerificationTab from "@/components/SellerVerificationTab";
+import StoreOwnerRequestsTab from "@/components/StoreOwnerRequestsTab";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
-type UserTab = "customers" | "verification";
+type UserTab = "customers" | "verification" | "store-owner-requests";
 
 // const PAGE_SIZE = 10;
 interface Stats {
@@ -125,8 +127,9 @@ function UserPageInner() {
   const [activeTab, setActiveTab] = useState<UserTab>("customers");
 
   useEffect(() => {
-    if (searchParams.get("tab") === "verification") {
-      setActiveTab("verification");
+    const tab = searchParams.get("tab");
+    if (tab === "verification" || tab === "store-owner-requests") {
+      setActiveTab(tab);
     }
   }, [searchParams]);
 
@@ -138,6 +141,15 @@ function UserPageInner() {
 
   const [showBanModal, setShowBanModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
+  // Direct manual upgrade (Buyer -> Store Owner, bypassing the request
+  // queue entirely) -- more powerful than ordinary review, so gated to
+  // admin/superadmin only, same audience as suspend/ban.
+  const canDirectUpgrade = role === "admin" || role === "superadmin";
+  const [upgradeTarget, setUpgradeTarget] = useState<User | null>(null);
+  const [upgradeReason, setUpgradeReason] = useState("");
+  const [upgrading, setUpgrading] = useState(false);
+  const [upgradeError, setUpgradeError] = useState("");
 
   const [totalPages, setTotalPages] = useState(0);
 
@@ -346,6 +358,34 @@ function UserPageInner() {
     }
   };
 
+  const handleUpgradeToStoreOwner = async () => {
+    if (!token || !upgradeTarget) return;
+    if (!upgradeReason.trim()) {
+      setUpgradeError("A reason is required to upgrade this user.");
+      return;
+    }
+    setUpgradeError("");
+    setUpgrading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/users/${upgradeTarget.id}/upgrade-to-store-owner`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ reason: upgradeReason }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to upgrade user");
+      setUsers((prev) =>
+        prev.map((u) => (u.id === upgradeTarget.id ? { ...u, accountType: "STORE_OWNER" } : u))
+      );
+      setUpgradeTarget(null);
+      setUpgradeReason("");
+    } catch (err: unknown) {
+      setUpgradeError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setUpgrading(false);
+    }
+  };
+
   const handleOnboardUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
@@ -469,6 +509,16 @@ function UserPageInner() {
             onClick={() => setActiveTab("verification")}
           >
             Seller Verification
+          </button>
+          <button
+            className={`px-6 py-2 rounded-lg text-base font-semibold transition ${
+              activeTab === "store-owner-requests"
+                ? "bg-[#037F44] text-white"
+                : "bg-[#F7F8FB] text-[#037F44] hover:bg-[#e6f4ed]"
+            }`}
+            onClick={() => setActiveTab("store-owner-requests")}
+          >
+            Store Owner Requests
           </button>
         </div>
 
@@ -829,6 +879,20 @@ function UserPageInner() {
                           >
                             Message
                           </button>
+                          {canDirectUpgrade && user.accountType === "BUYER" && (
+                            <button
+                              className="block w-full text-left px-4 py-2 hover:bg-[#F7F8FB] text-[#037F44]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setUpgradeTarget(user);
+                                setUpgradeReason("");
+                                setUpgradeError("");
+                                setDropdownIdx(null);
+                              }}
+                            >
+                              Upgrade to Store Owner
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>
@@ -849,6 +913,41 @@ function UserPageInner() {
           }}
           title="Ban User"
           message="Are you sure you want to permanently ban this user? This action cannot be undone."
+        />
+
+        <ConfirmDialog
+          open={!!upgradeTarget}
+          title="Upgrade User?"
+          message={
+            <div className="space-y-3">
+              <p>
+                This will change {upgradeTarget?.name}&apos;s account from Buyer to Store Owner and give them access
+                to Store Owner features.
+              </p>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                  Reason for upgrade
+                </label>
+                <textarea
+                  value={upgradeReason}
+                  onChange={(e) => setUpgradeReason(e.target.value)}
+                  rows={2}
+                  placeholder="Approved as a verified business partner after direct review."
+                  className="w-full border rounded-lg px-3 py-2 text-sm resize-none text-gray-800"
+                  onClick={(e) => e.stopPropagation()}
+                />
+                {upgradeError && <p className="text-xs text-red-600 mt-1">{upgradeError}</p>}
+              </div>
+            </div>
+          }
+          confirmLabel="Upgrade User"
+          loading={upgrading}
+          onConfirm={handleUpgradeToStoreOwner}
+          onClose={() => {
+            setUpgradeTarget(null);
+            setUpgradeReason("");
+            setUpgradeError("");
+          }}
         />
 
         {/* Message User Modal */}
@@ -1015,6 +1114,19 @@ function UserPageInner() {
                     >
                       Message
                     </button>
+                    {canDirectUpgrade && user.accountType === "BUYER" && (
+                      <button
+                        className="flex-1 bg-[#F7F8FB] text-[#037F44] py-1 rounded text-xs font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setUpgradeTarget(user);
+                          setUpgradeReason("");
+                          setUpgradeError("");
+                        }}
+                      >
+                        Upgrade
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1025,6 +1137,7 @@ function UserPageInner() {
         )}
 
         {activeTab === "verification" && <SellerVerificationTab />}
+        {activeTab === "store-owner-requests" && <StoreOwnerRequestsTab />}
       </div>
     </ProtectedRoute>
   );
