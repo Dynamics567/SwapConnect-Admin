@@ -38,15 +38,18 @@ function UserSignUpGraph({ signupsData, loading }: { signupsData: SignupPoint[];
   }));
 
   return (
-    <div className="bg-white rounded-lg shadow w-full md:w-[504px] p-4 h-64 flex flex-col mb-4">
+    <div className="bg-white rounded-lg shadow w-full p-4 h-64 flex flex-col">
       <span className="font-semibold text-lg text-[#353535] mb-2">
         User Sign Ups
       </span>
       {loading ? (
         <div className="flex-1 animate-pulse bg-gray-100 rounded" />
       ) : chartData.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-sm text-[#6b6b6b]">
-          No sign-ups in the last 30 days.
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
+          <p className="text-sm font-semibold text-[#353535] mb-1">No Sign-Ups Yet</p>
+          <p className="text-xs text-[#6b6b6b] max-w-[280px]">
+            New user sign-ups from the last 30 days will appear here as a trend.
+          </p>
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={180}>
@@ -75,13 +78,16 @@ function RevenueGraph({ revenueData, loading }: { revenueData: RevenuePoint[]; l
   }));
 
   return (
-    <div className="bg-white rounded-lg shadow w-full md:w-[504px] p-4 h-64 flex flex-col mb-4">
+    <div className="bg-white rounded-lg shadow w-full p-4 h-64 flex flex-col">
       <span className="font-semibold text-lg text-[#353535] mb-2">Revenue</span>
       {loading ? (
         <div className="flex-1 animate-pulse bg-gray-100 rounded" />
       ) : chartData.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-sm text-[#6b6b6b]">
-          No revenue in the last 30 days.
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
+          <p className="text-sm font-semibold text-[#353535] mb-1">No Revenue Yet</p>
+          <p className="text-xs text-[#6b6b6b] max-w-[280px]">
+            Your transaction revenue will appear here once completed transactions begin.
+          </p>
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={180}>
@@ -105,11 +111,9 @@ function RevenueGraph({ revenueData, loading }: { revenueData: RevenuePoint[]; l
 
 function StatGraph({ revenueData, signupsData, loading }: StatGraphProps) {
   return (
-    <div>
-      <div className="md:flex-row flex flex-col gap-4">
-        <UserSignUpGraph signupsData={signupsData} loading={loading} />
-        <RevenueGraph revenueData={revenueData} loading={loading} />
-      </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <UserSignUpGraph signupsData={signupsData} loading={loading} />
+      <RevenueGraph revenueData={revenueData} loading={loading} />
     </div>
   );
 }

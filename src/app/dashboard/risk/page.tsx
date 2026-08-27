@@ -165,7 +165,7 @@ export default function RiskReviewPage() {
 
   return (
     <ProtectedRoute allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}>
-      <div className="pt-[110px] md:pl-[320px] pl-8 pr-8 pb-10 min-h-screen bg-[#F8F9FB]">
+      <div className="w-full min-w-0">
         <div className="mb-4">
           <h1 className="text-2xl font-bold text-[#353535]">Risk &amp; Fraud Review</h1>
           <p className="text-sm text-[#848484] mt-1">

@@ -102,27 +102,27 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
   }
 
   return (
-    <nav className="fixed top-0 right-0 left-0 h-[85px] bg-white flex items-center justify-between md:left-[280px] border-b px-4 md:px-8 z-[101]">
+    <nav className="sticky top-0 h-[85px] w-full bg-white flex items-center justify-between border-b px-4 md:px-8 z-30">
       {/* Desktop: Title, notification, user info */}
-      <div className="hidden md:flex items-center justify-between w-full">
-        <h2 className="text-[24px] font-bold text-[#353535]">{title}</h2>
-        <div className="flex items-center gap-[32px]">
+      <div className="hidden md:flex items-center justify-between w-full min-w-0 gap-4">
+        <h2 className="text-[24px] font-bold text-[#353535] truncate">{title}</h2>
+        <div className="flex items-center gap-3 lg:gap-8 shrink-0">
           <button
             onClick={() => window.dispatchEvent(new Event("open-admin-command-palette"))}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#e5e7eb] text-[#848484] hover:border-[#037F44] hover:text-[#037F44] transition text-sm"
             aria-label="Search pages"
           >
             <Search size={16} />
-            Search
-            <span className="text-[11px] border border-[#e5e7eb] rounded px-1.5 py-0.5 ml-1">Ctrl K</span>
+            <span className="hidden lg:inline">Search</span>
+            <span className="hidden lg:inline text-[11px] border border-[#e5e7eb] rounded px-1.5 py-0.5 ml-1">Ctrl K</span>
           </button>
           <button className="flex cursor-pointer" aria-label="Notifications">
             <Bell size={24} color="#848484" />
           </button>
           <div className="h-8 w-px bg-gray-300" />
 
-          <div className="flex items-center gap-[12px]">
-            <span className="font-normal text-[#3E344F] text-[16px]">
+          <div className="flex items-center gap-2 lg:gap-3">
+            <span className="hidden lg:inline font-normal text-[#3E344F] text-[16px]">
               {userLoading ? "Loading..." : userError ? "Error" : displayName}
             </span>
 

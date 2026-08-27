@@ -102,12 +102,12 @@ function StatsCard({ data, loading }: StatsCardProps) {
 
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 md:flex gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {loading
           ? [1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="bg-white w-[244px] h-[90px] rounded-lg shadow p-6 flex flex-col justify-center animate-pulse"
+                className="bg-white w-full h-[90px] rounded-lg shadow p-6 flex flex-col justify-center animate-pulse"
               >
                 <div className="flex items-center gap-3">
                   <span className="bg-[#F7F8FB] rounded-full p-2 w-10 h-10" />
@@ -121,7 +121,7 @@ function StatsCard({ data, loading }: StatsCardProps) {
           : stats.map((stat) => (
               <div
                 key={stat.label}
-                className="bg-white md:w-[244px] w-[200px] h-[90px] rounded-lg shadow p-6 flex flex-col justify-center"
+                className="bg-white w-full h-[90px] rounded-lg shadow p-6 flex flex-col justify-center"
               >
                 <div className="flex items-center gap-3">
                   <span className="bg-[#F7F8FB] rounded-full p-2 flex items-center justify-center">

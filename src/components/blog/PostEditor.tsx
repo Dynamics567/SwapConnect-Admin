@@ -226,11 +226,11 @@ export default function PostEditor({ postId }: PostEditorProps) {
   const selectedCategory = categories.find((c) => c.id === form.categoryId);
 
   if (loading) {
-    return <div className="pt-[110px] md:pl-[320px] pl-8 text-[#6b6b6b]">Loading…</div>;
+    return <div className="text-[#6b6b6b]">Loading…</div>;
   }
 
   return (
-    <div className="w-full pt-[110px] md:pl-[320px] pl-4 pr-4 md:pr-8 pb-14 min-h-screen bg-[#F8F9FB]">
+    <div className="w-full pb-14">
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-bold text-[#353535]">{isEdit ? "Edit Post" : "Create Post"}</h1>

@@ -131,7 +131,7 @@ function PostsPageInner() {
 
   return (
     <ProtectedRoute allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}>
-      <div className="flex flex-col gap-6 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
+      <div className="flex flex-col gap-6 w-full min-w-0">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h1 className="text-2xl font-bold text-[#353535]">Blog Posts</h1>
           <Link
@@ -342,7 +342,7 @@ function PostsPageInner() {
 
 export default function PostsPage() {
   return (
-    <Suspense fallback={<div className="pt-[110px] pl-8 text-[#6b6b6b]">Loading…</div>}>
+    <Suspense fallback={<div className="text-[#6b6b6b]">Loading…</div>}>
       <PostsPageInner />
     </Suspense>
   );

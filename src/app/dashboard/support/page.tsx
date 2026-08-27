@@ -51,7 +51,14 @@ const SupportPage: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh)] flex bg-gray-50">
+    // This chat UI wants edge-to-edge, viewport-bounded space (its own
+    // internal panes scroll, the page itself shouldn't) unlike every other
+    // dashboard page, which now gets its spacing from <main>'s padding in
+    // dashboard/layout.tsx. The negative margins cancel that padding out
+    // exactly (mx matches main's px-4/sm:px-6/lg:px-8, my matches py-6),
+    // and the height subtracts only the sticky navbar (85px) since the
+    // now-canceled padding no longer needs its own subtraction.
+    <div className="-mx-4 sm:-mx-6 lg:-mx-8 -my-6 h-[calc(100vh-85px)] flex bg-gray-50">
       {/* Conversations List - Hidden on mobile when chat is open */}
       <div
         className={`${
@@ -66,7 +73,7 @@ const SupportPage: React.FC = () => {
 
       {/* Chat Interface - Hidden on mobile when no conversation selected */}
       <div
-        className={`${showChat ? "flex" : "hidden md:flex"} flex-1 pt-[110px] `}
+        className={`${showChat ? "flex" : "hidden md:flex"} flex-1`}
       >
         {selectedConversation ? (
           <ChatInterface

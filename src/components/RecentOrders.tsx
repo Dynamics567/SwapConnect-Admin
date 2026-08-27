@@ -32,7 +32,7 @@ function RecentOrders({ orders, loading }: RecentOrdersProps) {
   const isEmpty = !loading && orders.length === 0;
 
   return (
-    <div>
+    <div className="min-w-0">
       {loading ? (
         <div className="w-full py-20 flex justify-center items-center">
           <p className="text-gray-500 font-medium text-sm">

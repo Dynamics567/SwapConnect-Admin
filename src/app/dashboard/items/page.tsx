@@ -29,7 +29,7 @@ function PageInner() {
         "verificationofficer",
       ]}
     >
-      <div className="flex flex-col gap-8 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
+      <div className="flex flex-col gap-8 w-full min-w-0">
         <div className="flex gap-4 mb-3 bg-white p-2 rounded-xl w-[524px]">
           <button
             className={`w-[115px] h-[32px] rounded-xl text-base transition ${

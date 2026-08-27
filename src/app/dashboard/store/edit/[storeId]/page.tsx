@@ -91,14 +91,14 @@ const params = useParams();
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-[#037F44] font-semibold">
+      <div className="flex items-center justify-center py-24 text-[#037F44] font-semibold">
         Loading store details...
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#F8F9FB] px-4">
+    <div className="flex flex-col items-center justify-center py-12">
       {/* Back Button */}
       <div className="w-full max-w-md mt-10 mb-4 flex justify-start">
         <button

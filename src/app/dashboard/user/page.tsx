@@ -485,12 +485,12 @@ function UserPageInner() {
 
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin", "supportagent", "verificationofficer"]}>
-      <div className="flex flex-col gap-8 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
+      <div className="flex flex-col gap-8 w-full min-w-0">
         {/* Tabs */}
-        <div className="flex gap-2 bg-white rounded-xl shadow p-2 w-fit mb-2">
+        <div className="flex gap-2 bg-white rounded-xl shadow p-2 w-full sm:w-fit mb-2 overflow-x-auto min-w-0">
           {canViewCustomers && (
             <button
-              className={`px-6 py-2 rounded-lg text-base font-semibold transition ${
+              className={`px-6 py-2 rounded-lg text-base font-semibold transition shrink-0 whitespace-nowrap ${
                 activeTab === "customers"
                   ? "bg-[#037F44] text-white"
                   : "bg-[#F7F8FB] text-[#037F44] hover:bg-[#e6f4ed]"
@@ -501,7 +501,7 @@ function UserPageInner() {
             </button>
           )}
           <button
-            className={`px-6 py-2 rounded-lg text-base font-semibold transition ${
+            className={`px-6 py-2 rounded-lg text-base font-semibold transition shrink-0 whitespace-nowrap ${
               activeTab === "verification"
                 ? "bg-[#037F44] text-white"
                 : "bg-[#F7F8FB] text-[#037F44] hover:bg-[#e6f4ed]"
@@ -511,7 +511,7 @@ function UserPageInner() {
             Seller Verification
           </button>
           <button
-            className={`px-6 py-2 rounded-lg text-base font-semibold transition ${
+            className={`px-6 py-2 rounded-lg text-base font-semibold transition shrink-0 whitespace-nowrap ${
               activeTab === "store-owner-requests"
                 ? "bg-[#037F44] text-white"
                 : "bg-[#F7F8FB] text-[#037F44] hover:bg-[#e6f4ed]"
@@ -746,7 +746,7 @@ function UserPageInner() {
         )}
 
         {/* Users Table (Desktop Only) */}
-        <div className="hidden md:block bg-white rounded-lg shadow p-6">
+        <div className="hidden md:block bg-white rounded-lg shadow p-6 overflow-x-auto min-w-0">
           <table className="w-full table-auto">
             <thead>
               <tr className="bg-[#CCDCD4] text-[#037F44] text-left">
@@ -1023,7 +1023,7 @@ function UserPageInner() {
         )}
 
         {/* Mobile Card View */}
-        <div className="block md:hidden">
+        <div className="block md:hidden min-w-0">
           <div className="flex flex-col gap-4">
             {users
               .filter(

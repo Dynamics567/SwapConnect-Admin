@@ -38,7 +38,7 @@ const Sidebar: React.FC = () => {
     role ? children.filter((c) => c.roles.includes(role)) : children;
 
   return (
-    <aside className="fixed flex flex-col h-screen w-[280px] bg-white text-[#848484] p-8 shadow-[2px_0_8px_rgba(0,0,0,0.05)] z-100 justify-between overflow-y-auto">
+    <aside className="sticky top-0 flex flex-col h-screen w-[280px] shrink-0 bg-white text-[#848484] p-8 shadow-[2px_0_8px_rgba(0,0,0,0.05)] z-20 justify-between overflow-y-auto">
       <div>
         <Link
           href="/dashboard"

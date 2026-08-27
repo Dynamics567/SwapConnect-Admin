@@ -167,7 +167,7 @@ export default function CategoriesTagsPage() {
 
   return (
     <ProtectedRoute allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}>
-      <div className="flex flex-col gap-6 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
+      <div className="flex flex-col gap-6 w-full min-w-0">
         <h1 className="text-2xl font-bold text-[#353535]">Categories & Tags</h1>
 
         <div className="flex items-center gap-1 bg-white rounded-lg shadow p-1 w-fit">

@@ -337,7 +337,7 @@ function DisputesPageInner() {
     (selected.status === "open" || selected.status === "under_review");
 
   return (
-    <div className="pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
+    <div className="w-full min-w-0">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-gray-800">Dispute Resolution</h1>
         <div className="flex gap-3">

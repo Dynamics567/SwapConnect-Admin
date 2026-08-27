@@ -335,7 +335,7 @@ function CouponsPageInner() {
   ];
 
   return (
-    <div className="w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-10 min-h-screen bg-[#F8F9FB]">
+    <div className="w-full min-w-0">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[#353535]">Coupons & Campaigns</h1>

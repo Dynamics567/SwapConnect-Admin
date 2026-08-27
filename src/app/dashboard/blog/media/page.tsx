@@ -113,7 +113,7 @@ export default function MediaLibraryPage() {
 
   return (
     <ProtectedRoute allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}>
-      <div className="flex flex-col gap-6 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
+      <div className="flex flex-col gap-6 w-full min-w-0">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h1 className="text-2xl font-bold text-[#353535]">Media Library</h1>
           <button

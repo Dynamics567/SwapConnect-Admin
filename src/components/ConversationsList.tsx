@@ -220,17 +220,18 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-8 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
-        <div className="w-full md:w-80 bg-white border-r border-gray-200 flex items-center justify-center">
-          <div className="text-gray-500">Loading conversations...</div>
-        </div>
+      <div className="w-full md:w-80 bg-white border-r border-gray-200 flex items-center justify-center">
+        <div className="text-gray-500">Loading conversations...</div>
       </div>
     );
   }
 
+  // This is rendered as a nested child inside support/page.tsx's flex row,
+  // not as its own page -- it must not apply page-offset spacing itself
+  // (it used to, incorrectly, before dashboard/layout.tsx owned that
+  // spacing centrally).
   return (
-    <div className="flex flex-col gap-8 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
-      <div className="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col">
+    <div className="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
@@ -380,7 +381,6 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
           )}
         </div>
       </div>
-    </div>
   );
 };
 

@@ -203,7 +203,7 @@ export default function ReportsPage() {
 
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
-      <div className="w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-10 min-h-screen bg-[#F8F9FB]">
+      <div className="w-full min-w-0">
         <div className="mb-6 flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold text-[#353535]">Reports</h1>

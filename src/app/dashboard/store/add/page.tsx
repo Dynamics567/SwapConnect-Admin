@@ -54,7 +54,7 @@ export default function AddStorePage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#F8F9FB] px-4">
+    <div className="flex flex-col items-center justify-center py-12">
       <div className="bg-white rounded-xl shadow p-8 w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-[#037F44]">
           Add New Store

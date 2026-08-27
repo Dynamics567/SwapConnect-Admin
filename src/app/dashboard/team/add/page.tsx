@@ -62,7 +62,7 @@ export default function AddTeamMemberPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#F8F9FB] px-4">
+    <div className="flex flex-col items-center justify-center py-12">
       <div className="bg-white rounded-2xl shadow p-8 w-full max-w-md">
         <div className="flex items-center gap-3 mb-1">
           <span className="bg-[#f0faf5] rounded-full p-2.5">

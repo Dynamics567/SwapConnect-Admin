@@ -85,7 +85,7 @@ export default function ActivityLog() {
   return (
     <ProtectedRoute allowedRoles={["superadmin"]}>
       <div>
-        <div className="flex flex-col gap-8 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
+        <div className="flex flex-col gap-8 w-full min-w-0">
           <h2 className="text-xl font-semibold text-black mb-4">
             Activity log
           </h2>

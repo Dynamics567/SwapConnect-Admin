@@ -86,7 +86,7 @@ export default function EditTeamMemberPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#F8F9FB]">
+      <div className="flex items-center justify-center py-24">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-[#037F44] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-[#037F44] font-medium">
@@ -98,7 +98,7 @@ export default function EditTeamMemberPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#F8F9FB] px-4">
+    <div className="flex flex-col items-center justify-center py-12">
       <div
         className="mb-4 flex gap-2 cursor-pointer text-[#037F44] hover:underline"
         onClick={() => router.push("/dashboard/team")}

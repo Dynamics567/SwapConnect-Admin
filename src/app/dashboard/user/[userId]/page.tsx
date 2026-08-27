@@ -221,7 +221,7 @@ export default function UserDetailsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 w-full pt-[110px] md:pl-[320px] pl-8 pr-8 pb-8 min-h-screen bg-[#F8F9FB]">
+    <div className="flex flex-col gap-8 w-full min-w-0">
       <div className="flex items-center gap-2  text-sm font-medium text-[#037F44]">
         <Link href="/dashboard/user" className="hover:underline text-[#505050]">
           User Mgt

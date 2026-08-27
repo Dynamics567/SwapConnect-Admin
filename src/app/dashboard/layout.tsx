@@ -52,13 +52,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const title = getTitleFromPath(pathname);
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] min-h-screen w-full bg-[#F8F9FB]">
       <div className="hidden md:block">
         <Sidebar />
       </div>
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex flex-col min-w-0">
         <Navbar title={title} />
-        <main className="flex-1 w-full">{children}</main>
+        <main className="flex-1 min-w-0 w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {children}
+        </main>
       </div>
       <CommandPalette />
     </div>
