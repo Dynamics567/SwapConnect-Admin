@@ -4,9 +4,12 @@ import { CheckCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuthToken } from "@/hooks/useAuthToken";
+import { useRole } from "@/hooks/useRole";
 import { API_URL } from "@/lib/config";
 import { useParams } from "next/navigation";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 interface Item {
   id: string;
@@ -17,11 +20,7 @@ interface Item {
   used: string;
   brand: string;
   condition: string;
-  model: string;
-  batteryHealth: string;
-  ram: string;
-  color: string;
-  storage: string;
+  approved: boolean;
   Account: {
     firstName: string;
     lastName: string;
@@ -30,21 +29,29 @@ interface Item {
     verified: string;
   };
   metaData: {
-    color: string;
-    battery: string;
-    ram: string;
-    storage: string;
-    os: string;
+    color?: string;
+    batteryHealth?: number | string;
+    ram?: string;
+    storage?: string;
   };
   otherImages: string[];
 }
 
+type PendingAction = { kind: "approve" | "reject" | "delete"; title: string; message: string };
+
 export default function ListingDetails() {
   const [loading, setLoading] = useState(false);
   const token = useAuthToken();
+  const { isAdmin, isSuperAdmin } = useRole();
+  const canModerate = isAdmin || isSuperAdmin; // matches the approve/reject routes' own ADMIN_ROLES gate
+  const router = useRouter();
   const [item, setItem] = useState<Item | null>(null);
   const params = useParams();
   const productId = params.id;
+
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
     if (!token) {
@@ -64,7 +71,6 @@ export default function ListingDetails() {
           }
         );
         const data = await response.json();
-        console.log("Recent Listings:", data);
         if (data) {
           setItem(data);
         } else {
@@ -78,6 +84,56 @@ export default function ListingDetails() {
     };
     fetchOrders();
   }, [token, productId]);
+
+  const requestApprove = () =>
+    setPendingAction({
+      kind: "approve",
+      title: "Approve this listing?",
+      message: "It will show as approved and remain visible to buyers exactly as submitted.",
+    });
+  const requestReject = () =>
+    setPendingAction({
+      kind: "reject",
+      title: "Reject this listing?",
+      message: "It will be marked unapproved. The seller can still edit and it can be approved later.",
+    });
+  const requestDelete = () =>
+    setPendingAction({
+      kind: "delete",
+      title: "Delete this listing?",
+      message: "This permanently removes the listing. This can't be undone.",
+    });
+
+  const confirmPendingAction = async () => {
+    if (!item || !token || !pendingAction) return;
+    setActionLoading(true);
+    setActionError("");
+    try {
+      if (pendingAction.kind === "delete") {
+        const res = await fetch(`${API_URL}/api/products/${item.id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to delete listing");
+        router.push("/dashboard/items");
+        return;
+      }
+
+      const res = await fetch(
+        `${API_URL}/api/admin/product/${item.id}/${pendingAction.kind === "approve" ? "approve" : "reject"}`,
+        { method: "PUT", headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || `Failed to ${pendingAction.kind} listing`);
+      setItem((prev) => (prev ? { ...prev, approved: pendingAction.kind === "approve" } : prev));
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setActionLoading(false);
+      setPendingAction(null);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-8 w-full min-w-0">
@@ -147,32 +203,32 @@ export default function ListingDetails() {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-gray-500">CONDITION</span>
-                    <span>Used</span>
+                    <span className="capitalize">{item?.condition || "—"}</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col">
                     <span className="text-gray-500">MODEL</span>
-                    <span>{item?.metaData?.os}</span>
+                    <span>{item?.name || "—"}</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-gray-500">BATTERY HEALTH</span>
-                    <span>{item?.metaData?.battery}</span>
+                    <span>{item?.metaData?.batteryHealth ? `${item.metaData.batteryHealth}%` : "—"}</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col">
                     <span className="text-gray-500">RAM</span>
-                    <span>{item?.metaData?.ram}</span>
+                    <span>{item?.metaData?.ram || "—"}</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-gray-500">COLOR</span>
-                    <span>{item?.metaData?.color}</span>
+                    <span>{item?.metaData?.color || "—"}</span>
                   </div>
                 </div>
 
                 <span className="text-gray-500">STORAGE</span>
-                <span>{item?.metaData?.storage}</span>
+                <span>{item?.metaData?.storage || "—"}</span>
               </div>
             </div>
           </div>
@@ -189,16 +245,61 @@ export default function ListingDetails() {
                   <p className="text-md">Lagos</p>
                 </div>
               </div>
-              <div className="flex justify-between items-center mt-6">
+              <div className="flex justify-between items-center mt-6 mb-4">
                 <span className="text-sm text-gray-500">Status:</span>
-                <span className="text-sm font-semibold text-green-700">
-                  Approved
+                <span className={`text-sm font-semibold ${item?.approved ? "text-green-700" : "text-amber-700"}`}>
+                  {item?.approved ? "Approved" : "Not approved"}
                 </span>
+              </div>
+
+              {actionError && (
+                <p className="text-xs text-red-600 mb-3">{actionError}</p>
+              )}
+
+              <div className="space-y-2">
+                {canModerate && !item?.approved && (
+                  <button
+                    onClick={requestApprove}
+                    disabled={!item}
+                    className="w-full bg-[#037F44] text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-[#026835] transition-colors disabled:opacity-60"
+                  >
+                    Approve Listing
+                  </button>
+                )}
+                {canModerate && item?.approved && (
+                  <button
+                    onClick={requestReject}
+                    disabled={!item}
+                    className="w-full bg-amber-100 text-amber-800 py-2.5 rounded-lg text-sm font-semibold hover:bg-amber-200 transition-colors disabled:opacity-60"
+                  >
+                    Reject Listing
+                  </button>
+                )}
+                {/* Any staff role can remove a listing outright -- matches
+                    the backend's ALL_STAFF gate on DELETE /api/products/:id. */}
+                <button
+                  onClick={requestDelete}
+                  disabled={!item}
+                  className="w-full bg-red-50 text-red-700 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors disabled:opacity-60"
+                >
+                  Delete Listing
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!pendingAction}
+        title={pendingAction?.title ?? ""}
+        message={pendingAction?.message ?? ""}
+        variant={pendingAction?.kind === "delete" ? "danger" : pendingAction?.kind === "reject" ? "warning" : "default"}
+        confirmLabel={pendingAction?.kind === "delete" ? "Delete" : pendingAction?.kind === "reject" ? "Reject" : "Approve"}
+        loading={actionLoading}
+        onConfirm={confirmPendingAction}
+        onClose={() => setPendingAction(null)}
+      />
     </div>
   );
 }
