@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, UserCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -113,12 +113,38 @@ interface User {
 
 export default function UserDetailsPage() {
   const params = useParams();
+  const router = useRouter();
   const [users, setUsers] = useState<User | null>(null);
   const token = useAuthToken();
   const { role } = useAuthContext();
+  const canManageAccounts = role === "admin" || role === "superadmin";
   const [loading, setLoading] = useState(false);
-  //   const router = useRouter();
   const userId = params?.userId;
+
+  const [showDeleteUser, setShowDeleteUser] = useState(false);
+  const [deletingUser, setDeletingUser] = useState(false);
+  const [deleteUserError, setDeleteUserError] = useState<string | null>(null);
+
+  const handleConfirmDeleteUser = async () => {
+    setDeletingUser(true);
+    setDeleteUserError(null);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setDeleteUserError(data.message || "Failed to delete user.");
+        return;
+      }
+      router.push("/dashboard/user");
+    } catch {
+      setDeleteUserError("Something went wrong. Please try again.");
+    } finally {
+      setDeletingUser(false);
+    }
+  };
   const [activeTab, setActiveTab] = useState<
     "personal" | "orders" | "payments"
   >("personal");
@@ -283,6 +309,17 @@ export default function UserDetailsPage() {
                     className="px-4 py-2 rounded-full text-xs font-semibold bg-[#f0faf5] text-[#037F44] hover:bg-[#dcf3e7] transition-colors"
                   >
                     Change Email
+                  </button>
+                )}
+                {canManageAccounts && (
+                  <button
+                    onClick={() => {
+                      setDeleteUserError(null);
+                      setShowDeleteUser(true);
+                    }}
+                    className="px-4 py-2 rounded-full text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
+                  >
+                    Delete User
                   </button>
                 )}
                 {/* Status Button */}
@@ -497,6 +534,30 @@ export default function UserDetailsPage() {
         onClose={() => {
           setShowChangeEmail(false);
           setChangeEmailError(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={showDeleteUser}
+        title="Delete this user account?"
+        message={
+          <div className="flex flex-col gap-2">
+            <p>
+              This permanently deletes {users.firstName} {users.lastName}&apos;s account,
+              along with all of their products, orders, and reviews. This can&apos;t be undone.
+            </p>
+            {deleteUserError && (
+              <p className="text-red-600 text-xs">{deleteUserError}</p>
+            )}
+          </div>
+        }
+        variant="danger"
+        confirmLabel="Delete"
+        loading={deletingUser}
+        onConfirm={handleConfirmDeleteUser}
+        onClose={() => {
+          setShowDeleteUser(false);
+          setDeleteUserError(null);
         }}
       />
     </div>
