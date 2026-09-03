@@ -35,7 +35,7 @@ export default function NewItems() {
     const fetchOrders = async () => {
       try {
         const response = await fetch(
-          `${API_URL}/api/admin/listings/recent?page=${page}&limit=10&days=30`,
+          `${API_URL}/api/admin/listings/recent?page=${page}&limit=10&approved=false`,
           {
             method: "GET",
             headers: {

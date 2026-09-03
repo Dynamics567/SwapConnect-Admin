@@ -32,7 +32,7 @@ export default function NewItems() {
     }
     const fetchOrders = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/admin/listings/recent`, {
+        const response = await fetch(`${API_URL}/api/admin/listings/recent?page=${page}&limit=10`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
