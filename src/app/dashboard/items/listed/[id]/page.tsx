@@ -2,7 +2,7 @@
 import React from "react";
 import { CheckCircle } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthToken } from "@/hooks/useAuthToken";
@@ -155,8 +155,8 @@ export default function ListingDetails() {
           <div className="flex flex-col md:flex-row bg-white rounded-xl p-6 shadow flex-1 gap-6">
             {/* Left section */}
             <div className="md:w-[340px] w-full flex-shrink-0">
-              <Image
-                src={item?.imageUrl || "/Card.png"}
+              <ImageWithFallback
+                src={item?.imageUrl}
                 alt="Main"
                 width={340}
                 height={200}
@@ -164,7 +164,7 @@ export default function ListingDetails() {
               />
               <div className="flex mt-2 gap-2">
                 {item?.otherImages?.map((image, i) => (
-                  <Image
+                  <ImageWithFallback
                     key={i}
                     src={image}
                     alt="product image"
@@ -175,8 +175,8 @@ export default function ListingDetails() {
                 ))}
               </div>
               <div className="mt-6 border border-[#F3F3F3] p-4 rounded-xl flex items-center gap-4">
-                <Image
-                  src={item?.Account?.avatar || "/Card.png"}
+                <ImageWithFallback
+                  src={item?.Account?.avatar}
                   alt="Seller"
                   width={48}
                   height={48}

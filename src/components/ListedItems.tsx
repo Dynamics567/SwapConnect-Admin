@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 import { MapPin, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -8,6 +7,7 @@ import { API_URL } from "@/lib/config";
 // import Page from "@/app/dashboard/page";
 import PageButton from "./PageButton";
 import ProtectedRoute from "./ProtectedRoute";
+import ImageWithFallback from "./ui/ImageWithFallback";
 
 type Order = {
   id: string;
@@ -81,7 +81,7 @@ export default function NewItems() {
                 key={items.id}
                 className="bg-white rounded-lg shadow p-4 w-full flex flex-col"
               >
-                <Image
+                <ImageWithFallback
                   src={items.imageUrl}
                   alt={items.name}
                   width={280}
