@@ -24,6 +24,7 @@ import {
   FileText,
   FolderTree,
   Images,
+  Timer,
   type LucideIcon,
 } from "lucide-react";
 
@@ -66,6 +67,12 @@ export const navGroups: NavEntry[] = [
         url: "/dashboard/store",
         icon: Building2,
         roles: ["superadmin", "admin", "verificationofficer"],
+      },
+      {
+        label: "Auctions",
+        url: "/dashboard/auctions",
+        icon: Timer,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
       },
     ],
   },
