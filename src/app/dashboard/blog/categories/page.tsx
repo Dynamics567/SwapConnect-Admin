@@ -39,7 +39,9 @@ export default function CategoriesTagsPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [showCatForm, setShowCatForm] = useState(false);
   const [catSaving, setCatSaving] = useState(false);
+  const [catFormError, setCatFormError] = useState<string | null>(null);
   const [deleteCatTarget, setDeleteCatTarget] = useState<Category | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
 
   // Tags
   const [tags, setTags] = useState<TagItem[]>([]);
@@ -74,28 +76,35 @@ export default function CategoriesTagsPage() {
   const openCreateCategory = () => {
     setEditingCategory(null);
     setCatForm(EMPTY_CATEGORY_FORM);
+    setCatFormError(null);
     setShowCatForm(true);
   };
   const openEditCategory = (cat: Category) => {
     setEditingCategory(cat);
     setCatForm({ name: cat.name, description: cat.description || "", image: cat.image || "", seoTitle: "", seoDescription: "" });
+    setCatFormError(null);
     setShowCatForm(true);
   };
 
   const saveCategory = async () => {
     if (!token || !catForm.name.trim()) return;
     setCatSaving(true);
+    setCatFormError(null);
     try {
       const url = editingCategory
         ? `${API_URL}/api/admin/blog/categories/${editingCategory.id}`
         : `${API_URL}/api/admin/blog/categories`;
-      await fetch(url, {
+      const res = await fetch(url, {
         method: editingCategory ? "PUT" : "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(catForm),
       });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.message || "Failed to save category");
       setShowCatForm(false);
       await fetchCategories();
+    } catch (err) {
+      setCatFormError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setCatSaving(false);
     }
@@ -103,44 +112,73 @@ export default function CategoriesTagsPage() {
 
   const deleteCategory = async () => {
     if (!token || !deleteCatTarget) return;
-    await fetch(`${API_URL}/api/admin/blog/categories/${deleteCatTarget.id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setDeleteCatTarget(null);
-    await fetchCategories();
+    setListError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/blog/categories/${deleteCatTarget.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.message || "Failed to delete category");
+      setDeleteCatTarget(null);
+      await fetchCategories();
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : "Something went wrong");
+    }
   };
 
   const createTag = async () => {
     if (!token || !newTagName.trim()) return;
-    await fetch(`${API_URL}/api/admin/blog/tags`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ name: newTagName.trim() }),
-    });
-    setNewTagName("");
-    await fetchTags();
+    setListError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/blog/tags`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name: newTagName.trim() }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.message || "Failed to create tag");
+      setNewTagName("");
+      await fetchTags();
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : "Something went wrong");
+    }
   };
 
   const renameTag = async () => {
     if (!token || !renamingTag) return;
-    await fetch(`${API_URL}/api/admin/blog/tags/${renamingTag.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ name: renamingTag.name }),
-    });
-    setRenamingTag(null);
-    await fetchTags();
+    setListError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/blog/tags/${renamingTag.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name: renamingTag.name }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.message || "Failed to rename tag");
+      setRenamingTag(null);
+      await fetchTags();
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : "Something went wrong");
+      setRenamingTag(null);
+    }
   };
 
   const deleteTag = async () => {
     if (!token || !deleteTagTarget) return;
-    await fetch(`${API_URL}/api/admin/blog/tags/${deleteTagTarget.id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setDeleteTagTarget(null);
-    await fetchTags();
+    setListError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/blog/tags/${deleteTagTarget.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.message || "Failed to delete tag");
+      setDeleteTagTarget(null);
+      await fetchTags();
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : "Something went wrong");
+    }
   };
 
   const toggleMergeSelect = (id: number) => {
@@ -154,21 +192,37 @@ export default function CategoriesTagsPage() {
 
   const confirmMerge = async () => {
     if (!token || mergeSelection.size === 0 || !mergeTarget) return;
-    await fetch(`${API_URL}/api/admin/blog/tags/merge`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ sourceTagIds: Array.from(mergeSelection), targetTagId: mergeTarget }),
-    });
-    setMergeMode(false);
-    setMergeSelection(new Set());
-    setMergeTarget(null);
-    await fetchTags();
+    setListError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/blog/tags/merge`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ sourceTagIds: Array.from(mergeSelection), targetTagId: mergeTarget }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.message || "Failed to merge tags");
+      setMergeMode(false);
+      setMergeSelection(new Set());
+      setMergeTarget(null);
+      await fetchTags();
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : "Something went wrong");
+    }
   };
 
   return (
     <ProtectedRoute allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}>
       <div className="flex flex-col gap-6 w-full min-w-0">
         <h1 className="text-2xl font-bold text-[#353535]">Categories & Tags</h1>
+
+        {listError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-2.5 flex items-center justify-between">
+            <span>{listError}</span>
+            <button onClick={() => setListError(null)} className="text-red-500 hover:text-red-700 font-bold px-2">
+              <X size={14} />
+            </button>
+          </div>
+        )}
 
         <div className="flex items-center gap-1 bg-white rounded-lg shadow p-1 w-fit">
           <button
@@ -413,6 +467,9 @@ export default function CategoriesTagsPage() {
                 />
               </div>
             </div>
+            {catFormError && (
+              <p className="text-red-600 text-xs mt-3">{catFormError}</p>
+            )}
             <button
               onClick={saveCategory}
               disabled={catSaving}
