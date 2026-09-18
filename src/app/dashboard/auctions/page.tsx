@@ -20,9 +20,15 @@ type AuctionState =
   | "COMPLETED"
   | "CANCELLED";
 
+type EndReason = "SOLD" | "NO_BIDS" | "CANCELLED" | null;
+
 interface AdminAuction {
   id: number;
   state: AuctionState;
+  endReason?: EndReason;
+  code?: string;
+  rootAuctionId?: number | null;
+  reAuctionSequence?: number;
   referencePrice: string;
   maxStartingPrice: string;
   startingPrice: string;
@@ -41,7 +47,7 @@ const FILTERS: { key: string; label: string }[] = [
   { key: "", label: "All" },
   { key: "PENDING_REVIEW", label: "Pending Review" },
   { key: "ACTIVE", label: "Active" },
-  { key: "ENDED", label: "Ended" },
+  { key: "ENDED", label: "Ended — No Bids" },
   { key: "AWAITING_PAYMENT", label: "Awaiting Payment" },
   { key: "COMPLETED", label: "Completed" },
   { key: "CANCELLED", label: "Cancelled" },
@@ -60,6 +66,15 @@ const STATE_STYLES: Record<AuctionState, string> = {
 
 const fmt = (n: string | number | null) =>
   n == null ? "—" : new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", minimumFractionDigits: 0 }).format(Number(n));
+
+// An ended auction with zero bids is re-auctionable, not a dead end --
+// worth its own distinct state instead of a generic gray "Ended".
+function stateLabelFor(a: AdminAuction): { label: string; style: string } {
+  if (a.state === "ENDED" && a.endReason === "NO_BIDS") {
+    return { label: "Ended — No Bids", style: "bg-[#fef9ec] text-[#a9791f]" };
+  }
+  return { label: a.state.replace(/_/g, " "), style: STATE_STYLES[a.state] };
+}
 
 function AuctionsPageContent() {
   const [auctions, setAuctions] = useState<AdminAuction[]>([]);
@@ -184,7 +199,9 @@ function AuctionsPageContent() {
                 </tr>
               </thead>
               <tbody>
-                {auctions.map((a) => (
+                {auctions.map((a) => {
+                  const meta = stateLabelFor(a);
+                  return (
                   <tr key={a.id} className="border-b border-[#f3f3f3] last:border-0">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
@@ -195,9 +212,19 @@ function AuctionsPageContent() {
                           height={40}
                           className="w-10 h-10 rounded-lg object-cover"
                         />
-                        <Link href={`/dashboard/items/listed/${a.Product?.id}`} className="text-sm text-[#037F44] hover:underline">
-                          {a.Product?.name || `#${a.id}`}
-                        </Link>
+                        <div>
+                          <Link href={`/dashboard/items/listed/${a.Product?.id}`} className="text-sm text-[#037F44] hover:underline">
+                            {a.Product?.name || `#${a.id}`}
+                          </Link>
+                          {a.code && (
+                            <div className="text-[11px] font-mono text-[#848484]">
+                              {a.code}
+                              {!!a.reAuctionSequence && (
+                                <span className="ml-1 font-sans font-semibold text-[#a9791f]">re-auction</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-[#1B2559]">
@@ -209,8 +236,8 @@ function AuctionsPageContent() {
                     </td>
                     <td className="px-4 py-3 text-sm text-[#1B2559]">{a.bidCount}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${STATE_STYLES[a.state]}`}>
-                        {a.state.replace(/_/g, " ")}
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${meta.style}`}>
+                        {meta.label}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs">
@@ -247,7 +274,8 @@ function AuctionsPageContent() {
                       )}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
