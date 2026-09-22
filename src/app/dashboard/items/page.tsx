@@ -50,7 +50,7 @@ function PageInner() {
             }`}
             onClick={() => setActiveTab("swap")}
           >
-            Swap Offer
+            Product Swap Bids
           </button>
           <button
             className={`px-4 h-[32px] whitespace-nowrap rounded-xl text-base transition ${

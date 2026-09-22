@@ -22,7 +22,21 @@ interface SwapRequestItem {
   storeOwnerNotes: string | null;
   createdAt: string;
   User?: { id: number; firstName: string; lastName: string; email: string };
-  TargetProduct?: { id: number; name: string; imageUrl?: string; user?: number };
+  TargetProduct?: {
+    id: number;
+    name: string;
+    imageUrl?: string;
+    user?: number;
+    Account?: { id: number; firstName: string; lastName: string; email: string };
+  };
+}
+
+interface MessageTarget {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: "Buyer" | "Seller";
 }
 
 const STATUS_COLORS: Record<SwapStatus, string> = {
@@ -49,6 +63,15 @@ export default function SwapRequestsTab() {
   const [storeOwnerNotes, setStoreOwnerNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Message modal state (reuses the existing admin-message endpoint --
+  // the same pattern used on the Risk & Fraud Review and User pages).
+  const [messageTarget, setMessageTarget] = useState<MessageTarget | null>(null);
+  const [messageSubject, setMessageSubject] = useState("");
+  const [messageBody, setMessageBody] = useState("");
+  const [messageSending, setMessageSending] = useState(false);
+  const [messageError, setMessageError] = useState("");
+  const [messageSent, setMessageSent] = useState(false);
+
   const fetchSwaps = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -69,6 +92,39 @@ export default function SwapRequestsTab() {
   useEffect(() => {
     fetchSwaps();
   }, [fetchSwaps]);
+
+  const openMessageModal = (target: MessageTarget) => {
+    setMessageTarget(target);
+    setMessageSubject("");
+    setMessageBody("");
+    setMessageError("");
+    setMessageSent(false);
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !messageTarget) return;
+    if (!messageSubject.trim() || !messageBody.trim()) {
+      setMessageError("Subject and message are both required");
+      return;
+    }
+    setMessageError("");
+    setMessageSending(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/users/${messageTarget.id}/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ subject: messageSubject, message: messageBody }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to send message");
+      setMessageSent(true);
+    } catch (err: unknown) {
+      setMessageError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setMessageSending(false);
+    }
+  };
 
   const handleUpdateStatus = async () => {
     if (!selected || !token) return;
@@ -197,11 +253,60 @@ export default function SwapRequestsTab() {
                 <p className="font-mono font-semibold text-sm">{selected.referenceId}</p>
               </div>
 
-              <div className="mb-4">
-                <p className="text-xs text-gray-500 mb-1">Customer</p>
-                <p className="font-medium text-sm">
-                  {selected.User ? `${selected.User.firstName} ${selected.User.lastName} (${selected.User.email})` : "—"}
-                </p>
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Buyer (requesting the swap)</p>
+                  <p className="font-medium text-sm">
+                    {selected.User ? `${selected.User.firstName} ${selected.User.lastName}` : "—"}
+                  </p>
+                  {selected.User && <p className="text-xs text-gray-400">{selected.User.email}</p>}
+                </div>
+                {selected.User && (
+                  <button
+                    onClick={() =>
+                      openMessageModal({
+                        id: selected.User!.id,
+                        firstName: selected.User!.firstName,
+                        lastName: selected.User!.lastName,
+                        email: selected.User!.email,
+                        role: "Buyer",
+                      })
+                    }
+                    className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
+                  >
+                    Message
+                  </button>
+                )}
+              </div>
+
+              <div className="mb-4 flex items-center justify-between gap-3 bg-gray-50 rounded-lg p-3">
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Seller (owns the target product)</p>
+                  <p className="font-medium text-sm">
+                    {selected.TargetProduct?.Account
+                      ? `${selected.TargetProduct.Account.firstName} ${selected.TargetProduct.Account.lastName}`
+                      : "—"}
+                  </p>
+                  {selected.TargetProduct?.Account && (
+                    <p className="text-xs text-gray-400">{selected.TargetProduct.Account.email}</p>
+                  )}
+                </div>
+                {selected.TargetProduct?.Account && (
+                  <button
+                    onClick={() =>
+                      openMessageModal({
+                        id: selected.TargetProduct!.Account!.id,
+                        firstName: selected.TargetProduct!.Account!.firstName,
+                        lastName: selected.TargetProduct!.Account!.lastName,
+                        email: selected.TargetProduct!.Account!.email,
+                        role: "Seller",
+                      })
+                    }
+                    className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
+                  >
+                    Message
+                  </button>
+                )}
               </div>
 
               <div className="mb-4">
@@ -270,6 +375,96 @@ export default function SwapRequestsTab() {
               >
                 {saving ? "Saving…" : "Save Decision"}
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Message modal -- sends via the existing admin-message endpoint
+            (in-app notification + email), same pattern as Risk & Fraud
+            Review and the User page. */}
+        {messageTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="text-lg font-bold text-[#353535]">
+                    Message {messageTarget.firstName} {messageTarget.lastName}
+                  </h2>
+                  <p className="text-xs text-[#848484] mt-0.5">
+                    {messageTarget.role} on this swap request — sent as an in-app notification and an email to{" "}
+                    {messageTarget.email}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setMessageTarget(null)}
+                  className="text-gray-400 hover:text-gray-600 text-xl"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {messageSent ? (
+                <div className="text-center py-6">
+                  <p className="text-sm text-gray-700 mb-4">Message sent.</p>
+                  <button
+                    onClick={() => setMessageTarget(null)}
+                    className="px-4 py-2 bg-[#037F44] text-white rounded text-sm font-medium hover:bg-[#025e2e]"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSendMessage} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                      Subject
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={messageSubject}
+                      onChange={(e) => setMessageSubject(e.target.value)}
+                      className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring focus:border-[#037F44]"
+                      placeholder="e.g. About your swap request SWP-..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                      Message
+                    </label>
+                    <textarea
+                      required
+                      rows={5}
+                      value={messageBody}
+                      onChange={(e) => setMessageBody(e.target.value)}
+                      className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring focus:border-[#037F44]"
+                      placeholder="Write your message…"
+                    />
+                  </div>
+                  {messageError && <p className="text-red-500 text-sm">{messageError}</p>}
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setMessageTarget(null)}
+                      className="flex-1 px-4 py-2 border rounded text-sm font-medium text-gray-600 hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={messageSending}
+                      className={`flex-1 px-4 py-2 bg-[#037F44] text-white rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                        messageSending ? "opacity-60 cursor-not-allowed" : "hover:bg-[#025e2e]"
+                      }`}
+                    >
+                      {messageSending && (
+                        <span className="inline-block h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      )}
+                      {messageSending ? "Sending…" : "Send Message"}
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         )}
