@@ -151,8 +151,13 @@ export default function TradeInsTab() {
                     <td className="px-4 py-3 font-mono text-xs text-gray-500">{item.referenceId}</td>
                     <td className="px-4 py-3 capitalize">{item.deviceType}</td>
                     <td className="px-4 py-3">
-                      <span className="font-medium">{item.specs.brand}</span>
-                      {item.specs.model && <span className="text-gray-400 ml-1">{item.specs.model}</span>}
+                      {/* Computer submissions store lowercase keys (brand/model);
+                          mobile submissions store the calculator's own
+                          human-readable keys (Brand/Model) -- show whichever is present. */}
+                      <span className="font-medium">{item.specs.brand ?? item.specs.Brand}</span>
+                      {(item.specs.model ?? item.specs.Model) && (
+                        <span className="text-gray-400 ml-1">{item.specs.model ?? item.specs.Model}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 font-semibold text-green-700">
                       {formatNGN(item.estimatedValue)}
