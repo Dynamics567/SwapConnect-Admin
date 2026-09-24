@@ -11,11 +11,22 @@
   --font-sans: var(--font-poppins);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/*
+ * This dashboard is a light-only design -- every card, table and panel
+ * is hardcoded to a white/light-gray background with light-mode text
+ * colors, and nothing here has ever been styled for a dark background.
+ * The leftover `prefers-color-scheme: dark` override below (unused
+ * create-next-app boilerplate) switched body text to near-white for any
+ * admin on a dark-mode browser/OS, which then inherited straight
+ * through onto the white table/card backgrounds everywhere an element
+ * didn't set its own explicit text color -- e.g. names, product names
+ * and action buttons in table rows -- making them look faint/illegible
+ * instead of just invisible-by-design. `color-scheme: light` also
+ * stops the browser from independently dark-theming native controls
+ * (like <select>) to match OS preference.
+ */
+:root {
+  color-scheme: light;
 }
 
 body {
