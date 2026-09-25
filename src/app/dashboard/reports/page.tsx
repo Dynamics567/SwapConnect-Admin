@@ -5,8 +5,6 @@ import {
   Users,
   ShoppingBag,
   DollarSign,
-  ArrowUpRight,
-  ArrowDownRight,
   Download,
   Loader2,
 } from "lucide-react";

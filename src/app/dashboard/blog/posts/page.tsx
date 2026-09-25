@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   PlusCircle, Search, Eye, Archive, Trash2, CheckCircle2, RotateCcw,
 } from "lucide-react";
@@ -51,7 +51,6 @@ const STATUS_LABEL: Record<Status, string> = {
 
 function PostsPageInner() {
   const token = useAuthToken();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { isAdmin, isSuperAdmin } = useRole();
   const canPublish = isAdmin || isSuperAdmin;

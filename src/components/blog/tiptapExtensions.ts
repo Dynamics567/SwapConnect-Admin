@@ -66,8 +66,7 @@ export const ImageWithCaption = Node.create({
   },
 });
 
-const CALLOUT_VARIANTS = ["info", "warning", "success"] as const;
-export type CalloutVariant = (typeof CALLOUT_VARIANTS)[number];
+export type CalloutVariant = "info" | "warning" | "success";
 
 // A colored, bordered box for tips/warnings/callouts -- a real block node
 // (not just a styled blockquote) so its variant survives as structured data.

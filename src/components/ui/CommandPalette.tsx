@@ -214,7 +214,7 @@ export default function CommandPalette() {
             <>
               {pinnedItems.length > 0 && (
                 <Section title="Pinned">
-                  {pinnedItems.map((item, i) => (
+                  {pinnedItems.map((item) => (
                     <PageRow
                       key={item.id}
                       item={item}
