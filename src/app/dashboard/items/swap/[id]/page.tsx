@@ -12,23 +12,17 @@ interface Item {
   id: string;
   imageUrl: string;
   name: string;
-  location: string;
   price: number;
-  used: string;
   brand: string;
-  conditionTag: string;
-  model: string;
-  verificationStatus: string;
-  batteryHealth: string;
-  ram: string;
-  color: string;
-  storage: string;
+  condition: string | null;
   Account: {
     firstName: string;
     lastName: string;
     phone: string;
     avatar: string;
     verified: boolean;
+    city: string | null;
+    state: string | null;
   };
   metaData: {
     color: string;
@@ -194,13 +188,13 @@ export default function ListingDetails() {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-gray-500">CONDITION</span>
-                    <span>Used</span>
+                    <span>{item?.condition || "—"}</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col">
                     <span className="text-gray-500">MODEL</span>
-                    <span>Iphone 8</span>
+                    <span>{item?.name || "—"}</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-gray-500">BATTERY HEALTH</span>
@@ -234,17 +228,9 @@ export default function ListingDetails() {
                   </div>
                   <div className="text-sm mb-6">
                     <p className="text-gray-500">LOCATION</p>
-                    <p className="text-md">Lagos</p>
-                  </div>
-                </div>
-                <div className="flex justify-between gap-6">
-                  <div className="text-sm mb-2">
-                    <p className="text-gray-500">SWAP OFFER</p>
-                    <p className="text-lg font-bold">Iphone 8</p>
-                  </div>
-                  <div className="text-sm mb-6">
-                    <p className="text-gray-500">LISTED ITEM</p>
-                    <p className="text-md">Iphone 11</p>
+                    <p className="text-md">
+                      {[item?.Account?.city, item?.Account?.state].filter(Boolean).join(", ") || "—"}
+                    </p>
                   </div>
                 </div>
               </div>

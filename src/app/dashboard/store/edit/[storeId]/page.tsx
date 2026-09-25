@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react"; // Import back arrow icon
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function EditStorePage() {
   const router = useRouter();
@@ -91,13 +92,16 @@ const params = useParams();
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24 text-[#037F44] font-semibold">
-        Loading store details...
-      </div>
+      <ProtectedRoute allowedRoles={["superadmin", "admin", "verificationofficer"]}>
+        <div className="flex items-center justify-center py-24 text-[#037F44] font-semibold">
+          Loading store details...
+        </div>
+      </ProtectedRoute>
     );
   }
 
   return (
+    <ProtectedRoute allowedRoles={["superadmin", "admin", "verificationofficer"]}>
     <div className="flex flex-col items-center justify-center py-12">
       {/* Back Button */}
       <div className="w-full max-w-md mt-10 mb-4 flex justify-start">
@@ -169,5 +173,6 @@ const params = useParams();
         )}
       </div>
     </div>
+    </ProtectedRoute>
   );
 }

@@ -14,6 +14,8 @@ interface Category {
   slug: string;
   description: string | null;
   image: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
   postCount: number;
 }
 interface TagItem {
@@ -81,7 +83,13 @@ export default function CategoriesTagsPage() {
   };
   const openEditCategory = (cat: Category) => {
     setEditingCategory(cat);
-    setCatForm({ name: cat.name, description: cat.description || "", image: cat.image || "", seoTitle: "", seoDescription: "" });
+    setCatForm({
+      name: cat.name,
+      description: cat.description || "",
+      image: cat.image || "",
+      seoTitle: cat.seoTitle || "",
+      seoDescription: cat.seoDescription || "",
+    });
     setCatFormError(null);
     setShowCatForm(true);
   };

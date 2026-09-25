@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 type PendingAction =
   | { kind: "resolve"; resolution: "refund_buyer" | "release_seller"; title: string; message: string; variant: "warning" | "danger" }
@@ -641,8 +642,10 @@ function DisputesPageInner() {
 
 export default function DisputesPage() {
   return (
-    <Suspense fallback={null}>
-      <DisputesPageInner />
-    </Suspense>
+    <ProtectedRoute allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}>
+      <Suspense fallback={null}>
+        <DisputesPageInner />
+      </Suspense>
+    </ProtectedRoute>
   );
 }

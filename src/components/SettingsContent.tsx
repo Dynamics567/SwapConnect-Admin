@@ -30,6 +30,11 @@ export default function SettingsContent() {
   const [phone, setPhone] = useState("");
   const token = useAuthToken();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSaving, setPasswordSaving] = useState(false);
   const [twoFAEnabled, setTwoFAEnabled] = useState(false);
   const [emailEnabled, setEmailEnabled] = useState(false);
   const [smsEnabled, setSmsEnabled] = useState(false);
@@ -110,6 +115,49 @@ export default function SettingsContent() {
     } catch (err) {
       console.error("Error updating settings", err);
       alert("An error occurred while updating settings.");
+    }
+  };
+
+  const resetPasswordModal = () => {
+    setShowPasswordModal(false);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordError(null);
+  };
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword) {
+      setPasswordError("Please fill in both password fields");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New password and confirmation do not match");
+      return;
+    }
+    setPasswordError(null);
+    setPasswordSaving(true);
+    try {
+      const res = await fetch(`${API_URL}/api/auth/change-password`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to change password");
+      alert("Password changed successfully!");
+      resetPasswordModal();
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : "Failed to change password");
+    } finally {
+      setPasswordSaving(false);
     }
   };
 
@@ -347,36 +395,48 @@ export default function SettingsContent() {
                   </button>
                 </div>
               </div>
-              {/* Password Modal (optional, for demo just close on click) */}
+              {/* Password Modal */}
               {showPasswordModal && (
                 <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
                   <div className="bg-white rounded-lg p-8 shadow-lg w-full max-w-sm">
                     <h3 className="text-lg font-bold mb-4">Change Password</h3>
                     <input
                       type="password"
+                      placeholder="Current password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="w-full border border-[#E5E7EB] rounded-md px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-[#037F44]"
+                    />
+                    <input
+                      type="password"
                       placeholder="New password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
                       className="w-full border border-[#E5E7EB] rounded-md px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-[#037F44]"
                     />
                     <input
                       type="password"
                       placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       className="w-full border border-[#E5E7EB] rounded-md px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-[#037F44]"
                     />
+                    {passwordError && (
+                      <p className="text-red-500 text-sm mb-4">{passwordError}</p>
+                    )}
                     <div className="flex justify-end gap-2">
                       <button
                         className="px-4 py-2 rounded-md bg-[#F8F9FB] text-[#353535] border border-[#E5E7EB]"
-                        onClick={() => setShowPasswordModal(false)}
+                        onClick={resetPasswordModal}
                       >
                         Cancel
                       </button>
                       <button
-                        className="px-4 py-2 rounded-md bg-[#037F44] text-white font-semibold"
-                        onClick={() => {
-                          alert("Password changed (demo)");
-                          setShowPasswordModal(false);
-                        }}
+                        className="px-4 py-2 rounded-md bg-[#037F44] text-white font-semibold disabled:opacity-60"
+                        onClick={handleChangePassword}
+                        disabled={passwordSaving}
                       >
-                        Save
+                        {passwordSaving ? "Saving…" : "Save"}
                       </button>
                     </div>
                   </div>

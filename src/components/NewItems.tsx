@@ -13,9 +13,9 @@ type Order = {
   id: string;
   imageUrl: string;
   name: string;
-  location: string;
   price: string;
-  used: string;
+  condition: string | null;
+  Account?: { city: string | null; state: string | null };
 };
 
 export default function NewItems() {
@@ -99,7 +99,7 @@ export default function NewItems() {
                   </div>
                   <div className="flex items-center gap-1 text-xs text-[#1B2559] mb-1">
                     <MapPin size={14} className="text-[#037F44]" />
-                    {items.location}
+                    {[items.Account?.city, items.Account?.state].filter(Boolean).join(", ") || "—"}
                   </div>
                 </div>
                 <div className="flex items-center justify-between w-full mb-2">
@@ -110,7 +110,7 @@ export default function NewItems() {
                 </div>
                 <div className="flex items-center gap-1 text-xs text-gray-400">
                   <CheckCircle2 size={14} className="text-[#037F44]" />
-                  {items.used || "Used"}
+                  {items.condition || "Used"}
                 </div>
               </Link>
             ))}

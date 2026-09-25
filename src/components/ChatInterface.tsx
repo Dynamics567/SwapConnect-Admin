@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Send, Paperclip, MoreVertical, Phone, Video } from "lucide-react";
 import Image from "next/image";
 import { useSocket } from "../hooks/useSocket";
+import { useAuthToken } from "@/hooks/useAuthToken";
 
 interface Message {
   id: number;
@@ -29,6 +30,23 @@ interface ChatInterfaceProps {
   onBack?: () => void;
 }
 
+// The chat panel only needs this token's own `id`/`role` claims for display
+// purposes (which side of the thread a message renders on, whose messages
+// count as "already read") -- actual authorization is already enforced
+// server-side, so a lightweight decode is enough without pulling in a JWT
+// library.
+function decodeJwtPayload(token: string): { id?: number; role?: string } {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch {
+    return {};
+  }
+}
+
+const STAFF_ROLES = new Set(["admin", "superadmin", "supportagent", "verificationofficer", "super_admin", "support_agent", "verification_officer"]);
+
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   conversationId,
   onBack,
@@ -37,6 +55,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const token = useAuthToken();
+  const currentUserId = token ? decodeJwtPayload(token).id : undefined;
 
   const {
     // socket,
@@ -69,7 +89,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   useEffect(() => {
     if (conversationId && messages.length > 0) {
       const unreadMessages = messages.filter(
-        (msg) => !msg.isRead && msg.senderId !== getCurrentUserId()
+        (msg) => !msg.isRead && msg.senderId !== currentUserId
       );
       if (unreadMessages.length > 0) {
         markAsRead(
@@ -78,16 +98,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         );
       }
     }
-  }, [conversationId, messages, markAsRead]);
+  }, [conversationId, messages, markAsRead, currentUserId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const getCurrentUserId = () => {
-    // This should come from your auth context or user state
-    // For now, we'll assume it's available from the socket or auth hook
-    return 1; // Replace with actual current user ID
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -237,7 +251,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             {/* Messages for this date */}
             {dayMessages.map((message, index) => {
               // Determine if the message is from the admin (current user)
-              const isAdmin = message.Sender?.role?.toLowerCase() === "admin";
+              const isAdmin = STAFF_ROLES.has(message.Sender?.role?.toLowerCase() ?? "");
               const showAvatar =
                 !isAdmin &&
                 (index === 0 ||

@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 import React, { useState, useEffect } from "react";
-import { Search, Filter, CircleDollarSign } from "lucide-react";
+import { Search, CircleDollarSign } from "lucide-react";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
 import PageButton from "./PageButton";
@@ -48,6 +48,11 @@ interface Stats {
   platformEarnings: number;
 }
 
+const fmtAmount = (amount: string | number) => {
+  const n = Number(amount);
+  return Number.isFinite(n) ? n.toLocaleString() : amount;
+};
+
 export default function WalletContent() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [swaps, setSwaps] = useState<Swap[]>([]);
@@ -56,6 +61,8 @@ export default function WalletContent() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [activeTab, setActiveTab] = useState<"normal" | "swap">("normal");
+  const [search, setSearch] = useState("");
+  const [loadError, setLoadError] = useState<string | null>(null);
   const token = useAuthToken();
   const { role } = useAuthContext();
 
@@ -64,7 +71,6 @@ export default function WalletContent() {
       setLoading(false);
       return;
     }
-    // console.log("Token being used:", token);
 
     const fetchOrders = async () => {
       try {
@@ -79,21 +85,22 @@ export default function WalletContent() {
           }
         );
         const data = await response.json();
-        // console.log("SWAP ITEM:", swaps);
+        if (!response.ok) throw new Error(data?.message || "Failed to load transactions");
 
-        // console.log("Transaction Data:", data);
         if (typeof data.transactions === "object") {
           setTransactions(data.transactions.orders);
           setPage(data.pagination.currentPage);
           setTotalPages(data.pagination.totalPages);
           setSwaps(data.transactions.swaps);
+          setLoadError(null);
         } else {
           setTransactions([]);
           setSwaps([]);
         }
-      } catch {
+      } catch (err) {
         setTransactions([]);
         setSwaps([]);
+        setLoadError(err instanceof Error ? err.message : "Failed to load transactions");
       } finally {
         setLoading(false);
       }
@@ -116,7 +123,6 @@ export default function WalletContent() {
           },
         });
         const data = await response.json();
-        // console.log("Statistics data:", data);
 
         if (data?.statistics) {
           setStat(data.statistics);
@@ -133,9 +139,22 @@ export default function WalletContent() {
     fetchStats();
   }, [token]);
 
+  const filteredTransactions = search.trim()
+    ? transactions.filter((t) =>
+        `${t.id} ${t.order?.products?.[0]?.name ?? ""}`.toLowerCase().includes(search.trim().toLowerCase())
+      )
+    : transactions;
+  const filteredSwaps = search.trim()
+    ? swaps.filter((s) =>
+        `${s.id} ${s.bid?.product?.name ?? ""} ${s.bid?.swapProduct?.name ?? ""}`
+          .toLowerCase()
+          .includes(search.trim().toLowerCase())
+      )
+    : swaps;
+
   return (
     <ProtectedRoute
-      allowedRoles={["superadmin", "supportagent", "verificationofficer"]}
+      allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}
     >
       <div className="flex flex-col  gap-6 w-full">
         {/* Column 1: Stat Cards */}
@@ -144,15 +163,15 @@ export default function WalletContent() {
             {[
               {
                 label: "Revenue",
-                value: `₦${stat?.transactionVolume ?? 0}`,
+                value: `₦${(stat?.transactionVolume ?? 0).toLocaleString()}`,
               },
               {
                 label: "Payment Pending",
-                value: `₦${stat?.pendingPayments ?? 0}`,
+                value: `₦${(stat?.pendingPayments ?? 0).toLocaleString()}`,
               },
               {
                 label: "Platform Earnings",
-                value: "₦300,000",
+                value: `₦${(stat?.platformEarnings ?? 0).toLocaleString()}`,
               },
             ].map((item) => (
               <div
@@ -201,13 +220,15 @@ export default function WalletContent() {
           </div>
         </div>
 
-        {/* Column 3: Search & Filter */}
+        {/* Column 3: Search */}
         <div className="flex flex-col w-full  gap-4">
           <div className="flex gap-2">
             <div className="relative w-full">
               <input
                 type="text"
-                placeholder="Search transactions"
+                placeholder="Search this page's transactions by item or ID"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 className="w-full border rounded-lg px-10 py-2 text-sm bg-gray-50"
               />
               <Search
@@ -215,10 +236,6 @@ export default function WalletContent() {
                 size={18}
               />
             </div>
-            <button className="flex items-center gap-1 px-4 py-2 bg-[#F7F8FB] border rounded-lg text-[#037F44] hover:bg-[#e6f4ed]">
-              <Filter size={16} />
-              Filter
-            </button>
           </div>
         </div>
 
@@ -226,9 +243,15 @@ export default function WalletContent() {
         <div className="w-full mt-6 lg:mt-0">
           {loading ? (
             <p>Loading orders...</p>
-          ) : transactions.length === 0 ? (
+          ) : loadError ? (
             <div>
-              <p className="text-center text-[#848484] mt-6">No orders found</p>
+              <p className="text-center text-red-600 mt-6">{loadError}</p>
+            </div>
+          ) : (activeTab === "normal" ? filteredTransactions : filteredSwaps).length === 0 ? (
+            <div>
+              <p className="text-center text-[#848484] mt-6">
+                {search.trim() ? "No matching transactions on this page" : "No orders found"}
+              </p>
             </div>
           ) : (
             <>
@@ -252,7 +275,7 @@ export default function WalletContent() {
                       </tr>
                     </thead>
                     <tbody>
-                      {transactions.map((transactions) => (
+                      {filteredTransactions.map((transactions) => (
                         <tr
                           key={transactions.id}
                           className=" text-sm text-[#434343]"
@@ -261,7 +284,7 @@ export default function WalletContent() {
                           <td className="py-2 px-4">
                             {transactions.order?.products?.[0]?.name ?? "N/A"}
                           </td>
-                          <td className="py-2 px-4">₦{transactions.amount}</td>
+                          <td className="py-2 px-4">₦{fmtAmount(transactions.amount)}</td>
                           <td className="py-2 px-4">
                             {" "}
                             {transactions?.createdAt
@@ -300,7 +323,7 @@ export default function WalletContent() {
                       </tr>
                     </thead>
                     <tbody>
-                      {swaps.map((swaps) => (
+                      {filteredSwaps.map((swaps) => (
                         <tr key={swaps.id} className=" text-sm text-[#434343]">
                           <td className="py-2 px-4">{swaps.id}</td>
                           <td className="py-2 px-4">
@@ -310,7 +333,7 @@ export default function WalletContent() {
                             {" "}
                             {swaps.bid.swapProduct?.name?.toString?.() ?? "N/A"}
                           </td>
-                          <td className="py-2 px-4">₦{swaps.amount}</td>
+                          <td className="py-2 px-4">₦{fmtAmount(swaps.amount)}</td>
                           <td className="py-2 px-4">
                             {" "}
                             {swaps?.createdAt
@@ -338,7 +361,7 @@ export default function WalletContent() {
               <div className="block md:hidden">
                 {activeTab === "normal" ? (
                   <div className="flex flex-col gap-4">
-                    {transactions.map((transaction) => (
+                    {filteredTransactions.map((transaction) => (
                       <div
                         key={transaction.id}
                         className="bg-white rounded-xl shadow p-4 flex flex-col gap-2"
@@ -349,7 +372,7 @@ export default function WalletContent() {
                             {transaction.order?.products?.[0]?.name ?? "N/A"}
                           </span>
                           <span className="font-bold text-[#037F44]">
-                            ₦{transaction.amount}
+                            ₦{fmtAmount(transaction.amount)}
                           </span>
                         </div>
                         {/* Date and Status on a row */}
@@ -381,7 +404,7 @@ export default function WalletContent() {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-4">
-                    {swaps.map((swap) => (
+                    {filteredSwaps.map((swap) => (
                       <div
                         key={swap.id}
                         className="bg-white rounded-xl shadow p-4 flex flex-col gap-2"
@@ -392,7 +415,7 @@ export default function WalletContent() {
                             {swap?.bid?.product?.name?.toString?.() ?? "N/A"}
                           </span>
                           <span className="font-bold text-[#037F44]">
-                            ₦{swap.amount}
+                            ₦{fmtAmount(swap.amount)}
                           </span>
                         </div>
                         {/* Swap Offer */}

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useCallback } from "react";
 import {
   Sparkles, Flag, BarChart2, Database, Gauge, Search, Plus, X, Loader2,
@@ -125,14 +125,14 @@ function AnalyticsTab({ token }: { token: string | null }) {
 
   useEffect(() => {
     if (!token) return;
-    fetch(`${API_URL}/admin/ai-studio/analytics`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_URL}/api/admin/ai-studio/analytics`, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => res.json())
       .then((json) => setData(json.data))
       .catch(() => toast.error("Failed to load analytics"))
       .finally(() => setLoading(false));
   }, [token]);
 
-  if (loading) return <Card><p className="text-[#848484]">Loading analytics…</p></Card>;
+  if (loading) return <Card><p className="text-[#848484]">Loading analyticsâ€¦</p></Card>;
   if (!data) return <Card><p className="text-[#848484]">No data available.</p></Card>;
 
   return (
@@ -184,7 +184,7 @@ function AnalyticsTab({ token }: { token: string | null }) {
               {data.topVendors.map((v) => (
                 <tr key={v.accountId} className="text-[#434343]">
                   <td className="py-2 px-4">{v.account ? `${v.account.firstName} ${v.account.lastName}` : `#${v.accountId}`}</td>
-                  <td className="py-2 px-4">{v.account?.email ?? "—"}</td>
+                  <td className="py-2 px-4">{v.account?.email ?? "â€”"}</td>
                   <td className="py-2 px-4">{v.jobCount}</td>
                 </tr>
               ))}
@@ -202,14 +202,14 @@ function ReviewQueueTab({ token }: { token: string | null }) {
 
   useEffect(() => {
     if (!token) return;
-    fetch(`${API_URL}/admin/ai-studio/review-queue`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_URL}/api/admin/ai-studio/review-queue`, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => res.json())
       .then((json) => setImages(json.data.flagged))
       .catch(() => toast.error("Failed to load review queue"))
       .finally(() => setLoading(false));
   }, [token]);
 
-  if (loading) return <Card><p className="text-[#848484]">Loading…</p></Card>;
+  if (loading) return <Card><p className="text-[#848484]">Loadingâ€¦</p></Card>;
 
   return (
     <Card>
@@ -250,7 +250,7 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
   const load = useCallback(() => {
     if (!token) return;
     setLoading(true);
-    fetch(`${API_URL}/admin/ai-studio/device-catalog`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_URL}/api/admin/ai-studio/device-catalog`, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => res.json())
       .then((json) => setEntries(json.data))
       .catch(() => toast.error("Failed to load device catalog"))
@@ -270,7 +270,7 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
     }
     setSaving(true);
     try {
-      const res = await fetch(`${API_URL}/admin/ai-studio/device-catalog`, {
+      const res = await fetch(`${API_URL}/api/admin/ai-studio/device-catalog`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -296,7 +296,7 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
 
   const toggleActive = async (entry: CatalogEntry) => {
     try {
-      const res = await fetch(`${API_URL}/admin/ai-studio/device-catalog/${entry.id}`, {
+      const res = await fetch(`${API_URL}/api/admin/ai-studio/device-catalog/${entry.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ isActive: !entry.isActive }),
@@ -341,7 +341,7 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
             <option value="watch">Watch</option>
           </select>
           <input placeholder="Release year" value={form.releaseYear} onChange={(e) => setForm({ ...form, releaseYear: e.target.value })} className="border rounded-lg px-3 py-2 text-sm" />
-          <input placeholder="Base price (₦)" value={form.basePriceNgn} onChange={(e) => setForm({ ...form, basePriceNgn: e.target.value })} className="border rounded-lg px-3 py-2 text-sm" />
+          <input placeholder="Base price (â‚¦)" value={form.basePriceNgn} onChange={(e) => setForm({ ...form, basePriceNgn: e.target.value })} className="border rounded-lg px-3 py-2 text-sm" />
           <button onClick={submitForm} disabled={saving} className="col-span-2 sm:col-span-5 bg-[#037F44] text-white rounded-lg py-2 text-sm font-semibold disabled:opacity-60 flex items-center justify-center gap-2">
             {saving && <Loader2 size={14} className="animate-spin" />} Save device
           </button>
@@ -349,7 +349,7 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
       )}
 
       {loading ? (
-        <p className="text-[#848484]">Loading…</p>
+        <p className="text-[#848484]">Loadingâ€¦</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full table-auto text-sm">
@@ -368,9 +368,9 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
                 <tr key={e.id} className="text-[#434343]">
                   <td className="py-2 px-4">{e.brand}</td>
                   <td className="py-2 px-4">{e.model}</td>
-                  <td className="py-2 px-4 capitalize">{e.category || "—"}</td>
-                  <td className="py-2 px-4">{e.releaseYear || "—"}</td>
-                  <td className="py-2 px-4">{e.basePriceNgn ? `₦${e.basePriceNgn.toLocaleString()}` : "—"}</td>
+                  <td className="py-2 px-4 capitalize">{e.category || "â€”"}</td>
+                  <td className="py-2 px-4">{e.releaseYear || "â€”"}</td>
+                  <td className="py-2 px-4">{e.basePriceNgn ? `â‚¦${e.basePriceNgn.toLocaleString()}` : "â€”"}</td>
                   <td className="py-2 px-4">
                     <button
                       onClick={() => canManage && toggleActive(e)}
@@ -406,14 +406,14 @@ function LimitsTab({ token, canManage }: { token: string | null; canManage: bool
     setAccount(null);
     setLimit(null);
     try {
-      const res = await fetch(`${API_URL}/admin/ai-studio/vendors/lookup?email=${encodeURIComponent(email.trim())}`, {
+      const res = await fetch(`${API_URL}/api/admin/ai-studio/vendors/lookup?email=${encodeURIComponent(email.trim())}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Vendor not found");
       setAccount(data.data);
 
-      const limitRes = await fetch(`${API_URL}/admin/ai-studio/limits/${data.data.id}`, {
+      const limitRes = await fetch(`${API_URL}/api/admin/ai-studio/limits/${data.data.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const limitData = await limitRes.json();
@@ -429,7 +429,7 @@ function LimitsTab({ token, canManage }: { token: string | null; canManage: bool
     if (!account || !limit) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API_URL}/admin/ai-studio/limits/${account.id}`, {
+      const res = await fetch(`${API_URL}/api/admin/ai-studio/limits/${account.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ dailyLimit: limit.dailyLimit, monthlyLimit: limit.monthlyLimit }),
@@ -442,6 +442,17 @@ function LimitsTab({ token, canManage }: { token: string | null; canManage: bool
       setSaving(false);
     }
   };
+
+  if (!canManage) {
+    return (
+      <Card>
+        <h3 className="text-base font-bold text-[#353535] mb-1">Vendor generation limits</h3>
+        <p className="text-sm text-[#848484]">
+          Only admins can view or adjust vendor AI generation caps. You don&apos;t have access to this section.
+        </p>
+      </Card>
+    );
+  }
 
   return (
     <Card>

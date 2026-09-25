@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function AddStorePage() {
   const [name, setName] = useState("");
@@ -54,6 +55,7 @@ export default function AddStorePage() {
   };
 
   return (
+    <ProtectedRoute allowedRoles={["superadmin", "admin", "verificationofficer"]}>
     <div className="flex flex-col items-center justify-center py-12">
       <div className="bg-white rounded-xl shadow p-8 w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-[#037F44]">
@@ -121,5 +123,6 @@ export default function AddStorePage() {
         )}
       </div>
     </div>
+    </ProtectedRoute>
   );
 }

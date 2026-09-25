@@ -200,7 +200,7 @@ export default function ReportsPage() {
   ];
 
   return (
-    <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+    <ProtectedRoute allowedRoles={["admin", "superadmin", "supportagent", "verificationofficer"]}>
       <div className="w-full min-w-0">
         <div className="mb-6 flex items-start justify-between flex-wrap gap-4">
           <div>

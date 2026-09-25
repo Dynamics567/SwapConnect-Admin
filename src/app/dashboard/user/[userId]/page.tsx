@@ -103,7 +103,8 @@ interface User {
   paymentHistory: [
     {
       id: string;
-      name: string;
+      reference: string;
+      description: string | null;
       purpose: string;
       amount: string;
       status: string;
@@ -479,8 +480,8 @@ export default function UserDetailsPage() {
               <table className="w-full table-auto">
                 <thead>
                   <tr className="bg-[#CCDCD4] text-[#505050] text-sm text-left">
-                    <th className="py-2 px-4 font-normal">TRANSACTION ID</th>
-                    <th className="py-2 px-4 font-normal">PRODUCT NAME</th>
+                    <th className="py-2 px-4 font-normal">REFERENCE</th>
+                    <th className="py-2 px-4 font-normal">DESCRIPTION</th>
                     <th className="py-2 px-4 font-normal">CATEGORY</th>
                     <th className="py-2 px-4 font-normal">PRICE</th>
                     <th className="py-2 px-4 font-normal">Status</th>
@@ -489,8 +490,8 @@ export default function UserDetailsPage() {
                 <tbody>
                   {users.paymentHistory.map((payment) => (
                     <tr key={payment.id} className="text-[#434343] text-sm">
-                      <td className="py-2 px-4">{payment.id}</td>
-                      <td className="py-2 px-4">{payment.name}</td>
+                      <td className="py-2 px-4">{payment.reference || payment.id}</td>
+                      <td className="py-2 px-4">{payment.description || "-"}</td>
                       <td className="py-2 px-4">{payment.purpose}</td>
                       <td className="py-2 px-4">{payment.amount}</td>
                       <td className="py-2 px-4">{payment.status}</td>
