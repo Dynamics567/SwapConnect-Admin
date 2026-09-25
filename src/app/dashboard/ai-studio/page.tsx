@@ -132,7 +132,7 @@ function AnalyticsTab({ token }: { token: string | null }) {
       .finally(() => setLoading(false));
   }, [token]);
 
-  if (loading) return <Card><p className="text-[#848484]">Loading analyticsâ€¦</p></Card>;
+  if (loading) return <Card><p className="text-[#848484]">Loading analytics…</p></Card>;
   if (!data) return <Card><p className="text-[#848484]">No data available.</p></Card>;
 
   return (
@@ -184,7 +184,7 @@ function AnalyticsTab({ token }: { token: string | null }) {
               {data.topVendors.map((v) => (
                 <tr key={v.accountId} className="text-[#434343]">
                   <td className="py-2 px-4">{v.account ? `${v.account.firstName} ${v.account.lastName}` : `#${v.accountId}`}</td>
-                  <td className="py-2 px-4">{v.account?.email ?? "â€”"}</td>
+                  <td className="py-2 px-4">{v.account?.email ?? "—"}</td>
                   <td className="py-2 px-4">{v.jobCount}</td>
                 </tr>
               ))}
@@ -209,7 +209,7 @@ function ReviewQueueTab({ token }: { token: string | null }) {
       .finally(() => setLoading(false));
   }, [token]);
 
-  if (loading) return <Card><p className="text-[#848484]">Loadingâ€¦</p></Card>;
+  if (loading) return <Card><p className="text-[#848484]">Loading…</p></Card>;
 
   return (
     <Card>
@@ -349,7 +349,7 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
       )}
 
       {loading ? (
-        <p className="text-[#848484]">Loadingâ€¦</p>
+        <p className="text-[#848484]">Loading…</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full table-auto text-sm">
@@ -368,9 +368,9 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
                 <tr key={e.id} className="text-[#434343]">
                   <td className="py-2 px-4">{e.brand}</td>
                   <td className="py-2 px-4">{e.model}</td>
-                  <td className="py-2 px-4 capitalize">{e.category || "â€”"}</td>
-                  <td className="py-2 px-4">{e.releaseYear || "â€”"}</td>
-                  <td className="py-2 px-4">{e.basePriceNgn ? `â‚¦${e.basePriceNgn.toLocaleString()}` : "â€”"}</td>
+                  <td className="py-2 px-4 capitalize">{e.category || "—"}</td>
+                  <td className="py-2 px-4">{e.releaseYear || "—"}</td>
+                  <td className="py-2 px-4">{e.basePriceNgn ? `₦${e.basePriceNgn.toLocaleString()}` : "—"}</td>
                   <td className="py-2 px-4">
                     <button
                       onClick={() => canManage && toggleActive(e)}
