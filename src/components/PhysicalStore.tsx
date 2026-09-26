@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Search, Filter, MoreVertical, Plus } from "lucide-react";
+import { Search, MoreVertical, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
@@ -114,6 +114,12 @@ export default function PhysicalStore() {
     </div>
   );
 
+  const filteredStores = search.trim()
+    ? stores.filter((store) =>
+        `${store.name} ${store.address} ${store.contact}`.toLowerCase().includes(search.trim().toLowerCase())
+      )
+    : stores;
+
   return (
     <ProtectedRoute
       allowedRoles={["superadmin", "admin", "verificationofficer"]}
@@ -132,12 +138,12 @@ export default function PhysicalStore() {
           </button>
         </div>
 
-        {/* Search and Filter */}
+        {/* Search */}
         <div className="flex gap-2 w-full ">
           <div className="relative w-full">
             <input
               type="text"
-              placeholder="Search stores"
+              placeholder="Search stores by name, address, or contact"
               className="w-full border rounded-lg px-10 py-2 text-sm bg-gray-50"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -147,10 +153,6 @@ export default function PhysicalStore() {
               size={18}
             />
           </div>
-          <button className="flex items-center gap-1 px-4 py-2 bg-[#F7F8FB] border rounded-lg text-[#037F44] hover:bg-[#e6f4ed]">
-            <Filter size={16} />
-            Filter
-          </button>
         </div>
 
         {/* Confirmation Dialog */}
@@ -219,7 +221,7 @@ export default function PhysicalStore() {
                   </tr>
                 </thead>
                 <tbody>
-                  {stores.map((store) => (
+                  {filteredStores.map((store) => (
                     <tr
                       key={store.id}
                       className="text-[#434343] text-sm relative"
@@ -249,7 +251,7 @@ export default function PhysicalStore() {
             {/* Mobile View */}
             <div className="block md:hidden">
               <div className="flex flex-col gap-4">
-                {stores.map((store) => (
+                {filteredStores.map((store) => (
                   <div
                     key={store.id}
                     className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 relative"

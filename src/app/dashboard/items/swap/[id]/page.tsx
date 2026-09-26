@@ -15,6 +15,7 @@ interface Item {
   price: number;
   brand: string;
   condition: string | null;
+  verificationStatus: "unverified" | "verified" | "warranty";
   Account: {
     firstName: string;
     lastName: string;
@@ -62,9 +63,9 @@ export default function ListingDetails() {
           }
         );
         const data = await response.json();
-        // console.log("Recent Listings:", data);
         if (data) {
           setItem(data);
+          setIsVerified(data.verificationStatus === "verified" || data.verificationStatus === "warranty");
         } else {
           setItem(null);
         }
@@ -103,8 +104,12 @@ export default function ListingDetails() {
 
       if (response.ok) {
         alert("Product verified successfully!");
-        // console.log("Response:", data);
-        setIsVerified(true); // ✅ Update verification state
+        setIsVerified(true);
+        if (data.data) {
+          setItem((prev) =>
+            prev ? { ...prev, condition: data.data.condition, verificationStatus: data.data.verificationStatus } : prev
+          );
+        }
       } else {
         console.error("Error:", data);
         alert(data.message || "Something went wrong");
@@ -238,6 +243,7 @@ export default function ListingDetails() {
                 {isVerified ? (
                   <p className="text-green-700 font-semibold text-center">
                     Swap offer verified
+                    {item?.verificationStatus === "warranty" ? " (with warranty)" : ""}
                   </p>
                 ) : (
                   <>
