@@ -218,7 +218,7 @@ export default function ListingDetails() {
                 </div>
 
                 <span className="text-gray-500">STORAGE</span>
-                <span>{item?.metaData.storage}</span>
+                <span>{item?.metaData?.storage}</span>
               </div>
             </div>
           </div>
