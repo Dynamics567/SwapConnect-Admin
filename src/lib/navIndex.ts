@@ -74,6 +74,12 @@ export const navGroups: NavEntry[] = [
         icon: Timer,
         roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
       },
+      {
+        label: "Categories",
+        url: "/dashboard/categories",
+        icon: FolderTree,
+        roles: ["superadmin", "admin"],
+      },
     ],
   },
   {
