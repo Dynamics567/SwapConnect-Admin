@@ -15,8 +15,42 @@ interface GiveListing {
   pickupNotes: string | null;
   adminNotes: string | null;
   createdAt: string;
+  eligibleLifeCategories: string[] | null;
+  eligibleAgeMin: number | null;
+  eligibleAgeMax: number | null;
+  eligibleLocation: string | null;
   Product: { id: number; name: string; imageUrl: string; brand: string | null; condition: string; categoryId: number | null } | null;
   Donor: { id: number; firstName: string; lastName: string; email: string; phone: string | null } | null;
+}
+
+const LIFE_CATEGORY_LABELS: Record<string, string> = {
+  STUDENT: "Student",
+  WORKING_PROFESSIONAL: "Working Professional",
+  BUSINESS_OWNER: "Business Owner",
+  ENTREPRENEUR: "Entrepreneur",
+  FREELANCER: "Freelancer",
+  JOB_SEEKER: "Job Seeker",
+  SKILLED_WORKER: "Skilled Worker",
+  LEARNING_A_SKILL: "Learning a Skill",
+  APPRENTICE: "Apprentice",
+  TEACHER_EDUCATOR: "Teacher / Educator",
+  RESEARCHER: "Researcher",
+  CONTENT_CREATOR: "Content Creator",
+  OTHER: "Other",
+};
+
+function describeEligibility(listing: GiveListing): string {
+  const parts: string[] = [];
+  if (listing.eligibleLifeCategories?.length) {
+    parts.push(listing.eligibleLifeCategories.map((c) => LIFE_CATEGORY_LABELS[c] ?? c).join(", "));
+  }
+  if (listing.eligibleAgeMin != null || listing.eligibleAgeMax != null) {
+    parts.push(`Age ${listing.eligibleAgeMin ?? "0"}–${listing.eligibleAgeMax ?? "+"}`);
+  }
+  if (listing.eligibleLocation) {
+    parts.push(listing.eligibleLocation);
+  }
+  return parts.length > 0 ? parts.join(" · ") : "Open to all eligible recipients";
 }
 
 const STATE_COLORS: Record<GiveState, string> = {
@@ -182,6 +216,11 @@ export default function DonationsTab() {
                 <p className="text-sm bg-gray-50 rounded-lg p-3">{selected.pickupNotes}</p>
               </div>
             )}
+
+            <div className="mb-4">
+              <p className="text-xs text-gray-500 mb-1">Eligibility (donor-set)</p>
+              <p className="text-sm">{describeEligibility(selected)}</p>
+            </div>
 
             <div className="mb-4">
               <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATE_COLORS[selected.state]}`}>{selected.state}</span>

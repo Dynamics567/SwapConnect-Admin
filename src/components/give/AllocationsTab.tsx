@@ -8,14 +8,49 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 interface GiveListingSummary {
   id: number;
   state: string;
+  eligibleLifeCategories: string[] | null;
+  eligibleAgeMin: number | null;
+  eligibleAgeMax: number | null;
+  eligibleLocation: string | null;
   Product: { id: number; name: string; imageUrl: string; categoryId: number | null } | null;
   Donor: { id: number; firstName: string; lastName: string } | null;
+}
+
+const LIFE_CATEGORY_LABELS: Record<string, string> = {
+  STUDENT: "Student",
+  WORKING_PROFESSIONAL: "Working Professional",
+  BUSINESS_OWNER: "Business Owner",
+  ENTREPRENEUR: "Entrepreneur",
+  FREELANCER: "Freelancer",
+  JOB_SEEKER: "Job Seeker",
+  SKILLED_WORKER: "Skilled Worker",
+  LEARNING_A_SKILL: "Learning a Skill",
+  APPRENTICE: "Apprentice",
+  TEACHER_EDUCATOR: "Teacher / Educator",
+  RESEARCHER: "Researcher",
+  CONTENT_CREATOR: "Content Creator",
+  OTHER: "Other",
+};
+
+function describeEligibility(listing: GiveListingSummary): string {
+  const parts: string[] = [];
+  if (listing.eligibleLifeCategories?.length) {
+    parts.push(listing.eligibleLifeCategories.map((c) => LIFE_CATEGORY_LABELS[c] ?? c).join(", "));
+  }
+  if (listing.eligibleAgeMin != null || listing.eligibleAgeMax != null) {
+    parts.push(`Age ${listing.eligibleAgeMin ?? "0"}–${listing.eligibleAgeMax ?? "+"}`);
+  }
+  if (listing.eligibleLocation) parts.push(listing.eligibleLocation);
+  return parts.length > 0 ? parts.join(" · ") : "Open to all eligible recipients";
 }
 
 interface Candidate {
   id: number;
   reason: string;
-  deliveryAddress: string;
+  location: string;
+  ageBand: string;
+  lifeCategories: string[];
+  deliveryAddress: string | null;
   createdAt: string;
   User: { id: number; firstName: string; lastName: string; phone: string | null } | null;
 }
@@ -24,7 +59,7 @@ interface MatchRow {
   id: number;
   status: string;
   matchNotes: string | null;
-  NeedProfile: { id: number; reason: string; User: { id: number; firstName: string; lastName: string } | null } | null;
+  NeedProfile: { id: number; reason: string; deliveryAddress: string | null; User: { id: number; firstName: string; lastName: string } | null } | null;
 }
 
 interface FulfilmentRow {
@@ -183,13 +218,14 @@ export default function AllocationsTab() {
             <div>
               <h2 className="text-lg font-bold">{detail.Product?.name}</h2>
               <p className="text-xs text-gray-400">State: {detail.state}</p>
+              <p className="text-xs text-gray-500 mt-1">Eligibility: {describeEligibility(detail)}</p>
             </div>
 
             {detail.state === "AVAILABLE" && (
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Candidate recipients</h3>
                 {candidates.length === 0 ? (
-                  <p className="text-sm text-gray-400">No open, verified need profiles match this category yet.</p>
+                  <p className="text-sm text-gray-400">No open, verified need profiles match this listing&apos;s eligibility criteria yet.</p>
                 ) : (
                   <div className="space-y-2">
                     <textarea
@@ -203,7 +239,13 @@ export default function AllocationsTab() {
                       <div key={c.id} className="flex items-center justify-between border rounded-lg px-3 py-2">
                         <div>
                           <p className="text-sm font-medium">{c.User?.firstName} {c.User?.lastName}</p>
+                          <p className="text-xs text-gray-400">{c.ageBand} · {c.location} · {c.lifeCategories.map((lc) => LIFE_CATEGORY_LABELS[lc] ?? lc).join(", ")}</p>
                           <p className="text-xs text-gray-400 max-w-sm truncate">{c.reason}</p>
+                          {!c.deliveryAddress && (
+                            <span className="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 uppercase">
+                              No delivery address yet
+                            </span>
+                          )}
                         </div>
                         <button
                           onClick={() => proposeMatch(c.id)}
@@ -222,20 +264,30 @@ export default function AllocationsTab() {
             {detail.state === "MATCHED" && livematches.length > 0 && (
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Proposed match</h3>
-                {livematches.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between border rounded-lg px-3 py-2">
-                    <div>
-                      <p className="text-sm font-medium">{m.NeedProfile?.User?.firstName} {m.NeedProfile?.User?.lastName}</p>
-                      <p className="text-xs text-gray-400">{m.status}</p>
+                {livematches.map((m) => {
+                  const hasAddress = !!m.NeedProfile?.deliveryAddress;
+                  return (
+                    <div key={m.id} className="flex items-center justify-between border rounded-lg px-3 py-2">
+                      <div>
+                        <p className="text-sm font-medium">{m.NeedProfile?.User?.firstName} {m.NeedProfile?.User?.lastName}</p>
+                        <p className="text-xs text-gray-400">{m.status}</p>
+                        {!hasAddress && (
+                          <span className="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 uppercase">
+                            Recipient hasn&apos;t provided a delivery address — allocation will be blocked
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => setConfirmAllocateMatchId(m.id)}
+                        disabled={!hasAddress}
+                        title={!hasAddress ? "Recipient must supply a delivery address before this can be allocated" : undefined}
+                        className="text-xs bg-[#037F44] text-white px-3 py-1.5 rounded-lg font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        Allocate
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setConfirmAllocateMatchId(m.id)}
-                      className="text-xs bg-[#037F44] text-white px-3 py-1.5 rounded-lg font-medium"
-                    >
-                      Allocate
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 

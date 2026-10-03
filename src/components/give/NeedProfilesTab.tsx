@@ -6,10 +6,31 @@ import { useAuthToken } from "@/hooks/useAuthToken";
 
 type NeedStatus = "OPEN" | "MATCHED" | "FULFILLED" | "CLOSED" | "WITHDRAWN";
 
+const LIFE_CATEGORY_LABELS: Record<string, string> = {
+  STUDENT: "Student",
+  WORKING_PROFESSIONAL: "Working Professional",
+  BUSINESS_OWNER: "Business Owner",
+  ENTREPRENEUR: "Entrepreneur",
+  FREELANCER: "Freelancer",
+  JOB_SEEKER: "Job Seeker",
+  SKILLED_WORKER: "Skilled Worker",
+  LEARNING_A_SKILL: "Learning a Skill",
+  APPRENTICE: "Apprentice",
+  TEACHER_EDUCATOR: "Teacher / Educator",
+  RESEARCHER: "Researcher",
+  CONTENT_CREATOR: "Content Creator",
+  OTHER: "Other",
+};
+
 interface NeedProfile {
   id: number;
   reason: string;
-  deliveryAddress: string;
+  location: string;
+  ageBand: string;
+  lifeCategories: string[];
+  currentActivity: string | null;
+  urgency: "LOW" | "MEDIUM" | "HIGH";
+  deliveryAddress: string | null;
   status: NeedStatus;
   adminNotes: string | null;
   createdAt: string;
@@ -25,11 +46,18 @@ const STATUS_COLORS: Record<NeedStatus, string> = {
   WITHDRAWN: "bg-gray-200 text-gray-700",
 };
 
+const URGENCY_COLORS: Record<string, string> = {
+  LOW: "bg-gray-100 text-gray-700",
+  MEDIUM: "bg-yellow-100 text-yellow-800",
+  HIGH: "bg-red-100 text-red-800",
+};
+
 export default function NeedProfilesTab() {
   const token = useAuthToken();
   const [needs, setNeeds] = useState<NeedProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<NeedStatus | "">("");
+  const [selected, setSelected] = useState<NeedProfile | null>(null);
 
   const fetchNeeds = useCallback(async () => {
     if (!token) return;
@@ -80,10 +108,12 @@ export default function NeedProfilesTab() {
               <tr>
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Recipient</th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Category</th>
-                <th className="px-4 py-3 text-left font-semibold text-gray-600">Reason</th>
-                <th className="px-4 py-3 text-left font-semibold text-gray-600">Delivery Address</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Age Band</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Location</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Urgency</th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -91,18 +121,90 @@ export default function NeedProfilesTab() {
                 <tr key={n.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium">{n.User?.firstName} {n.User?.lastName}</td>
                   <td className="px-4 py-3 text-gray-500">{n.Category?.name ?? "Any category"}</td>
-                  <td className="px-4 py-3 max-w-xs truncate" title={n.reason}>{n.reason}</td>
-                  <td className="px-4 py-3 max-w-xs truncate text-gray-500" title={n.deliveryAddress}>{n.deliveryAddress}</td>
+                  <td className="px-4 py-3 text-gray-500">{n.ageBand}</td>
+                  <td className="px-4 py-3 text-gray-500">{n.location}</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${URGENCY_COLORS[n.urgency]}`}>{n.urgency}</span>
+                  </td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLORS[n.status]}`}>{n.status}</span>
                   </td>
                   <td className="px-4 py-3 text-gray-400 text-xs">
                     {new Date(n.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
                   </td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => setSelected(n)}
+                      className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium"
+                    >
+                      View
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {selected && (
+        <div className="fixed inset-0 bg-black/40 flex justify-end z-50">
+          <div className="bg-white w-full max-w-md h-full overflow-y-auto p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold">Need Profile</h2>
+              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-xs text-gray-500 mb-1">Recipient</p>
+              <p className="font-semibold text-sm">{selected.User?.firstName} {selected.User?.lastName}</p>
+              <p className="text-xs text-gray-400">{selected.User?.email} · {selected.User?.phone ?? "No phone on file"}</p>
+            </div>
+
+            <div className="mb-4 grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Age Band</p>
+                <p className="text-sm font-medium">{selected.ageBand}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Location</p>
+                <p className="text-sm font-medium">{selected.location}</p>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-xs text-gray-500 mb-1.5">Life / Activity Categories</p>
+              <div className="flex flex-wrap gap-1.5">
+                {selected.lifeCategories.map((c) => (
+                  <span key={c} className="text-xs px-2 py-1 rounded-full bg-[#e6f9f0] text-[#037F44] font-medium">
+                    {LIFE_CATEGORY_LABELS[c] ?? c}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {selected.currentActivity && (
+              <div className="mb-4">
+                <p className="text-xs text-gray-500 mb-1">Current Activity</p>
+                <p className="text-sm">{selected.currentActivity}</p>
+              </div>
+            )}
+
+            <div className="mb-4">
+              <p className="text-xs text-gray-500 mb-1">Reason</p>
+              <p className="text-sm bg-gray-50 rounded-lg p-3">{selected.reason}</p>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-xs text-gray-500 mb-1">Delivery Address</p>
+              <p className="text-sm">{selected.deliveryAddress || <span className="text-gray-400 italic">Not yet provided</span>}</p>
+            </div>
+
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`text-xs px-2 py-1 rounded-full font-medium ${URGENCY_COLORS[selected.urgency]}`}>{selected.urgency} urgency</span>
+              <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLORS[selected.status]}`}>{selected.status}</span>
+            </div>
+          </div>
         </div>
       )}
     </div>
