@@ -28,17 +28,21 @@ interface CategoryNode {
   canSell: boolean;
   canSwap: boolean;
   canAuction: boolean;
+  canGive: boolean;
+  canRecycle: boolean;
   sharpShapSlug: string | null;
   sortOrder: number;
   Attributes: ProductAttribute[];
   children: CategoryNode[];
 }
 
-const CAPABILITY_FIELDS: { key: "canBuy" | "canSell" | "canSwap" | "canAuction"; label: string }[] = [
+const CAPABILITY_FIELDS: { key: "canBuy" | "canSell" | "canSwap" | "canAuction" | "canGive" | "canRecycle"; label: string }[] = [
   { key: "canBuy", label: "Buy" },
   { key: "canSell", label: "Sell" },
   { key: "canSwap", label: "Swap / Trade-In" },
   { key: "canAuction", label: "Auction" },
+  { key: "canGive", label: "Give" },
+  { key: "canRecycle", label: "Recycle" },
 ];
 
 function findNode(nodes: CategoryNode[], id: number): CategoryNode | null {
@@ -123,7 +127,7 @@ export default function CategoriesPage() {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
   const [editForm, setEditForm] = useState({
-    name: "", canBuy: true, canSell: true, canSwap: false, canAuction: false, sharpShapSlug: "",
+    name: "", canBuy: true, canSell: true, canSwap: false, canAuction: false, canGive: false, canRecycle: false, sharpShapSlug: "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -166,6 +170,8 @@ export default function CategoriesPage() {
         canSell: selectedNode.canSell,
         canSwap: selectedNode.canSwap,
         canAuction: selectedNode.canAuction,
+        canGive: selectedNode.canGive,
+        canRecycle: selectedNode.canRecycle,
         sharpShapSlug: selectedNode.sharpShapSlug || "",
       });
     }
@@ -193,6 +199,8 @@ export default function CategoriesPage() {
           canSell: editForm.canSell,
           canSwap: editForm.canSwap,
           canAuction: editForm.canAuction,
+          canGive: editForm.canGive,
+          canRecycle: editForm.canRecycle,
           sharpShapSlug: editForm.sharpShapSlug || null,
         }),
       });
@@ -365,7 +373,7 @@ export default function CategoriesPage() {
                     <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
                       Transaction Capabilities
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {CAPABILITY_FIELDS.map((f) => (
                         <label key={f.key} className="flex items-center gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2 cursor-pointer">
                           <input

@@ -25,6 +25,9 @@ import {
   FolderTree,
   Images,
   Timer,
+  HeartHandshake,
+  Gift,
+  PackageCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -78,6 +81,36 @@ export const navGroups: NavEntry[] = [
         label: "Categories",
         url: "/dashboard/categories",
         icon: FolderTree,
+        roles: ["superadmin", "admin"],
+      },
+    ],
+  },
+  {
+    label: "Give & Circular",
+    icon: HeartHandshake,
+    children: [
+      {
+        label: "Donations",
+        url: "/dashboard/give?tab=donations",
+        icon: Gift,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Need Profiles",
+        url: "/dashboard/give?tab=needs",
+        icon: Users,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Allocations",
+        url: "/dashboard/give?tab=allocations",
+        icon: PackageCheck,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Impact",
+        url: "/dashboard/give?tab=impact",
+        icon: HeartHandshake,
         roles: ["superadmin", "admin"],
       },
     ],
