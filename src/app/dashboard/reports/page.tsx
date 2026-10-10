@@ -19,7 +19,13 @@ interface DayStat {
   revenue?: number | string;
 }
 
+type Period = "week" | "month" | "year" | "custom";
+
 interface ReportData {
+  period: Period;
+  from: string;
+  to: string;
+  granularity: "day" | "week" | "month";
   summary: {
     totalRevenue: number | string;
     totalUsers: number | string;
@@ -31,6 +37,23 @@ interface ReportData {
 
 function fmt(n: number | string) {
   return Number(n).toLocaleString("en-NG");
+}
+
+const PERIOD_LABELS: Record<Period, string> = {
+  week: "This Week",
+  month: "This Month",
+  year: "This Year",
+  custom: "Custom Range",
+};
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" });
+}
+
+// A plain date (YYYY-MM-DD) for the <input type="date"> custom-range
+// pickers, defaulting to a 30-day window matching the "month" preset.
+function isoDateOnly(d: Date) {
+  return d.toISOString().slice(0, 10);
 }
 
 function MiniBar({ series, valueKey, color }: { series: DayStat[]; valueKey: "revenue" | "count"; color: string }) {
@@ -56,23 +79,57 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Also pull recent signups and transactions from existing endpoints
+  // Period filter -- custom defaults to the same 30-day window as "month"
+  // until the admin actually picks their own dates.
+  const [period, setPeriod] = useState<Period>("month");
+  const [customFrom, setCustomFrom] = useState(() => isoDateOnly(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)));
+  const [customTo, setCustomTo] = useState(() => isoDateOnly(new Date()));
+
+  // Also pull recent signups and transactions from existing endpoints --
+  // these are a "most recent activity" feed, deliberately NOT period-scoped
+  // (they share endpoints used elsewhere in admin; scoping them to the
+  // report's period would mean a Weekly view with no activity this week
+  // shows an empty feed instead of what actually just happened).
   const [recentSignups, setRecentSignups] = useState<{ name: string; email: string; date: string }[]>([]);
   const [recentTxns, setRecentTxns] = useState<{ reference: string; amount: number; status: string; date: string }[]>([]);
   const [exporting, setExporting] = useState<"signups" | "transactions" | "trends" | null>(null);
 
+  // Reports endpoint alone re-fetches whenever the period (or custom range)
+  // changes; the recent-activity feed below only needs to load once.
   useEffect(() => {
     if (!token) return;
     const load = async () => {
       setLoading(true);
+      setError("");
+      try {
+        const params = new URLSearchParams({ period });
+        if (period === "custom") {
+          params.set("from", customFrom);
+          params.set("to", customTo);
+        }
+        const rpt = await fetch(`${API_URL}/api/admin/reports?${params}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).then((r) => r.json());
+        if (rpt.success) setData(rpt.data);
+        else setError(rpt.message || "Failed to load reports");
+      } catch {
+        setError("Failed to load reports");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [token, period, customFrom, customTo]);
+
+  useEffect(() => {
+    if (!token) return;
+    const load = async () => {
       try {
         const headers = { Authorization: `Bearer ${token}` };
-        const [rpt, signups, txns] = await Promise.all([
-          fetch(`${API_URL}/api/admin/reports`, { headers }).then((r) => r.json()),
+        const [signups, txns] = await Promise.all([
           fetch(`${API_URL}/api/admin/signups/recent`, { headers }).then((r) => r.json()),
           fetch(`${API_URL}/api/admin/transactions/recent`, { headers }).then((r) => r.json()),
         ]);
-        if (rpt.success) setData(rpt.data);
         // Real response shape is { signups: [...] }, not { data: [...] } --
         // this previously always fell through to "No recent signups".
         if (signups.signups) {
@@ -98,9 +155,8 @@ export default function ReportsPage() {
           );
         }
       } catch {
-        setError("Failed to load reports");
-      } finally {
-        setLoading(false);
+        // Non-critical activity feed -- the report itself (above) still
+        // loads and surfaces its own error independently.
       }
     };
     load();
@@ -162,39 +218,42 @@ export default function ReportsPage() {
     const rows = Array.from(byDate.values())
       .sort((a, b) => a.date.localeCompare(b.date))
       .map((d) => ({ Date: d.date, "Revenue (NGN)": d.revenue, Signups: d.signups }));
-    downloadCsv(`swapconnect-30day-trends-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+    downloadCsv(`swapconnect-trends-${data.period}-${new Date().toISOString().slice(0, 10)}.csv`, rows);
     setExporting(null);
   };
 
+  const periodLabel = data ? PERIOD_LABELS[data.period] : "";
+  const rangeLabel = data ? `${fmtDate(data.from)} – ${fmtDate(data.to)}` : "";
+
   const summary = [
     {
-      label: "Total Revenue",
+      label: "Revenue",
       value: data ? `₦${fmt(data.summary.totalRevenue)}` : "—",
       icon: <DollarSign size={20} className="text-[#037F44]" />,
-      sub: "All successful transactions",
+      sub: data ? rangeLabel : "Selected period",
       trend: null,
     },
     {
       label: "Total Users",
       value: data ? fmt(data.summary.totalUsers) : "—",
       icon: <Users size={20} className="text-[#037F44]" />,
-      sub: "Registered accounts",
+      sub: "All-time registered accounts",
       trend: null,
     },
     {
-      label: "Total Orders",
+      label: "Orders",
       value: data ? fmt(data.summary.totalOrders) : "—",
       icon: <ShoppingBag size={20} className="text-[#037F44]" />,
-      sub: "All time orders",
+      sub: data ? rangeLabel : "Selected period",
       trend: null,
     },
     {
-      label: "30-day Signups",
+      label: "New Signups",
       value: data
         ? fmt(data.signupSeries.reduce((s, d) => s + Number(d.count ?? 0), 0))
         : "—",
       icon: <TrendingUp size={20} className="text-[#037F44]" />,
-      sub: "New users last 30 days",
+      sub: data ? rangeLabel : "Selected period",
       trend: null,
     },
   ];
@@ -202,7 +261,7 @@ export default function ReportsPage() {
   return (
     <ProtectedRoute allowedRoles={["admin", "superadmin", "supportagent", "verificationofficer"]}>
       <div className="w-full min-w-0">
-        <div className="mb-6 flex items-start justify-between flex-wrap gap-4">
+        <div className="mb-4 flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold text-[#353535]">Reports</h1>
             <p className="text-sm text-[#848484] mt-1">Platform overview and activity</p>
@@ -230,9 +289,47 @@ export default function ReportsPage() {
               className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-white border border-[#e5e7eb] text-[#353535] hover:border-[#037F44] hover:text-[#037F44] transition disabled:opacity-60"
             >
               {exporting === "trends" ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-              30-Day Trends CSV
+              Trends CSV
             </button>
           </div>
+        </div>
+
+        {/* Period filter */}
+        <div className="mb-6 flex items-center gap-3 flex-wrap">
+          <div className="flex gap-1 bg-white rounded-lg border border-[#e5e7eb] p-1">
+            {(["week", "month", "year", "custom"] as Period[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition ${
+                  period === p ? "bg-[#037F44] text-white" : "text-[#6b7280] hover:bg-[#f8f9fb]"
+                }`}
+              >
+                {p === "week" ? "Weekly" : p === "month" ? "Monthly" : p === "year" ? "Yearly" : "Custom"}
+              </button>
+            ))}
+          </div>
+          {period === "custom" && (
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={customFrom}
+                max={customTo}
+                onChange={(e) => setCustomFrom(e.target.value)}
+                className="border border-[#e5e7eb] rounded-lg px-2.5 py-1.5 text-xs text-[#353535]"
+              />
+              <span className="text-xs text-[#848484]">to</span>
+              <input
+                type="date"
+                value={customTo}
+                min={customFrom}
+                max={isoDateOnly(new Date())}
+                onChange={(e) => setCustomTo(e.target.value)}
+                className="border border-[#e5e7eb] rounded-lg px-2.5 py-1.5 text-xs text-[#353535]"
+              />
+            </div>
+          )}
+          {data && <span className="text-xs text-[#848484]">{rangeLabel}</span>}
         </div>
 
         {loading ? (
@@ -254,6 +351,7 @@ export default function ReportsPage() {
                   </div>
                   <div className="text-xl font-bold text-[#353535]">{s.value}</div>
                   <div className="text-xs text-[#848484] mt-0.5">{s.label}</div>
+                  {s.sub && <div className="text-[10px] text-[#c0c0c0] mt-1">{s.sub}</div>}
                 </div>
               ))}
             </div>
@@ -263,7 +361,7 @@ export default function ReportsPage() {
               {/* Revenue trend */}
               <div className="bg-white rounded-xl shadow p-5">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="text-sm font-semibold text-[#353535]">Revenue — Last 30 Days</h3>
+                  <h3 className="text-sm font-semibold text-[#353535]">Revenue — {periodLabel}</h3>
                   <span className="text-xs text-[#848484]">Successful txns</span>
                 </div>
                 <div className="text-xl font-bold text-[#037F44] mb-1">
@@ -271,14 +369,14 @@ export default function ReportsPage() {
                 </div>
                 <MiniBar series={data?.revenueSeries ?? []} valueKey="revenue" color="#037F44" />
                 <div className="flex justify-between text-[10px] text-[#c0c0c0] mt-1">
-                  <span>30d ago</span><span>Today</span>
+                  <span>{data ? fmtDate(data.from) : ""}</span><span>{data ? fmtDate(data.to) : ""}</span>
                 </div>
               </div>
 
               {/* Signup trend */}
               <div className="bg-white rounded-xl shadow p-5">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="text-sm font-semibold text-[#353535]">New Users — Last 30 Days</h3>
+                  <h3 className="text-sm font-semibold text-[#353535]">New Users — {periodLabel}</h3>
                   <span className="text-xs text-[#848484]">Registrations</span>
                 </div>
                 <div className="text-xl font-bold text-[#d7a825] mb-1">
@@ -286,7 +384,7 @@ export default function ReportsPage() {
                 </div>
                 <MiniBar series={data?.signupSeries ?? []} valueKey="count" color="#d7a825" />
                 <div className="flex justify-between text-[10px] text-[#c0c0c0] mt-1">
-                  <span>30d ago</span><span>Today</span>
+                  <span>{data ? fmtDate(data.from) : ""}</span><span>{data ? fmtDate(data.to) : ""}</span>
                 </div>
               </div>
             </div>
