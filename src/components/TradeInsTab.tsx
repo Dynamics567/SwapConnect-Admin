@@ -131,7 +131,65 @@ export default function TradeInsTab() {
         ) : submissions.length === 0 ? (
           <div className="text-center py-20 text-gray-400">No trade-in submissions found.</div>
         ) : (
-          <div className="bg-white rounded-xl shadow overflow-x-auto">
+          <>
+          {/* Mobile/tablet cards */}
+          <div className="flex flex-col gap-3 lg:hidden">
+            {submissions.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 cursor-pointer"
+                onClick={() => {
+                  setSelected(item);
+                  setNewStatus(item.status === "pending" ? "reviewed" : item.status);
+                  setAdminNotes(item.adminNotes ?? "");
+                }}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-mono text-xs text-gray-500">{item.referenceId}</p>
+                    <p className="text-sm font-medium capitalize">
+                      {item.deviceType} —{" "}
+                      <span>{item.specs.brand ?? item.specs.Brand}</span>
+                      {(item.specs.model ?? item.specs.Model) && (
+                        <span className="text-gray-400 ml-1">{item.specs.model ?? item.specs.Model}</span>
+                      )}
+                    </p>
+                  </div>
+                  <span className="text-xs text-gray-400 whitespace-nowrap shrink-0">
+                    {new Date(item.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div>
+                    <span className="font-semibold text-green-700">{formatNGN(item.estimatedValue)}</span>
+                    <span className="text-xs text-gray-500 ml-2">Est: {formatNGN(item.systemEstimatedValue)}</span>
+                    {item.flagged && (
+                      <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700 uppercase align-middle">
+                        Flagged
+                      </span>
+                    )}
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLORS[item.status]}`}>
+                    {item.status}
+                  </span>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelected(item);
+                    setNewStatus(item.status === "pending" ? "reviewed" : item.status);
+                    setAdminNotes(item.adminNotes ?? "");
+                  }}
+                  className="mt-1 min-h-[44px] text-sm bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
+                >
+                  Review
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden lg:block bg-white rounded-xl shadow overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
@@ -193,6 +251,7 @@ export default function TradeInsTab() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {/* Detail drawer */}
@@ -221,7 +280,7 @@ export default function TradeInsTab() {
                 </div>
               </div>
 
-              <div className="mb-4 grid grid-cols-2 gap-3">
+              <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Submitter&apos;s Claimed Value</p>
                   <p className="text-xl font-bold text-green-700">{formatNGN(selected.estimatedValue)}</p>
@@ -271,7 +330,7 @@ export default function TradeInsTab() {
               <button
                 onClick={handleUpdateStatus}
                 disabled={saving}
-                className="w-full bg-[#037F44] text-white py-3 rounded-lg font-semibold hover:bg-[#026835] transition-colors disabled:opacity-60"
+                className="w-full bg-brand-emerald text-white py-3 rounded-lg font-semibold hover:bg-brand-emerald-hover transition-colors disabled:opacity-60"
               >
                 {saving ? "Saving…" : "Save Decision"}
               </button>

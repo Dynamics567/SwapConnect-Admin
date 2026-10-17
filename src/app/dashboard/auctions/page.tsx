@@ -57,10 +57,10 @@ const STATE_STYLES: Record<AuctionState, string> = {
   DRAFT: "bg-gray-100 text-gray-600",
   PENDING_REVIEW: "bg-blue-100 text-blue-700",
   PUBLISHING: "bg-blue-100 text-blue-700",
-  ACTIVE: "bg-[#e6f9f0] text-[#037F44]",
+  ACTIVE: "bg-brand-emerald-light text-brand-emerald",
   ENDED: "bg-gray-100 text-gray-600",
-  AWAITING_PAYMENT: "bg-[#fef9ec] text-[#a9791f]",
-  COMPLETED: "bg-[#e6f9f0] text-[#037F44]",
+  AWAITING_PAYMENT: "bg-brand-gold-light text-brand-gold-hover",
+  COMPLETED: "bg-brand-emerald-light text-brand-emerald",
   CANCELLED: "bg-red-100 text-red-600",
 };
 
@@ -71,7 +71,7 @@ const fmt = (n: string | number | null) =>
 // worth its own distinct state instead of a generic gray "Ended".
 function stateLabelFor(a: AdminAuction): { label: string; style: string } {
   if (a.state === "ENDED" && a.endReason === "NO_BIDS") {
-    return { label: "Ended — No Bids", style: "bg-[#fef9ec] text-[#a9791f]" };
+    return { label: "Ended — No Bids", style: "bg-brand-gold-light text-brand-gold-hover" };
   }
   return { label: a.state.replace(/_/g, " "), style: STATE_STYLES[a.state] };
 }
@@ -170,7 +170,7 @@ function AuctionsPageContent() {
             key={f.key}
             onClick={() => setFilter(f.key)}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-              filter === f.key ? "bg-[#037F44] text-white" : "bg-white text-[#505050] border border-[#e5e7eb] hover:border-[#037F44]"
+              filter === f.key ? "bg-brand-emerald text-white" : "bg-white text-[#505050] border border-[#e5e7eb] hover:border-brand-emerald"
             }`}
           >
             {f.label}
@@ -182,11 +182,85 @@ function AuctionsPageContent() {
         <p className="text-[#848484]">Loading auctions…</p>
       ) : auctions.length === 0 ? (
         <div className="bg-white rounded-xl p-10 text-center shadow">
-          <Gavel size={28} className="text-[#037F44] mx-auto mb-3" />
+          <Gavel size={28} className="text-brand-emerald mx-auto mb-3" />
           <p className="text-[#848484]">No auctions match this filter.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow overflow-hidden">
+        <>
+        {/* Mobile/tablet cards */}
+        <div className="flex flex-col gap-4 lg:hidden">
+          {auctions.map((a) => {
+            const meta = stateLabelFor(a);
+            return (
+              <div key={a.id} className="bg-white rounded-xl shadow p-4 flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <ImageWithFallback
+                    src={a.Product?.imageUrl}
+                    alt={a.Product?.name || "Item"}
+                    width={48}
+                    height={48}
+                    className="w-12 h-12 rounded-lg object-cover shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <Link href={`/dashboard/items/listed/${a.Product?.id}`} className="text-sm font-semibold text-brand-emerald hover:underline break-words">
+                      {a.Product?.name || `#${a.id}`}
+                    </Link>
+                    {a.code && (
+                      <div className="text-[11px] font-mono text-[#848484]">
+                        {a.code}
+                        {!!a.reAuctionSequence && <span className="ml-1 font-sans font-semibold text-brand-gold-hover">re-auction</span>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="text-sm text-[#1B2559]">
+                  {a.Seller?.storeName || `${a.Seller?.firstName ?? ""} ${a.Seller?.lastName ?? ""}`.trim() || "—"}
+                </div>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div>
+                    <div className="text-sm font-semibold text-[#1B2559]">{fmt(a.currentBid ?? a.startingPrice)}</div>
+                    <div className="text-xs text-[#848484]">Ref: {fmt(a.referencePrice)} · {a.bidCount} bids</div>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${meta.style}`}>{meta.label}</span>
+                </div>
+                <div className="text-xs">
+                  {!a.sharpShapListingId ? (
+                    <span className="text-[#848484]">SharpShap: —</span>
+                  ) : a.syncStatus === "error" ? (
+                    <span className="text-red-600" title={a.syncError || undefined}>⚠ Sync issue</span>
+                  ) : a.syncStatus === "syncing" ? (
+                    <span className="text-brand-gold-hover">Syncing…</span>
+                  ) : (
+                    <span className="text-brand-emerald">✓ Published to SharpShap</span>
+                  )}
+                </div>
+                {canModerate && (a.state === "PENDING_REVIEW" || !["COMPLETED", "CANCELLED", "ENDED"].includes(a.state)) && (
+                  <div className="flex gap-3 pt-1 border-t border-[#f3f3f3]">
+                    {a.state === "PENDING_REVIEW" && (
+                      <button
+                        onClick={() => { setApproveTarget(a); setApproveReferencePrice(""); setActionError(""); }}
+                        className="text-xs font-semibold text-brand-emerald hover:underline"
+                      >
+                        Approve
+                      </button>
+                    )}
+                    {!["COMPLETED", "CANCELLED", "ENDED"].includes(a.state) && (
+                      <button
+                        onClick={() => { setCancelTarget(a); setCancelReason(""); setActionError(""); }}
+                        className="text-xs font-semibold text-red-600 hover:underline"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden lg:block bg-white rounded-xl shadow overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[880px] border-collapse">
               <thead>
@@ -213,14 +287,14 @@ function AuctionsPageContent() {
                           className="w-10 h-10 rounded-lg object-cover"
                         />
                         <div>
-                          <Link href={`/dashboard/items/listed/${a.Product?.id}`} className="text-sm text-[#037F44] hover:underline">
+                          <Link href={`/dashboard/items/listed/${a.Product?.id}`} className="text-sm text-brand-emerald hover:underline">
                             {a.Product?.name || `#${a.id}`}
                           </Link>
                           {a.code && (
                             <div className="text-[11px] font-mono text-[#848484]">
                               {a.code}
                               {!!a.reAuctionSequence && (
-                                <span className="ml-1 font-sans font-semibold text-[#a9791f]">re-auction</span>
+                                <span className="ml-1 font-sans font-semibold text-brand-gold-hover">re-auction</span>
                               )}
                             </div>
                           )}
@@ -246,9 +320,9 @@ function AuctionsPageContent() {
                       ) : a.syncStatus === "error" ? (
                         <span className="text-red-600" title={a.syncError || undefined}>⚠ Sync issue</span>
                       ) : a.syncStatus === "syncing" ? (
-                        <span className="text-[#a9791f]">Syncing…</span>
+                        <span className="text-brand-gold-hover">Syncing…</span>
                       ) : (
-                        <span className="text-[#037F44]">✓ Published</span>
+                        <span className="text-brand-emerald">✓ Published</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -257,7 +331,7 @@ function AuctionsPageContent() {
                           {a.state === "PENDING_REVIEW" && (
                             <button
                               onClick={() => { setApproveTarget(a); setApproveReferencePrice(""); setActionError(""); }}
-                              className="text-xs font-semibold text-[#037F44] hover:underline"
+                              className="text-xs font-semibold text-brand-emerald hover:underline"
                             >
                               Approve
                             </button>
@@ -280,6 +354,7 @@ function AuctionsPageContent() {
             </table>
           </div>
         </div>
+        </>
       )}
 
       <ConfirmDialog
