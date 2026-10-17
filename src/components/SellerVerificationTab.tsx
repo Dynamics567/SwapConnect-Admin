@@ -296,7 +296,7 @@ export default function SellerVerificationTab() {
       ) : (
         <>
         {/* Mobile cards */}
-        <div className="flex flex-col gap-3 md:hidden">
+        <div className="flex flex-col gap-3 lg:hidden">
           {submissions.map((item) => (
             <div
               key={item.id}
@@ -332,7 +332,7 @@ export default function SellerVerificationTab() {
           ))}
         </div>
 
-        <div className="hidden md:block bg-white rounded-xl shadow overflow-x-auto">
+        <div className="hidden lg:block bg-white rounded-xl shadow overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>

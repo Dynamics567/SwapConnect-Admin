@@ -38,7 +38,7 @@ export default function UserTable({
   onRequestUpgrade,
 }: UserTableProps) {
   return (
-    <div className="hidden md:block bg-white rounded-lg shadow p-6 overflow-x-auto min-w-0">
+    <div className="hidden lg:block bg-white rounded-lg shadow p-6 overflow-x-auto min-w-0">
       <table className="w-full table-auto">
         <thead>
           <tr className="bg-brand-emerald-light text-brand-emerald text-left">

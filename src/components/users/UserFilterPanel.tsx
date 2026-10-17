@@ -136,7 +136,7 @@ export default function UserFilterPanel(props: UserFilterPanelProps) {
       </div>
 
       {/* Desktop: inline popover */}
-      <div className="relative hidden md:block shrink-0">
+      <div className="relative hidden lg:block shrink-0">
         <button
           onClick={() => setShowDesktopPanel((v) => !v)}
           className="flex items-center gap-2 bg-white border border-brand-emerald text-brand-emerald px-4 py-2 rounded hover:bg-brand-emerald-light transition-colors"
@@ -154,10 +154,10 @@ export default function UserFilterPanel(props: UserFilterPanelProps) {
         )}
       </div>
 
-      {/* Mobile: reachable trigger opening a slide-in drawer (same mechanism as the nav drawer) */}
+      {/* Mobile/Tablet: reachable trigger opening a slide-in drawer (same mechanism as the nav drawer) */}
       <button
         onClick={() => setShowMobileDrawer(true)}
-        className="md:hidden flex items-center justify-center gap-2 bg-white border border-brand-emerald text-brand-emerald px-4 py-2 min-h-[44px] rounded hover:bg-brand-emerald-light transition-colors shrink-0"
+        className="lg:hidden flex items-center justify-center gap-2 bg-white border border-brand-emerald text-brand-emerald px-4 py-2 min-h-[44px] rounded hover:bg-brand-emerald-light transition-colors shrink-0"
         aria-label="Open filters"
       >
         <Filter size={18} />
@@ -165,7 +165,7 @@ export default function UserFilterPanel(props: UserFilterPanelProps) {
       </button>
 
       {showMobileDrawer && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex md:hidden justify-end">
+        <div className="fixed inset-0 bg-black/40 z-50 flex lg:hidden justify-end">
           <div className="flex-1" onClick={() => setShowMobileDrawer(false)} />
           <div className="bg-white w-80 max-w-[85vw] h-full shadow-lg p-6 flex flex-col overflow-y-auto">
             <div className="flex items-center justify-between mb-5">

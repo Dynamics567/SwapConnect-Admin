@@ -590,7 +590,7 @@ function UserPageInner() {
               onRequestUpgrade={(user) => { setUpgradeTarget(user); setUpgradeReason(""); setUpgradeError(""); }}
             />
             {formattedUsers.length > 0 && (
-              <div className="hidden md:block">
+              <div className="hidden lg:block">
                 <PageButton
                   page={page}
                   setPage={setPage}
@@ -602,7 +602,7 @@ function UserPageInner() {
             )}
 
             {/* Users Cards (Mobile) */}
-            <div className="block md:hidden min-w-0">
+            <div className="block lg:hidden min-w-0">
               {!loading && formattedUsers.length === 0 ? (
                 <div className="bg-white rounded-lg shadow p-8 text-center text-sm text-[#848484]">
                   No users match your search and filters.
