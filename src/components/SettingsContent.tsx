@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Pencil, ToggleLeft, ToggleRight } from "lucide-react";
 import Image from "next/image";
+import { toast } from "sonner";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
 import { useEffect } from "react";
@@ -106,15 +107,13 @@ export default function SettingsContent() {
       const data = await res.json();
 
       if (res.ok) {
-        console.log("Settings updated:", data);
-        alert("Settings updated successfully!");
+        toast.success("Settings updated successfully!");
       } else {
-        console.error("Update failed:", data.message);
-        alert(`Update failed: ${data.message}`);
+        toast.error(`Update failed: ${data.message}`);
       }
     } catch (err) {
       console.error("Error updating settings", err);
-      alert("An error occurred while updating settings.");
+      toast.error("An error occurred while updating settings.");
     }
   };
 
@@ -152,7 +151,7 @@ export default function SettingsContent() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to change password");
-      alert("Password changed successfully!");
+      toast.success("Password changed successfully!");
       resetPasswordModal();
     } catch (err) {
       setPasswordError(err instanceof Error ? err.message : "Failed to change password");
@@ -253,7 +252,7 @@ export default function SettingsContent() {
                   Click to change image
                 </span>
               </div>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
                   <label className="block text-sm mb-1 text-[#505050]">
                     First Name
@@ -277,7 +276,7 @@ export default function SettingsContent() {
                   />
                 </div>
               </div>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
                   <label className="block text-sm mb-1 text-[#505050]">
                     Email
@@ -346,7 +345,7 @@ export default function SettingsContent() {
             <div>
               <div className="flex flex-col md:flex-row gap-6">
                 {/* Password Card */}
-                <div className="flex-1 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg p-6 flex md:w-[462px] w-[311px] h-[56px] items-center justify-between">
+                <div className="flex-1 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg p-6 flex w-full md:w-[462px] min-h-[56px] items-center justify-between">
                   <div>
                     <input
                       type="password"
@@ -365,7 +364,7 @@ export default function SettingsContent() {
                   </button>
                 </div>
                 {/* 2FA Card */}
-                <div className="flex-1 bg-[#F8F9FB] border border-[#E5E7EB] md:w-[462px] w-[311px] h-[56px] rounded-lg p-6 flex items-center justify-between">
+                <div className="flex-1 bg-[#F8F9FB] border border-[#E5E7EB] w-full md:w-[462px] min-h-[56px] rounded-lg p-6 flex items-center justify-between">
                   <div>
                     <div className="text-[#353535] font-semibold mb-1">
                       Enable 2FA{" "}
@@ -481,7 +480,7 @@ export default function SettingsContent() {
             <div>
               <div className="flex flex-col md:flex-row gap-6">
                 {/* Email Notification Toggle */}
-                <div className="flex-1 bg-[#F7F7FD] border border-[#E5E7EB] rounded-lg p-6 flex items-center justify-between md:w-[462px] w-[311px] h-[56px]">
+                <div className="flex-1 bg-[#F7F7FD] border border-[#E5E7EB] rounded-lg p-6 flex items-center justify-between w-full md:w-[462px] min-h-[56px]">
                   <div>
                     <div className="text-[#4D4D4D] text-[16px] mb-1">
                       Email Notification
@@ -512,7 +511,7 @@ export default function SettingsContent() {
                   </button>
                 </div>
                 {/* In-App Notification Toggle (assuming this is what SMS was meant to be) */}
-                <div className="flex-1 bg-[#F7F7FD] border border-[#E5E7EB] rounded-lg p-6 flex items-center justify-between md:w-[462px] w-[311px] h-[56px]">
+                <div className="flex-1 bg-[#F7F7FD] border border-[#E5E7EB] rounded-lg p-6 flex items-center justify-between w-full md:w-[462px] min-h-[56px]">
                   <div>
                     <div className="text-[#4D4D4D] text-[16px] mb-1">
                       In-App Notification

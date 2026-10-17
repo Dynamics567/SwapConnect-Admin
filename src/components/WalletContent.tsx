@@ -176,7 +176,7 @@ export default function WalletContent() {
             ].map((item) => (
               <div
                 key={item.label}
-                className="bg-white rounded-xl w-[331px] shadow p-4 flex gap-5 items-start"
+                className="bg-white rounded-xl w-full md:w-[331px] shadow p-4 flex gap-5 items-start"
               >
                 <span className="bg-[#F7F8FB] rounded-full text-[#037F44] p-2 flex items-center justify-center">
                   <CircleDollarSign />

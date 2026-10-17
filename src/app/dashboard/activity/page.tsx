@@ -105,73 +105,81 @@ export default function ActivityLog() {
             </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border rounded-md">
-              <thead>
-                <tr className="bg-[#CCDCD4] text-left text-[#505050] text-[14px]">
-                  <th className="px-4 py-3">USER</th>
-                  <th className="px-4 py-3">ROLE</th>
-                  <th className="px-4 py-3">LAST LOGIN</th>
-                  <th className="px-4 py-3">ACTION</th>
-                  {/* <th className="px-4 py-3">STATUS</th> */}
-                </tr>
-              </thead>
-              <tbody>
-                {logs.length === 0 && !loading ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-4 py-6 text-center text-gray-500"
-                    >
-                      No activity logs found.
-                    </td>
-                  </tr>
-                ) : (
-                  logs.map((log, index) => {
-                    const date = new Date(log.updatedAt);
-                    const formattedDate = date.toISOString().split("T")[0];
-                    const formattedTime = date.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    });
+          {logs.length === 0 && !loading ? (
+            <div className="bg-white border rounded-md px-4 py-6 text-center text-gray-500">
+              No activity logs found.
+            </div>
+          ) : (
+            <>
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full bg-white border rounded-md">
+                  <thead>
+                    <tr className="bg-brand-emerald-light text-left text-[#505050] text-[14px]">
+                      <th className="px-4 py-3">USER</th>
+                      <th className="px-4 py-3">ROLE</th>
+                      <th className="px-4 py-3">LAST LOGIN</th>
+                      <th className="px-4 py-3">ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logs.map((log, index) => {
+                      const date = new Date(log.updatedAt);
+                      const formattedDate = date.toISOString().split("T")[0];
+                      const formattedTime = date.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      });
 
-                    return (
-                      <tr
-                        key={index}
-                        className="border-t text-[14px] text-[#434343]"
-                      >
-                        <td className="px-4 py-3">{`${log.Admin.firstName} ${log.Admin.lastName}`}</td>
-                        <td className="px-4 py-3">{log.Admin.role}</td>
-                        <td className="px-4 py-3">
-                          {formattedDate}{" "}
-                          <span className="text-gray-400 ml-1">
-                            {formattedTime}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">{log.action}</td>
-                        {/* <td className="px-4 py-3">
-                      <span
-                        className={clsx(
-                          "text-sm font-medium",
-                          log.status === "Online"
-                            ? "text-green-500"
-                            : "text-orange-500"
-                        )}
-                      >
-                        {log.status}
+                      return (
+                        <tr key={index} className="border-t text-[14px] text-[#434343]">
+                          <td className="px-4 py-3">{`${log.Admin.firstName} ${log.Admin.lastName}`}</td>
+                          <td className="px-4 py-3">{log.Admin.role}</td>
+                          <td className="px-4 py-3">
+                            {formattedDate} <span className="text-gray-400 ml-1">{formattedTime}</span>
+                          </td>
+                          <td className="px-4 py-3">{log.action}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="flex flex-col gap-3 md:hidden">
+                {logs.map((log, index) => {
+                  const date = new Date(log.updatedAt);
+                  const formattedDate = date.toISOString().split("T")[0];
+                  const formattedTime = date.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  });
+
+                  return (
+                    <div key={index} className="bg-white border rounded-md p-4 flex flex-col gap-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-semibold text-[#353535] break-words">
+                          {`${log.Admin.firstName} ${log.Admin.lastName}`}
+                        </span>
+                        <span className="text-xs text-gray-400 whitespace-nowrap shrink-0">
+                          {formattedDate} {formattedTime}
+                        </span>
+                      </div>
+                      <span className="inline-block w-fit px-2.5 py-1 rounded-full text-xs font-medium bg-brand-emerald-light text-brand-emerald">
+                        {log.Admin.role}
                       </span>
-                    </td> */}
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                      <p className="text-sm text-[#434343]">{log.action}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
-            {/* Pagination Controls */}
-            <PageButton page={page} setPage={setPage} totalPages={totalPages} />
-          </div>
+          <PageButton page={page} setPage={setPage} totalPages={totalPages} />
         </div>{" "}
       </div>
     </ProtectedRoute>

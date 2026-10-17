@@ -153,22 +153,43 @@ export default function BlogOverviewPage() {
                   <AlertCircle size={15} /> Nothing published yet — your first post is one click away.
                 </div>
               ) : (
-                <table className="w-full text-sm">
-                  <tbody className="divide-y divide-gray-100">
+                <>
+                  {/* Desktop table */}
+                  <table className="w-full text-sm hidden md:table">
+                    <tbody className="divide-y divide-gray-100">
+                      {data.recentPublications.map((post) => (
+                        <tr key={post.id} className="hover:bg-[#F7F8FB]">
+                          <td className="px-4 py-3 font-medium text-[#353535]">{post.title}</td>
+                          <td className="px-4 py-3 text-[#6b6b6b]">
+                            {post.Author ? `${post.Author.firstName} ${post.Author.lastName}` : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-[#9ca3af] text-xs">
+                            {new Date(post.publishedAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                          </td>
+                          <td className="px-4 py-3 text-[#037F44] font-medium text-xs">{post.views} views</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Mobile cards */}
+                  <div className="flex flex-col divide-y divide-gray-100 md:hidden">
                     {data.recentPublications.map((post) => (
-                      <tr key={post.id} className="hover:bg-[#F7F8FB]">
-                        <td className="px-4 py-3 font-medium text-[#353535]">{post.title}</td>
-                        <td className="px-4 py-3 text-[#6b6b6b]">
-                          {post.Author ? `${post.Author.firstName} ${post.Author.lastName}` : "—"}
-                        </td>
-                        <td className="px-4 py-3 text-[#9ca3af] text-xs">
-                          {new Date(post.publishedAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
-                        </td>
-                        <td className="px-4 py-3 text-[#037F44] font-medium text-xs">{post.views} views</td>
-                      </tr>
+                      <div key={post.id} className="px-4 py-3 flex flex-col gap-1">
+                        <p className="font-medium text-[#353535] break-words">{post.title}</p>
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <span className="text-[#6b6b6b]">
+                            {post.Author ? `${post.Author.firstName} ${post.Author.lastName}` : "—"}
+                          </span>
+                          <span className="text-[#9ca3af]">
+                            {new Date(post.publishedAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                        </div>
+                        <span className="text-brand-emerald font-medium text-xs">{post.views} views</span>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </>
               )}
             </div>
           </>
