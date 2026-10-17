@@ -133,11 +133,11 @@ export default function ListingDetails() {
       {loading ? (
         <p>Loading orders...</p>
       ) : (
-        <div className="flex flex-col md:flex-row gap-6 min-w-0">
+        <div className="flex flex-col lg:flex-row gap-6 min-w-0">
           {/* Left + Main content card together */}
-          <div className="flex flex-col md:flex-row bg-white rounded-xl p-6 shadow flex-1 gap-6 min-w-0">
+          <div className="flex flex-col lg:flex-row bg-white rounded-xl p-6 shadow flex-1 gap-6 min-w-0">
             {/* Left section */}
-            <div className="md:w-[340px] w-full flex-shrink-0">
+            <div className="lg:w-[340px] w-full lg:flex-shrink-0">
               <ImageWithFallback
                 src={item?.imageUrl}
                 alt="Main"
