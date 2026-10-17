@@ -62,7 +62,7 @@ const TIER_LABELS: Record<VerificationTier, string> = {
 const TIER_COLORS: Record<VerificationTier, string> = {
   unverified: "bg-gray-100 text-gray-600",
   pending: "bg-yellow-100 text-yellow-800",
-  verified: "bg-[#e6f9f0] text-[#037F44]",
+  verified: "bg-brand-emerald-light text-brand-emerald",
   pro: "bg-[#fef9c3] text-[#713f12]",
 };
 
@@ -294,7 +294,45 @@ export default function SellerVerificationTab() {
       ) : submissions.length === 0 ? (
         <div className="text-center py-20 text-gray-400">No submissions found.</div>
       ) : (
-        <div className="bg-white rounded-xl shadow overflow-x-auto">
+        <>
+        {/* Mobile cards */}
+        <div className="flex flex-col gap-3 md:hidden">
+          {submissions.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 cursor-pointer"
+              onClick={() => openDetail(item)}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium break-words">
+                    {item.User ? `${item.User.firstName} ${item.User.lastName}` : "—"}
+                    {item.flagged && (
+                      <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700 uppercase align-middle">
+                        Flagged
+                      </span>
+                    )}
+                  </p>
+                  {item.User?.storeName && <p className="text-xs text-gray-400">{item.User.storeName}</p>}
+                </div>
+                <span className="text-xs text-gray-400 whitespace-nowrap shrink-0">{formatDate(item.submittedAt)}</span>
+              </div>
+              <p className="text-xs text-gray-500">
+                {item.documentType ? DOCUMENT_LABELS[item.documentType] : "No document type"}
+              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <StatusBadge status={item.status} />
+                <TierBadge tier={item.tier} />
+              </div>
+              <p className="text-xs text-gray-400">
+                Reviewed by{" "}
+                {item.ReviewedByAdmin ? `${item.ReviewedByAdmin.firstName} ${item.ReviewedByAdmin.lastName}` : "—"}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden md:block bg-white rounded-xl shadow overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
@@ -336,6 +374,7 @@ export default function SellerVerificationTab() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {/* Detail drawer */}
@@ -399,7 +438,7 @@ export default function SellerVerificationTab() {
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block text-sm text-[#037F44] underline break-all"
+                        className="block text-sm text-brand-emerald underline break-all"
                       >
                         {url}
                       </a>
@@ -458,7 +497,7 @@ export default function SellerVerificationTab() {
                   <button
                     onClick={requestApprove}
                     disabled={actionLoading !== null}
-                    className="w-full bg-[#037F44] text-white py-3 rounded-lg font-semibold hover:bg-[#026835] transition-colors disabled:opacity-60"
+                    className="w-full bg-brand-emerald text-white py-3 rounded-lg font-semibold hover:bg-brand-emerald-hover transition-colors disabled:opacity-60"
                   >
                     {actionLoading === "approve" ? "Approving…" : "Approve — Verified Seller"}
                   </button>
@@ -476,7 +515,7 @@ export default function SellerVerificationTab() {
                 <button
                   onClick={requestGrantPro}
                   disabled={actionLoading !== null}
-                  className="w-full bg-[#d7a825] text-white py-3 rounded-lg font-semibold hover:bg-[#b8911e] transition-colors disabled:opacity-60"
+                  className="w-full bg-brand-gold text-white py-3 rounded-lg font-semibold hover:bg-brand-gold-hover transition-colors disabled:opacity-60"
                 >
                   {actionLoading === "pro" ? "Granting…" : "Grant Pro Seller Tier"}
                 </button>

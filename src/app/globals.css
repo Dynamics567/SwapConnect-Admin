@@ -3,12 +3,41 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /*
+   * New admin brand palette (rebrand, admin-first). Intentionally
+   * diverges from the customer frontend's #037F44 system -- see
+   * project notes. Hover = ~20% darken per channel; light tint = ~12%
+   * blend onto white, matching the relationship the old
+   * #037F44 -> #026835 / #e6f9f0 pair already had. Obsidian gets a
+   * lighter ~10% tint instead of a dark one, since a near-black base
+   * needs a lighter tint to be usable as a subtle surface/badge-bg.
+   */
+  --brand-emerald: #02a55c;
+  --brand-emerald-hover: #02844a;
+  --brand-emerald-light: #e1f4eb;
+  --brand-gold: #e2b02e;
+  --brand-gold-hover: #b58d25;
+  --brand-gold-light: #fcf6e6;
+  --brand-obsidian: #101512;
+  --brand-obsidian-tint: #e7e8e7;
+  --brand-surface: #f5f7f4;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-poppins);
+
+  --color-brand-emerald: var(--brand-emerald);
+  --color-brand-emerald-hover: var(--brand-emerald-hover);
+  --color-brand-emerald-light: var(--brand-emerald-light);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-gold-hover: var(--brand-gold-hover);
+  --color-brand-gold-light: var(--brand-gold-light);
+  --color-brand-obsidian: var(--brand-obsidian);
+  --color-brand-obsidian-tint: var(--brand-obsidian-tint);
+  --color-brand-surface: var(--brand-surface);
 }
 
 /*
