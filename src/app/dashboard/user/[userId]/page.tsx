@@ -54,11 +54,11 @@ function LocationSourcePill({ source }: { source: "AUTO" | "MANUAL" | null | und
   const label = source === "AUTO" ? "Auto-detected" : source === "MANUAL" ? "Manually entered" : "Not set";
   const styles =
     source === "AUTO"
-      ? "bg-[#e6f9f0] text-[#037F44]"
+      ? "bg-brand-emerald-light text-brand-emerald"
       : source === "MANUAL"
       ? "bg-[#F7F8FB] text-[#505050]"
       : "bg-[#f3f4f6] text-[#9ca3af]";
-  const dot = source === "AUTO" ? "bg-[#037F44]" : source === "MANUAL" ? "bg-[#9ca3af]" : "bg-[#c4c4c4]";
+  const dot = source === "AUTO" ? "bg-brand-emerald" : source === "MANUAL" ? "bg-[#9ca3af]" : "bg-[#c4c4c4]";
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${styles}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
@@ -239,7 +239,7 @@ export default function UserDetailsPage() {
         <p className="text-xl text-red-600">User not found.</p>
         <Link
           href="/dashboard/user"
-          className="mt-4 text-[#037F44] flex items-center gap-2 hover:underline"
+          className="mt-4 text-brand-emerald flex items-center gap-2 hover:underline"
         >
           <ArrowLeft size={18} /> Back to Users
         </Link>
@@ -249,7 +249,7 @@ export default function UserDetailsPage() {
 
   return (
     <div className="flex flex-col gap-8 w-full min-w-0">
-      <div className="flex items-center gap-2  text-sm font-medium text-[#037F44]">
+      <div className="flex items-center gap-2  text-sm font-medium text-brand-emerald">
         <Link href="/dashboard/user" className="hover:underline text-[#505050]">
           User Mgt
         </Link>
@@ -258,14 +258,14 @@ export default function UserDetailsPage() {
       </div>
       {/* Tabs */}
 
-      <div className="flex gap-8 mb-8">
+      <div className="flex gap-6 sm:gap-8 mb-8 overflow-x-auto min-w-0">
         {tabs.map((tab) => (
           <button
             key={tab.key}
-            className={`text-base font-medium pb-2 border-b-2 transition-colors ${
+            className={`text-base font-medium pb-2 border-b-2 whitespace-nowrap shrink-0 transition-colors ${
               activeTab === tab.key
-                ? "border-[#037F44] text-[#037F44]"
-                : "border-transparent text-gray-500 hover:text-[#037F44]"
+                ? "border-brand-emerald text-brand-emerald"
+                : "border-transparent text-gray-500 hover:text-brand-emerald"
             }`}
             onClick={() =>
               setActiveTab(tab.key as "personal" | "orders" | "payments")
@@ -281,7 +281,7 @@ export default function UserDetailsPage() {
       <div className="bg-white rounded-lg shadow p-8 w-full">
         {activeTab === "personal" && (
           <div>
-            <div className="flex items-start justify-between mb-6">
+            <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
               {/* User Image */}
               <div className="flex items-center gap-4">
                 {users.avatar ? (
@@ -296,8 +296,8 @@ export default function UserDetailsPage() {
                   <UserCircle size={96} className="text-gray-300" />
                 )}
               </div>
-              <div className="flex items-center gap-3">
-                <div className="px-4 py-2 rounded-full text-xs font-semibold bg-[#f0faf5] text-[#037F44]">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="px-4 py-2 rounded-full text-xs font-semibold bg-brand-emerald-light text-brand-emerald">
                   {users.productCount ?? 0} Product{users.productCount === 1 ? "" : "s"} Uploaded
                 </div>
                 {role === "superadmin" && (
@@ -307,7 +307,7 @@ export default function UserDetailsPage() {
                       setChangeEmailError(null);
                       setShowChangeEmail(true);
                     }}
-                    className="px-4 py-2 rounded-full text-xs font-semibold bg-[#f0faf5] text-[#037F44] hover:bg-[#dcf3e7] transition-colors"
+                    className="px-4 py-2 rounded-full text-xs font-semibold bg-brand-emerald-light text-brand-emerald hover:bg-[#dcf3e7] transition-colors"
                   >
                     Change Email
                   </button>
@@ -337,8 +337,8 @@ export default function UserDetailsPage() {
                 </button>
               </div>
             </div>
-            <div className="flex gap-4 mb-4">
-              <div className="w-1/2">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <div className="sm:w-1/2">
                 <input
                   id="firstname"
                   type="text"
@@ -348,7 +348,7 @@ export default function UserDetailsPage() {
                   className="w-full px-3 py-2 border rounded bg-gray-100 text-base text-gray-700 placeholder:text-gray-500 placeholder:text-xs placeholder:font-medium"
                 />
               </div>
-              <div className="w-1/2">
+              <div className="sm:w-1/2">
                 <input
                   id="lastname"
                   type="text"
@@ -359,8 +359,8 @@ export default function UserDetailsPage() {
                 />
               </div>
             </div>
-            <div className="flex gap-4 mb-4">
-              <div className="w-1/2">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <div className="sm:w-1/2">
                 <input
                   id="email"
                   type="email"
@@ -370,7 +370,7 @@ export default function UserDetailsPage() {
                   className="w-full px-3 py-2 border rounded bg-gray-100 text-base text-gray-700 placeholder:text-gray-500 placeholder:text-xs placeholder:font-medium"
                 />
               </div>
-              <div className="w-1/2">
+              <div className="sm:w-1/2">
                 <input
                   id="phone"
                   type="text"
@@ -396,7 +396,7 @@ export default function UserDetailsPage() {
                   <div className="h-1.5 rounded-full bg-[#f3f4f6] overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${
-                        (users.profileCompletion?.percentage ?? 0) >= 100 ? "bg-[#037F44]" : "bg-[#a9791f]"
+                        (users.profileCompletion?.percentage ?? 0) >= 100 ? "bg-brand-emerald" : "bg-brand-gold-hover"
                       }`}
                       style={{ width: `${users.profileCompletion?.percentage ?? 0}%` }}
                     />
@@ -409,7 +409,7 @@ export default function UserDetailsPage() {
                 <div className="flex flex-wrap items-center gap-1.5 mb-3">
                   <span className="text-xs text-[#848484]">Missing:</span>
                   {users.profileCompletion!.missingFields.map((f) => (
-                    <span key={f} className="px-2 py-0.5 rounded-full bg-[#fef9ec] text-[#a9791f] text-xs">
+                    <span key={f} className="px-2 py-0.5 rounded-full bg-brand-gold-light text-brand-gold-hover text-xs">
                       {MISSING_FIELD_LABELS[f] || f}
                     </span>
                   ))}
@@ -431,43 +431,68 @@ export default function UserDetailsPage() {
         {activeTab === "orders" && (
           <div>
             {users.orderHistory && users.orderHistory.length > 0 ? (
-              <table className="w-full table-auto">
-                <thead>
-                  <tr className="bg-[#CCDCD4] text-[#505050] text-left">
-                    <th className="py-2 px-4 font-normal text-sm">ORDER ID</th>
-                    <th className="py-2 px-4 font-normal text-sm">
-                      PRODUCT NAME
-                    </th>
-                    <th className="py-2 px-4 font-normal text-sm">CATEGORY</th>
-                    <th className="py-2 px-4 font-normal text-sm">
-                      DESCRIPTION
-                    </th>
-                    <th className="py-2 px-4 font-normal text-sm">PRICE</th>
-                    <th className="py-2 px-4 font-normal text-sm">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.orderHistory.map((order) =>
+              <>
+                {/* Mobile/tablet cards */}
+                <div className="flex flex-col gap-3 lg:hidden">
+                  {users.orderHistory.flatMap((order) =>
                     order.OrderProducts.map((product) => (
-                      <tr
-                        key={`${order.id}-${product.id}`}
-                        className="text-sm text-[#434343]"
-                      >
-                        <td className="py-2 px-4">{order.id}</td>
-                        <td className="py-2 px-4">{product.name}</td>
-                        <td className="py-2 px-4">
-                          {product.Category?.name || "-"}
-                        </td>
-                        <td className="py-2 px-4">
-                          {product.description || "-"}
-                        </td>
-                        <td className="py-2 px-4">{product.price}</td>
-                        <td className="py-2 px-4">{order.status}</td>
-                      </tr>
+                      <div key={`${order.id}-${product.id}`} className="border rounded-lg p-4 flex flex-col gap-1.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-medium text-[#353535] break-words">{product.name}</p>
+                          <span className="text-xs text-gray-500 whitespace-nowrap shrink-0">#{order.id}</span>
+                        </div>
+                        <p className="text-xs text-gray-500">{product.Category?.name || "No category"}</p>
+                        {product.description && (
+                          <p className="text-sm text-gray-500 line-clamp-2">{product.description}</p>
+                        )}
+                        <div className="flex items-center justify-between gap-2 text-sm">
+                          <span className="font-semibold text-[#353535]">{product.price}</span>
+                          <span className="text-xs text-gray-500">{order.status}</span>
+                        </div>
+                      </div>
                     ))
                   )}
-                </tbody>
-              </table>
+                </div>
+
+                {/* Desktop table */}
+                <table className="w-full table-auto hidden lg:table">
+                  <thead>
+                    <tr className="bg-brand-emerald-light text-[#505050] text-left">
+                      <th className="py-2 px-4 font-normal text-sm">ORDER ID</th>
+                      <th className="py-2 px-4 font-normal text-sm">
+                        PRODUCT NAME
+                      </th>
+                      <th className="py-2 px-4 font-normal text-sm">CATEGORY</th>
+                      <th className="py-2 px-4 font-normal text-sm">
+                        DESCRIPTION
+                      </th>
+                      <th className="py-2 px-4 font-normal text-sm">PRICE</th>
+                      <th className="py-2 px-4 font-normal text-sm">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.orderHistory.map((order) =>
+                      order.OrderProducts.map((product) => (
+                        <tr
+                          key={`${order.id}-${product.id}`}
+                          className="text-sm text-[#434343]"
+                        >
+                          <td className="py-2 px-4">{order.id}</td>
+                          <td className="py-2 px-4">{product.name}</td>
+                          <td className="py-2 px-4">
+                            {product.Category?.name || "-"}
+                          </td>
+                          <td className="py-2 px-4">
+                            {product.description || "-"}
+                          </td>
+                          <td className="py-2 px-4">{product.price}</td>
+                          <td className="py-2 px-4">{order.status}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </>
             ) : (
               <div className="text-gray-500">No order history found.</div>
             )}
@@ -477,28 +502,48 @@ export default function UserDetailsPage() {
         {activeTab === "payments" && (
           <div>
             {users.paymentHistory && users.paymentHistory.length > 0 ? (
-              <table className="w-full table-auto">
-                <thead>
-                  <tr className="bg-[#CCDCD4] text-[#505050] text-sm text-left">
-                    <th className="py-2 px-4 font-normal">REFERENCE</th>
-                    <th className="py-2 px-4 font-normal">DESCRIPTION</th>
-                    <th className="py-2 px-4 font-normal">CATEGORY</th>
-                    <th className="py-2 px-4 font-normal">PRICE</th>
-                    <th className="py-2 px-4 font-normal">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <>
+                {/* Mobile/tablet cards */}
+                <div className="flex flex-col gap-3 lg:hidden">
                   {users.paymentHistory.map((payment) => (
-                    <tr key={payment.id} className="text-[#434343] text-sm">
-                      <td className="py-2 px-4">{payment.reference || payment.id}</td>
-                      <td className="py-2 px-4">{payment.description || "-"}</td>
-                      <td className="py-2 px-4">{payment.purpose}</td>
-                      <td className="py-2 px-4">{payment.amount}</td>
-                      <td className="py-2 px-4">{payment.status}</td>
-                    </tr>
+                    <div key={payment.id} className="border rounded-lg p-4 flex flex-col gap-1.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-mono text-xs text-gray-500 break-all">{payment.reference || payment.id}</p>
+                        <span className="text-xs text-gray-500 whitespace-nowrap shrink-0">{payment.status}</span>
+                      </div>
+                      {payment.description && <p className="text-sm text-gray-500">{payment.description}</p>}
+                      <div className="flex items-center justify-between gap-2 text-sm">
+                        <span className="text-gray-500">{payment.purpose}</span>
+                        <span className="font-semibold text-[#353535]">{payment.amount}</span>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+
+                {/* Desktop table */}
+                <table className="w-full table-auto hidden lg:table">
+                  <thead>
+                    <tr className="bg-brand-emerald-light text-[#505050] text-sm text-left">
+                      <th className="py-2 px-4 font-normal">REFERENCE</th>
+                      <th className="py-2 px-4 font-normal">DESCRIPTION</th>
+                      <th className="py-2 px-4 font-normal">CATEGORY</th>
+                      <th className="py-2 px-4 font-normal">PRICE</th>
+                      <th className="py-2 px-4 font-normal">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.paymentHistory.map((payment) => (
+                      <tr key={payment.id} className="text-[#434343] text-sm">
+                        <td className="py-2 px-4">{payment.reference || payment.id}</td>
+                        <td className="py-2 px-4">{payment.description || "-"}</td>
+                        <td className="py-2 px-4">{payment.purpose}</td>
+                        <td className="py-2 px-4">{payment.amount}</td>
+                        <td className="py-2 px-4">{payment.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
             ) : (
               <div className="text-gray-500">No payment history found.</div>
             )}
