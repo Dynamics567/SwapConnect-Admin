@@ -107,7 +107,7 @@ export default function BlogOverviewPage() {
         ) : (
           <>
             {/* Content statistics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard icon={<FileText size={22} className="text-[#037F44]" />} label="Total Posts" value={data.counts.total} />
               <StatCard icon={<CheckCircle2 size={22} className="text-[#037F44]" />} label="Published" value={data.counts.published} />
               <StatCard icon={<Clock size={22} className="text-[#037F44]" />} label="Drafts" value={data.counts.draft} />
