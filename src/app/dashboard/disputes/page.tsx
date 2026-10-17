@@ -362,7 +362,40 @@ function DisputesPageInner() {
       ) : disputes.length === 0 ? (
         <div className="text-center py-20 text-gray-400">No disputes yet.</div>
       ) : (
-        <div className="bg-white rounded-xl shadow overflow-x-auto">
+        <>
+        {/* Mobile/tablet cards */}
+        <div className="flex flex-col gap-3 lg:hidden">
+          {disputes.map((d) => (
+            <div
+              key={d.id}
+              className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 cursor-pointer"
+              onClick={() => openDetail(d)}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-mono text-xs text-gray-500">#{d.orderId}</p>
+                <StatusBadge status={d.status} />
+              </div>
+              <p className="text-sm">
+                <span className="text-gray-500">Complainant:</span>{" "}
+                <span className="font-medium">{d.Complainant ? `${d.Complainant.firstName} ${d.Complainant.lastName}` : "—"}</span>
+              </p>
+              <p className="text-sm">
+                <span className="text-gray-500">Seller:</span>{" "}
+                <span className="font-medium">{d.Seller ? `${d.Seller.firstName} ${d.Seller.lastName}` : "—"}</span>
+              </p>
+              <div className="flex items-center justify-between gap-2 text-xs text-gray-500">
+                <span>{REASON_LABELS[d.reason] ?? d.reason}</span>
+                <span>{formatDate(d.createdAt)}</span>
+              </div>
+              <p className="text-xs text-gray-400">
+                {d.AssignedAdmin ? `Assigned: ${d.AssignedAdmin.firstName} ${d.AssignedAdmin.lastName}` : "Unassigned"}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden lg:block bg-white rounded-xl shadow overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
@@ -408,6 +441,7 @@ function DisputesPageInner() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {/* Detail drawer */}
@@ -534,7 +568,7 @@ function DisputesPageInner() {
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block text-sm text-[#037F44] underline break-all"
+                        className="block text-sm text-brand-emerald underline break-all"
                       >
                         {url}
                       </a>
@@ -601,7 +635,7 @@ function DisputesPageInner() {
                   <button
                     onClick={() => requestResolve("release_seller")}
                     disabled={actionLoading !== null}
-                    className="w-full bg-[#037F44] text-white py-3 rounded-lg font-semibold hover:bg-[#026835] transition-colors disabled:opacity-60"
+                    className="w-full bg-brand-emerald text-white py-3 rounded-lg font-semibold hover:bg-brand-emerald-hover transition-colors disabled:opacity-60"
                   >
                     {actionLoading === "release" ? "Processing…" : "Release to Seller"}
                   </button>
