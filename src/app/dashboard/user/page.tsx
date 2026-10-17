@@ -380,7 +380,7 @@ function UserPageInner() {
     <ProtectedRoute allowedRoles={["admin", "superadmin", "supportagent", "verificationofficer"]}>
       <div className="flex flex-col gap-8 w-full min-w-0">
         {/* Tabs */}
-        <div className="flex gap-2 bg-white rounded-xl shadow p-2 w-full sm:w-fit mb-2 overflow-x-auto min-w-0">
+        <div className="flex gap-2 bg-white rounded-xl shadow p-2 w-full lg:w-fit mb-2 overflow-x-auto min-w-0">
           {canViewCustomers && (
             <button
               className={`px-6 py-2 rounded-lg text-base font-semibold transition shrink-0 whitespace-nowrap ${
