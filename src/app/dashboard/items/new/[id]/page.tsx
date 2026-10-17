@@ -2,11 +2,13 @@
 import React from "react";
 import { CheckCircle } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { useState, useEffect } from "react";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
 import { useParams } from "next/navigation";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 interface Item {
   id: string;
@@ -46,6 +48,7 @@ export default function ListingDetails() {
   const [approvalStatus, setApprovalStatus] = useState<
     "approved" | "rejected" | null
   >(null);
+  const [pendingAction, setPendingAction] = useState<"approve" | "reject" | null>(null);
 
   const params = useParams();
   const productId = params.id;
@@ -68,7 +71,6 @@ export default function ListingDetails() {
           }
         );
         const data = await response.json();
-        console.log("Recent Listings:", data);
         if (data) {
           setItem(data);
         } else {
@@ -83,12 +85,12 @@ export default function ListingDetails() {
     fetchOrders();
   }, [token, productId]);
 
-  const handleApprove = async () => {
-    if (!token || !productId) return;
+  const confirmPendingAction = async () => {
+    if (!token || !productId || !pendingAction) return;
     setLoading(true);
     try {
       const res = await fetch(
-        `${API_URL}/api/admin/product/${productId}/approve`,
+        `${API_URL}/api/admin/product/${productId}/${pendingAction}`,
         {
           method: "PUT",
           headers: {
@@ -98,59 +100,27 @@ export default function ListingDetails() {
         }
       );
       const result = await res.json();
-      console.log("Approved:", result);
-      // Previously set "approved" unconditionally, even on a 400/404/500 --
-      // an admin clicking Approve on a listing that failed to approve
-      // (e.g. already approved, product not found) would see a false
-      // "Product approved" success state with no indication anything
-      // went wrong.
+      // Previously set approved/rejected unconditionally, even on a
+      // 400/404/500 -- an admin clicking Approve on a listing that failed
+      // to approve (e.g. already approved, product not found) would see a
+      // false success state with no indication anything went wrong.
       if (res.ok) {
-        setApprovalStatus("approved");
+        setApprovalStatus(pendingAction === "approve" ? "approved" : "rejected");
       } else {
-        alert(result.message || "Failed to approve listing");
+        toast.error(result.message || `Failed to ${pendingAction} listing`);
       }
     } catch (err) {
-      console.error("Approval error:", err);
-      alert("Network or server error while approving listing.");
+      console.error(`${pendingAction} error:`, err);
+      toast.error(`Network or server error while ${pendingAction === "approve" ? "approving" : "rejecting"} listing.`);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleReject = async () => {
-    if (!token || !productId) return;
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `${API_URL}/api/admin/product/${productId}/reject`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const result = await res.json();
-      console.log("Rejected:", result);
-      // Same fix as handleApprove above -- don't show a false success state
-      // on a failed request.
-      if (res.ok) {
-        setApprovalStatus("rejected");
-      } else {
-        alert(result.message || "Failed to reject listing");
-      }
-    } catch (err) {
-      console.error("Rejection error:", err);
-      alert("Network or server error while rejecting listing.");
-    } finally {
-      setLoading(false);
+      setPendingAction(null);
     }
   };
 
   return (
     <div className="flex flex-col gap-8 w-full min-w-0">
-      <div className="flex items-center gap-2  text-sm font-medium text-[#037F44]">
+      <div className="flex items-center gap-2  text-sm font-medium text-[brand-emerald]">
         <Link
           href="/dashboard/items"
           className="hover:underline text-[#505050]"
@@ -175,7 +145,7 @@ export default function ListingDetails() {
                 height={200}
                 className="rounded-xl object-cover w-full h-48"
               />
-              <div className="flex mt-2 gap-2">
+              <div className="flex mt-2 gap-2 flex-wrap">
                 {item?.otherImages?.map((image, i) => (
                   <ImageWithFallback
                     key={i}
@@ -183,7 +153,7 @@ export default function ListingDetails() {
                     alt="product image"
                     width={64}
                     height={64}
-                    className="w-16 h-16 rounded-md object-cover"
+                    className="w-16 h-16 rounded-md object-cover shrink-0"
                   />
                 ))}
               </div>
@@ -208,40 +178,42 @@ export default function ListingDetails() {
             </div>
             {/* Main content */}
             <div className="space-y-3 text-sm flex-1">
-              <div className="flex flex-col gap-y-2">
-                <div className="flex justify-between items-center">
-                  <div className="flex flex-col">
+              <div className="flex flex-col gap-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-gray-500">BRAND</span>
-                    <span className="text-black">{item?.brand}</span>
+                    <span className="text-black break-words">{item?.brand}</span>
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-gray-500">CONDITION</span>
                     <span className="text-black">Used</span>
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex flex-col">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-gray-500">MODEL</span>
-                    <span className="text-black">{item?.metaData?.os}</span>
+                    <span className="text-black break-words">{item?.metaData?.os}</span>
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-gray-500">BATTERY HEALTH</span>
                     <span className="text-black">{item?.metaData?.battery}</span>
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex flex-col">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-gray-500">RAM</span>
-                    <span className="text-black">{item?.metaData?.ram}</span>
+                    <span className="text-black break-words">{item?.metaData?.ram}</span>
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-gray-500">COLOR</span>
-                    <span className="text-black">{item?.metaData?.color}</span>
+                    <span className="text-black break-words">{item?.metaData?.color}</span>
                   </div>
                 </div>
 
-                <span className="text-gray-500">STORAGE</span>
-                <span className="text-black">{item?.metaData?.storage}</span>
+                <div className="flex flex-col">
+                  <span className="text-gray-500">STORAGE</span>
+                  <span className="text-black break-words">{item?.metaData?.storage}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -260,7 +232,7 @@ export default function ListingDetails() {
               </div>
 
               {approvalStatus === "approved" ? (
-                <p className="text-green-700 font-medium text-center">
+                <p className="text-brand-emerald font-medium text-center">
                   Product approved
                 </p>
               ) : approvalStatus === "rejected" ? (
@@ -270,18 +242,18 @@ export default function ListingDetails() {
               ) : (
                 <>
                   <button
-                    onClick={handleApprove}
-                    className="bg-green-700 text-white rounded-lg py-2 w-full mb-3 hover:bg-green-800 disabled:opacity-50"
+                    onClick={() => setPendingAction("approve")}
+                    className="bg-brand-emerald text-white rounded-lg py-2 w-full mb-3 hover:bg-brand-emerald-hover disabled:opacity-50"
                     disabled={loading}
                   >
-                    {loading ? "Processing..." : "Approve listing"}
+                    Approve listing
                   </button>
                   <button
-                    onClick={handleReject}
-                    className="border border-green-700 text-green-700 rounded-lg py-2 w-full hover:bg-green-50 disabled:opacity-50"
+                    onClick={() => setPendingAction("reject")}
+                    className="border border-brand-emerald text-brand-emerald rounded-lg py-2 w-full hover:bg-brand-emerald-light disabled:opacity-50"
                     disabled={loading}
                   >
-                    {loading ? "Processing..." : "Reject listing"}
+                    Reject listing
                   </button>
                 </>
               )}
@@ -289,6 +261,21 @@ export default function ListingDetails() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!pendingAction}
+        title={pendingAction === "approve" ? "Approve this listing?" : "Reject this listing?"}
+        message={
+          pendingAction === "approve"
+            ? "It will show as approved and remain visible to buyers exactly as submitted."
+            : "It will be marked unapproved. The seller can still edit and it can be approved later."
+        }
+        variant={pendingAction === "reject" ? "warning" : "default"}
+        confirmLabel={pendingAction === "approve" ? "Approve" : "Reject"}
+        loading={loading}
+        onConfirm={confirmPendingAction}
+        onClose={() => setPendingAction(null)}
+      />
     </div>
   );
 }

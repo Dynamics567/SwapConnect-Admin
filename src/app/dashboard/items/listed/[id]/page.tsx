@@ -137,7 +137,7 @@ export default function ListingDetails() {
 
   return (
     <div className="flex flex-col gap-8 w-full min-w-0">
-      <div className="flex items-center gap-2  text-sm font-medium text-[#037F44]">
+      <div className="flex items-center gap-2  text-sm font-medium text-[brand-emerald]">
         <Link
           href="/dashboard/items"
           className="hover:underline text-[#505050]"
@@ -162,7 +162,7 @@ export default function ListingDetails() {
                 height={200}
                 className="rounded-xl object-cover w-full h-48"
               />
-              <div className="flex mt-2 gap-2">
+              <div className="flex mt-2 gap-2 flex-wrap">
                 {item?.otherImages?.map((image, i) => (
                   <ImageWithFallback
                     key={i}
@@ -170,7 +170,7 @@ export default function ListingDetails() {
                     alt="product image"
                     width={64}
                     height={64}
-                    className="w-16 h-16 rounded-md object-cover"
+                    className="w-16 h-16 rounded-md object-cover shrink-0"
                   />
                 ))}
               </div>
@@ -195,40 +195,42 @@ export default function ListingDetails() {
             </div>
             {/* Main content */}
             <div className="space-y-3 text-sm flex-1">
-              <div className="flex flex-col gap-y-2">
-                <div className="flex justify-between items-center">
-                  <div className="flex flex-col">
+              <div className="flex flex-col gap-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-gray-500">BRAND</span>
-                    <span>{item?.brand}</span>
+                    <span className="break-words">{item?.brand}</span>
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-gray-500">CONDITION</span>
-                    <span className="capitalize">{item?.condition || "—"}</span>
+                    <span className="capitalize break-words">{item?.condition || "—"}</span>
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex flex-col">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-gray-500">MODEL</span>
-                    <span>{item?.name || "—"}</span>
+                    <span className="break-words">{item?.name || "—"}</span>
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-gray-500">BATTERY HEALTH</span>
                     <span>{item?.metaData?.batteryHealth ? `${item.metaData.batteryHealth}%` : "—"}</span>
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex flex-col">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-gray-500">RAM</span>
-                    <span>{item?.metaData?.ram || "—"}</span>
+                    <span className="break-words">{item?.metaData?.ram || "—"}</span>
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-gray-500">COLOR</span>
-                    <span>{item?.metaData?.color || "—"}</span>
+                    <span className="break-words">{item?.metaData?.color || "—"}</span>
                   </div>
                 </div>
 
-                <span className="text-gray-500">STORAGE</span>
-                <span>{item?.metaData?.storage || "—"}</span>
+                <div className="flex flex-col">
+                  <span className="text-gray-500">STORAGE</span>
+                  <span className="break-words">{item?.metaData?.storage || "—"}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -261,7 +263,7 @@ export default function ListingDetails() {
                   <button
                     onClick={requestApprove}
                     disabled={!item}
-                    className="w-full bg-[#037F44] text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-[#026835] transition-colors disabled:opacity-60"
+                    className="w-full bg-[brand-emerald] text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-[brand-emerald-hover] transition-colors disabled:opacity-60"
                   >
                     Approve Listing
                   </button>
