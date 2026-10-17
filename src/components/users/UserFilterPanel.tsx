@@ -121,8 +121,8 @@ export default function UserFilterPanel(props: UserFilterPanelProps) {
   };
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="relative w-full md:w-[750px]">
+    <div className="flex items-center gap-3 min-w-0 flex-1">
+      <div className="relative w-full min-w-0 md:flex-1 md:max-w-[750px]">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
           <Search size={18} />
         </span>
@@ -136,7 +136,7 @@ export default function UserFilterPanel(props: UserFilterPanelProps) {
       </div>
 
       {/* Desktop: inline popover */}
-      <div className="relative hidden md:block">
+      <div className="relative hidden md:block shrink-0">
         <button
           onClick={() => setShowDesktopPanel((v) => !v)}
           className="flex items-center gap-2 bg-white border border-brand-emerald text-brand-emerald px-4 py-2 rounded hover:bg-brand-emerald-light transition-colors"

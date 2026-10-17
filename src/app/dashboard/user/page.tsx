@@ -453,7 +453,7 @@ function UserPageInner() {
             </div>
 
             {/* Search, Filter and Onboard */}
-            <div className="flex flex-col md:flex-row md:items-center gap-3">
+            <div className="flex flex-col md:flex-row md:items-center gap-3 min-w-0">
               <UserFilterPanel
                 search={search}
                 onSearchChange={setSearch}
@@ -469,7 +469,7 @@ function UserPageInner() {
               />
               <button
                 onClick={() => { setShowOnboardModal(true); setOnboardError(""); setOnboardSuccess(""); }}
-                className="flex items-center justify-center gap-2 bg-brand-emerald text-white px-4 py-2 min-h-[44px] rounded hover:bg-brand-emerald-hover transition-colors whitespace-nowrap"
+                className="flex items-center justify-center gap-2 bg-brand-emerald text-white px-4 py-2 min-h-[44px] rounded hover:bg-brand-emerald-hover transition-colors whitespace-nowrap shrink-0"
               >
                 <UserPlus size={18} />
                 Onboard User
