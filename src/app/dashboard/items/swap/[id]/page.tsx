@@ -136,9 +136,9 @@ export default function ListingDetails() {
       {loading ? (
         <p>Loading orders...</p>
       ) : (
-        <div className="flex flex-col md:flex-row gap-6">
+        <div className="flex flex-col md:flex-row gap-6 min-w-0">
           {/* Left + Main content card together */}
-          <div className="flex flex-col md:flex-row bg-white rounded-xl p-6 shadow flex-1 gap-6">
+          <div className="flex flex-col md:flex-row bg-white rounded-xl p-6 shadow flex-1 gap-6 min-w-0">
             {/* Left section */}
             <div className="md:w-[340px] w-full flex-shrink-0">
               <ImageWithFallback
@@ -185,7 +185,7 @@ export default function ListingDetails() {
               </div>
             </div>
             {/* Main content */}
-            <div className="space-y-3 text-sm flex-1">
+            <div className="space-y-3 text-sm flex-1 min-w-0">
               <div className="flex flex-col gap-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col min-w-0">

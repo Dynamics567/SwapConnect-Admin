@@ -142,7 +142,7 @@ function PostsPageInner() {
         </div>
 
         {/* Status tabs */}
-        <div className="flex items-center gap-1 bg-white rounded-lg shadow p-1 w-fit overflow-x-auto">
+        <div className="flex items-center gap-1 bg-white rounded-lg shadow p-1 w-full lg:w-fit overflow-x-auto min-w-0">
           {STATUS_TABS.map((tab) => (
             <button
               key={tab.key}

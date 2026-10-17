@@ -232,7 +232,7 @@ export default function CategoriesTagsPage() {
           </div>
         )}
 
-        <div className="flex items-center gap-1 bg-white rounded-lg shadow p-1 w-fit">
+        <div className="flex items-center gap-1 bg-white rounded-lg shadow p-1 w-full lg:w-fit overflow-x-auto min-w-0">
           <button
             onClick={() => setTab("categories")}
             className={`px-4 py-1.5 rounded-md text-sm font-medium ${tab === "categories" ? "bg-brand-emerald text-white" : "text-[#6b6b6b]"}`}

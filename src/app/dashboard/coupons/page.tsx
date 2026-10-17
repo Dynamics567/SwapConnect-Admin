@@ -364,7 +364,7 @@ function CouponsPageInner() {
       </div>
 
       {/* Filter segmented control */}
-      <div className="flex items-center gap-1 mb-4 bg-white border border-[#e5e7eb] rounded-lg p-1 w-fit">
+      <div className="flex items-center gap-1 mb-4 bg-white border border-[#e5e7eb] rounded-lg p-1 w-full sm:w-fit overflow-x-auto min-w-0">
         {(["all", "active", "inactive"] as const).map((f) => (
           <button
             key={f}
