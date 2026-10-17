@@ -101,9 +101,9 @@ function StatusPill({ coupon }: { coupon: Coupon }) {
   const styles = !coupon.active
     ? "bg-[#f3f4f6] text-[#6b7280]"
     : expired
-    ? "bg-[#fef9ec] text-[#a9791f]"
-    : "bg-[#e6f9f0] text-[#037f44]";
-  const dot = !coupon.active ? "bg-[#9ca3af]" : expired ? "bg-[#a9791f]" : "bg-[#037f44]";
+    ? "bg-brand-gold-light text-brand-gold-hover"
+    : "bg-brand-emerald-light text-brand-emerald";
+  const dot = !coupon.active ? "bg-[#9ca3af]" : expired ? "bg-brand-gold-hover" : "bg-brand-emerald";
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${styles}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
@@ -130,7 +130,7 @@ function UsageBar({ coupon }: { coupon: Coupon }) {
       </div>
       <div className="h-1.5 rounded-full bg-[#f3f4f6] overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${atLimit ? "bg-[#a9791f]" : "bg-[#037f44]"}`}
+          className={`h-full rounded-full transition-all ${atLimit ? "bg-brand-gold-hover" : "bg-brand-emerald"}`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -153,13 +153,13 @@ function CodeChip({ code }: { code: string }) {
     <button
       onClick={copy}
       title="Copy code"
-      className="inline-flex items-center gap-1.5 font-mono font-semibold text-sm text-[#353535] bg-[#f8f9fb] border border-[#e5e7eb] rounded-lg px-2.5 py-1 hover:border-[#037f44] transition-colors group"
+      className="inline-flex items-center gap-1.5 font-mono font-semibold text-sm text-[#353535] bg-[#f8f9fb] border border-[#e5e7eb] rounded-lg px-2.5 py-1 hover:border-brand-emerald transition-colors group"
     >
       {code}
       {copied ? (
-        <Check size={12} className="text-[#037f44]" />
+        <Check size={12} className="text-brand-emerald" />
       ) : (
-        <Copy size={12} className="text-[#9ca3af] group-hover:text-[#037f44]" />
+        <Copy size={12} className="text-[#9ca3af] group-hover:text-brand-emerald" />
       )}
     </button>
   );
@@ -328,10 +328,10 @@ function CouponsPageInner() {
   };
 
   const summaryCards = [
-    { label: "Total Coupons", value: stats.total, icon: <Ticket size={20} className="text-[#037F44]" /> },
-    { label: "Currently Active", value: stats.active, icon: <Tag size={20} className="text-[#037F44]" /> },
-    { label: "Total Redemptions", value: stats.totalUses, icon: <Receipt size={20} className="text-[#037F44]" /> },
-    { label: "Codes In Use", value: stats.totalRedeemable, icon: <Users size={20} className="text-[#037F44]" /> },
+    { label: "Total Coupons", value: stats.total, icon: <Ticket size={20} className="text-brand-emerald" /> },
+    { label: "Currently Active", value: stats.active, icon: <Tag size={20} className="text-brand-emerald" /> },
+    { label: "Total Redemptions", value: stats.totalUses, icon: <Receipt size={20} className="text-brand-emerald" /> },
+    { label: "Codes In Use", value: stats.totalRedeemable, icon: <Users size={20} className="text-brand-emerald" /> },
   ];
 
   return (
@@ -343,7 +343,7 @@ function CouponsPageInner() {
         </div>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 bg-[#037F44] text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#026835] transition-colors shrink-0"
+          className="inline-flex items-center gap-2 bg-brand-emerald text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-brand-emerald-hover transition-colors shrink-0"
         >
           <Plus size={16} />
           Create Coupon
@@ -351,11 +351,11 @@ function CouponsPageInner() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {summaryCards.map((s) => (
           <div key={s.label} className="bg-white rounded-xl shadow p-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="bg-[#f0faf5] rounded-lg p-2">{s.icon}</span>
+              <span className="bg-brand-emerald-light rounded-lg p-2">{s.icon}</span>
             </div>
             <div className="text-xl font-bold text-[#353535]">{loading ? "—" : s.value}</div>
             <div className="text-xs text-[#848484] mt-0.5">{s.label}</div>
@@ -370,7 +370,7 @@ function CouponsPageInner() {
             key={f}
             onClick={() => setStatusFilter(f)}
             className={`px-3.5 py-1.5 rounded-md text-sm font-medium capitalize transition-colors ${
-              statusFilter === f ? "bg-[#037f44] text-white" : "text-[#6b7280] hover:bg-[#f8f9fb]"
+              statusFilter === f ? "bg-brand-emerald text-white" : "text-[#6b7280] hover:bg-[#f8f9fb]"
             }`}
           >
             {f}
@@ -382,8 +382,8 @@ function CouponsPageInner() {
         <div className="bg-white rounded-xl shadow p-10 text-center text-[#848484]">Loading coupons…</div>
       ) : visibleCoupons.length === 0 ? (
         <div className="bg-white rounded-xl shadow p-12 flex flex-col items-center text-center">
-          <span className="bg-[#f0faf5] rounded-full p-4 mb-4">
-            <Ticket size={28} className="text-[#037F44]" />
+          <span className="bg-brand-emerald-light rounded-full p-4 mb-4">
+            <Ticket size={28} className="text-brand-emerald" />
           </span>
           <h3 className="text-base font-semibold text-[#353535] mb-1">
             {coupons.length === 0 ? "No coupons yet" : "No coupons match this filter"}
@@ -396,7 +396,7 @@ function CouponsPageInner() {
           {coupons.length === 0 && (
             <button
               onClick={openCreate}
-              className="inline-flex items-center gap-2 bg-[#037F44] text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#026835] transition-colors"
+              className="inline-flex items-center gap-2 bg-brand-emerald text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-brand-emerald-hover transition-colors"
             >
               <Plus size={16} />
               Create Coupon
@@ -404,7 +404,67 @@ function CouponsPageInner() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow overflow-hidden">
+        <>
+        {/* Mobile/tablet cards */}
+        <div className="flex flex-col gap-3 lg:hidden">
+          {visibleCoupons.map((c) => (
+            <div key={c.id} className="bg-white rounded-xl shadow p-4 flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <CodeChip code={c.code} />
+                  {c.description && (
+                    <p className="text-xs text-[#9ca3af] mt-1 truncate" title={c.description}>
+                      {c.description}
+                    </p>
+                  )}
+                </div>
+                <StatusPill coupon={c} />
+              </div>
+
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div>
+                  <div className="flex items-center gap-1.5 font-medium text-[#353535] text-sm">
+                    {c.discountType === "percentage" ? (
+                      <Percent size={13} className="text-[#9ca3af]" />
+                    ) : (
+                      <Banknote size={13} className="text-[#9ca3af]" />
+                    )}
+                    {formatDiscount(c)}
+                  </div>
+                  {c.maxDiscountAmount != null && c.discountType === "percentage" && (
+                    <p className="text-[10px] text-[#9ca3af] mt-0.5">up to {formatNGN(c.maxDiscountAmount)}</p>
+                  )}
+                </div>
+                <UsageBar coupon={c} />
+              </div>
+
+              <p className="text-xs text-[#9ca3af]">Expires: {formatDate(c.expiresAt)}</p>
+
+              <div className="flex gap-2 pt-1 border-t border-[#f3f4f6]">
+                <button
+                  onClick={() => openRedemptions(c)}
+                  className="flex-1 min-h-[40px] text-xs bg-[#f8f9fb] hover:bg-[#f3f4f6] text-[#353535] px-3 py-1.5 rounded-lg font-medium border border-[#e5e7eb]"
+                >
+                  Redemptions
+                </button>
+                <button
+                  onClick={() => handleToggleActive(c)}
+                  disabled={togglingId === c.id}
+                  className={`flex-1 min-h-[40px] text-xs px-3 py-1.5 rounded-lg font-medium disabled:opacity-60 transition-colors ${
+                    c.active
+                      ? "bg-[#fef2f2] text-[#b91c1c] hover:bg-[#fee2e2]"
+                      : "bg-brand-emerald-light text-brand-emerald hover:bg-brand-emerald-light"
+                  }`}
+                >
+                  {togglingId === c.id ? "Saving…" : c.active ? "Deactivate" : "Activate"}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden lg:block bg-white rounded-xl shadow overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-[#f8f9fb] border-b border-[#e5e7eb]">
@@ -462,7 +522,7 @@ function CouponsPageInner() {
                           className={`text-xs px-3 py-1.5 rounded-lg font-medium whitespace-nowrap disabled:opacity-60 transition-colors ${
                             c.active
                               ? "bg-[#fef2f2] text-[#b91c1c] hover:bg-[#fee2e2]"
-                              : "bg-[#e6f9f0] text-[#037f44] hover:bg-[#d1f2e3]"
+                              : "bg-brand-emerald-light text-brand-emerald hover:bg-brand-emerald-light"
                           }`}
                         >
                           {togglingId === c.id ? "Saving…" : c.active ? "Deactivate" : "Activate"}
@@ -475,6 +535,7 @@ function CouponsPageInner() {
             </table>
           </div>
         </div>
+        </>
       )}
 
       {/* Create Coupon modal */}
@@ -502,19 +563,19 @@ function CouponsPageInner() {
                   type="text"
                   value={form.code}
                   onChange={(e) => updateForm({ code: e.target.value })}
-                  className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] uppercase font-mono focus:outline-none focus:ring-2 focus:ring-[#037f44]/20 focus:border-[#037f44]"
+                  className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] uppercase font-mono focus:outline-none focus:ring-2 focus:ring-brand-emerald/20 focus:border-brand-emerald"
                   placeholder="e.g. WELCOME10"
                   required
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium mb-1.5 text-[#353535]">Discount Type</label>
                   <select
                     value={form.discountType}
                     onChange={(e) => updateForm({ discountType: e.target.value as DiscountType })}
-                    className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-[#037f44]/20 focus:border-[#037f44]"
+                    className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-brand-emerald/20 focus:border-brand-emerald"
                   >
                     <option value="percentage">Percentage (%)</option>
                     <option value="fixed">Fixed Amount (₦)</option>
@@ -531,13 +592,13 @@ function CouponsPageInner() {
                     step="0.01"
                     value={form.discountValue}
                     onChange={(e) => updateForm({ discountValue: e.target.value })}
-                    className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-[#037f44]/20 focus:border-[#037f44]"
+                    className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-brand-emerald/20 focus:border-brand-emerald"
                     required
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium mb-1.5 text-[#353535]">Min Order (₦)</label>
                   <input
@@ -545,7 +606,7 @@ function CouponsPageInner() {
                     min={0}
                     value={form.minOrderAmount}
                     onChange={(e) => updateForm({ minOrderAmount: e.target.value })}
-                    className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-[#037f44]/20 focus:border-[#037f44]"
+                    className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-brand-emerald/20 focus:border-brand-emerald"
                     placeholder="Optional"
                   />
                 </div>
@@ -556,13 +617,13 @@ function CouponsPageInner() {
                     min={0}
                     value={form.maxDiscountAmount}
                     onChange={(e) => updateForm({ maxDiscountAmount: e.target.value })}
-                    className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-[#037f44]/20 focus:border-[#037f44]"
+                    className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-brand-emerald/20 focus:border-brand-emerald"
                     placeholder="Optional"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium mb-1.5 text-[#353535]">Max Total Uses</label>
                   <input
@@ -570,7 +631,7 @@ function CouponsPageInner() {
                     min={0}
                     value={form.maxUses}
                     onChange={(e) => updateForm({ maxUses: e.target.value })}
-                    className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-[#037f44]/20 focus:border-[#037f44]"
+                    className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-brand-emerald/20 focus:border-brand-emerald"
                     placeholder="Unlimited"
                   />
                 </div>
@@ -581,7 +642,7 @@ function CouponsPageInner() {
                     min={1}
                     value={form.maxUsesPerUser}
                     onChange={(e) => updateForm({ maxUsesPerUser: e.target.value })}
-                    className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-[#037f44]/20 focus:border-[#037f44]"
+                    className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-brand-emerald/20 focus:border-brand-emerald"
                   />
                 </div>
               </div>
@@ -592,7 +653,7 @@ function CouponsPageInner() {
                   type="date"
                   value={form.expiresAt}
                   onChange={(e) => updateForm({ expiresAt: e.target.value })}
-                  className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-[#037f44]/20 focus:border-[#037f44]"
+                  className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] focus:outline-none focus:ring-2 focus:ring-brand-emerald/20 focus:border-brand-emerald"
                 />
               </div>
 
@@ -602,7 +663,7 @@ function CouponsPageInner() {
                   value={form.description}
                   onChange={(e) => updateForm({ description: e.target.value })}
                   rows={2}
-                  className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] resize-none focus:outline-none focus:ring-2 focus:ring-[#037f44]/20 focus:border-[#037f44]"
+                  className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-[#f8f9fb] resize-none focus:outline-none focus:ring-2 focus:ring-brand-emerald/20 focus:border-brand-emerald"
                   placeholder="Shown to customers, e.g. 'Welcome discount for new customers'"
                 />
               </div>
@@ -624,7 +685,7 @@ function CouponsPageInner() {
                 <button
                   type="submit"
                   disabled={creating}
-                  className="flex-1 bg-[#037F44] text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-[#026835] transition-colors disabled:opacity-60"
+                  className="flex-1 bg-brand-emerald text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-brand-emerald-hover transition-colors disabled:opacity-60"
                 >
                   {creating ? "Creating…" : "Create Coupon"}
                 </button>
@@ -653,9 +714,9 @@ function CouponsPageInner() {
             </div>
 
             <div className="p-6">
-              <div className="bg-[#f0faf5] rounded-xl p-4 flex items-center justify-between mb-5">
-                <span className="text-sm text-[#037f44] font-medium">Total Discount Given</span>
-                <span className="text-lg font-bold text-[#037f44]">{formatNGN(totalDiscountGiven)}</span>
+              <div className="bg-brand-emerald-light rounded-xl p-4 flex items-center justify-between mb-5">
+                <span className="text-sm text-brand-emerald font-medium">Total Discount Given</span>
+                <span className="text-lg font-bold text-brand-emerald">{formatNGN(totalDiscountGiven)}</span>
               </div>
 
               {redemptionsLoading ? (
@@ -678,7 +739,7 @@ function CouponsPageInner() {
                           User #{r.userId} · {formatDate(r.createdAt)}
                         </p>
                       </div>
-                      <span className="text-sm font-semibold text-[#037f44]">{formatNGN(r.discountAmount)}</span>
+                      <span className="text-sm font-semibold text-brand-emerald">{formatNGN(r.discountAmount)}</span>
                     </div>
                   ))}
                 </div>
