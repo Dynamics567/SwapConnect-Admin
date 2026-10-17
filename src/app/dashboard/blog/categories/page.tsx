@@ -235,13 +235,13 @@ export default function CategoriesTagsPage() {
         <div className="flex items-center gap-1 bg-white rounded-lg shadow p-1 w-fit">
           <button
             onClick={() => setTab("categories")}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium ${tab === "categories" ? "bg-[#037F44] text-white" : "text-[#6b6b6b]"}`}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium ${tab === "categories" ? "bg-brand-emerald text-white" : "text-[#6b6b6b]"}`}
           >
             Categories
           </button>
           <button
             onClick={() => setTab("tags")}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium ${tab === "tags" ? "bg-[#037F44] text-white" : "text-[#6b6b6b]"}`}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium ${tab === "tags" ? "bg-brand-emerald text-white" : "text-[#6b6b6b]"}`}
           >
             Tags
           </button>
@@ -253,30 +253,56 @@ export default function CategoriesTagsPage() {
               <div className="flex justify-end">
                 <button
                   onClick={openCreateCategory}
-                  className="flex items-center gap-2 bg-[#037F44] hover:bg-[#026835] text-white font-semibold text-sm px-4 py-2.5 rounded-lg"
+                  className="flex items-center gap-2 bg-brand-emerald hover:bg-brand-emerald-hover text-white font-semibold text-sm px-4 py-2.5 rounded-lg"
                 >
                   <PlusCircle size={16} /> New Category
                 </button>
               </div>
             )}
-            <div className="bg-white rounded-xl shadow overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Name</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Slug</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Description</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Posts</th>
-                    {canManage && <th className="px-4 py-3" />}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {catLoading ? (
-                    <tr><td colSpan={5} className="text-center py-10 text-gray-400">Loading…</td></tr>
-                  ) : categories.length === 0 ? (
-                    <tr><td colSpan={5} className="text-center py-10 text-gray-400">No categories yet.</td></tr>
-                  ) : (
-                    categories.map((cat) => (
+            {catLoading ? (
+              <p className="text-center py-10 text-gray-400">Loading…</p>
+            ) : categories.length === 0 ? (
+              <p className="text-center py-10 text-gray-400">No categories yet.</p>
+            ) : (
+              <>
+              {/* Mobile/tablet cards */}
+              <div className="flex flex-col gap-3 lg:hidden">
+                {categories.map((cat) => (
+                  <div key={cat.id} className="bg-white rounded-xl shadow p-4 flex flex-col gap-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-medium text-[#353535] break-words">{cat.name}</p>
+                      {canManage && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button onClick={() => openEditCategory(cat)} className="text-[#505050] hover:bg-gray-100 p-1.5 rounded-lg">
+                            <Pencil size={14} />
+                          </button>
+                          <button onClick={() => setDeleteCatTarget(cat)} className="text-red-600 hover:bg-red-50 p-1.5 rounded-lg">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="font-mono text-xs text-gray-500">{cat.slug}</p>
+                    <p className="text-sm text-gray-500 line-clamp-2">{cat.description || "—"}</p>
+                    <p className="text-xs text-gray-400">{cat.postCount} post{cat.postCount === 1 ? "" : "s"}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop table */}
+              <div className="hidden lg:block bg-white rounded-xl shadow overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Name</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Slug</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Description</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Posts</th>
+                      {canManage && <th className="px-4 py-3" />}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {categories.map((cat) => (
                       <tr key={cat.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3 font-medium text-[#353535]">{cat.name}</td>
                         <td className="px-4 py-3 font-mono text-xs text-gray-500">{cat.slug}</td>
@@ -295,11 +321,12 @@ export default function CategoriesTagsPage() {
                           </td>
                         )}
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              </>
+            )}
           </>
         ) : (
           <>
@@ -311,16 +338,16 @@ export default function CategoriesTagsPage() {
                     onChange={(e) => setNewTagName(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && createTag()}
                     placeholder="New tag name"
-                    className="border border-[#e5e7eb] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#037F44]"
+                    className="border border-[#e5e7eb] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-emerald"
                   />
-                  <button onClick={createTag} className="bg-[#037F44] hover:bg-[#026835] text-white font-semibold text-sm px-4 py-2 rounded-lg">
+                  <button onClick={createTag} className="bg-brand-emerald hover:bg-brand-emerald-hover text-white font-semibold text-sm px-4 py-2 rounded-lg">
                     Add Tag
                   </button>
                 </div>
                 <button
                   onClick={() => { setMergeMode((v) => !v); setMergeSelection(new Set()); setMergeTarget(null); }}
                   className={`flex items-center gap-1.5 text-sm font-semibold px-3.5 py-2 rounded-lg border transition-colors ${
-                    mergeMode ? "bg-[#037F44] text-white border-[#037F44]" : "border-[#e5e7eb] text-[#505050]"
+                    mergeMode ? "bg-brand-emerald text-white border-brand-emerald" : "border-[#e5e7eb] text-[#505050]"
                   }`}
                 >
                   <Combine size={14} /> {mergeMode ? "Cancel Merge" : "Merge Tags"}
@@ -334,12 +361,12 @@ export default function CategoriesTagsPage() {
                   Select tags to merge, then choose which tag they become. Selected tags will be deleted; their posts keep the target tag.
                 </p>
                 {mergeSelection.size > 0 && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs text-[#6b6b6b]">Merge into:</span>
                     <select
                       value={mergeTarget ?? ""}
                       onChange={(e) => setMergeTarget(Number(e.target.value))}
-                      className="border border-[#e5e7eb] rounded-lg px-2 py-1 text-xs"
+                      className="border border-[#e5e7eb] rounded-lg px-2 py-1 text-xs min-w-0"
                     >
                       <option value="">Select target tag…</option>
                       {tags.filter((t) => !mergeSelection.has(t.id)).map((t) => (
@@ -349,7 +376,7 @@ export default function CategoriesTagsPage() {
                     <button
                       onClick={confirmMerge}
                       disabled={!mergeTarget}
-                      className="bg-[#037F44] text-white text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50"
+                      className="bg-brand-emerald text-white text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50"
                     >
                       Confirm Merge ({mergeSelection.size})
                     </button>
@@ -358,24 +385,70 @@ export default function CategoriesTagsPage() {
               </div>
             )}
 
-            <div className="bg-white rounded-xl shadow overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    {mergeMode && <th className="px-4 py-3 w-8" />}
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Name</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Slug</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Posts</th>
-                    {canManage && !mergeMode && <th className="px-4 py-3" />}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {tagLoading ? (
-                    <tr><td colSpan={4} className="text-center py-10 text-gray-400">Loading…</td></tr>
-                  ) : tags.length === 0 ? (
-                    <tr><td colSpan={4} className="text-center py-10 text-gray-400">No tags yet.</td></tr>
-                  ) : (
-                    tags.map((tag) => (
+            {tagLoading ? (
+              <p className="text-center py-10 text-gray-400">Loading…</p>
+            ) : tags.length === 0 ? (
+              <p className="text-center py-10 text-gray-400">No tags yet.</p>
+            ) : (
+              <>
+              {/* Mobile/tablet cards */}
+              <div className="flex flex-col gap-3 lg:hidden">
+                {tags.map((tag) => (
+                  <div key={tag.id} className="bg-white rounded-xl shadow p-4 flex flex-col gap-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {mergeMode && (
+                          <input
+                            type="checkbox"
+                            checked={mergeSelection.has(tag.id)}
+                            onChange={() => toggleMergeSelect(tag.id)}
+                            className="shrink-0"
+                          />
+                        )}
+                        {renamingTag?.id === tag.id ? (
+                          <input
+                            autoFocus
+                            value={renamingTag.name}
+                            onChange={(e) => setRenamingTag({ id: tag.id, name: e.target.value })}
+                            onKeyDown={(e) => e.key === "Enter" && renameTag()}
+                            onBlur={renameTag}
+                            className="border border-brand-emerald rounded px-2 py-0.5 text-sm min-w-0"
+                          />
+                        ) : (
+                          <p className="font-medium text-[#353535] break-words">{tag.name}</p>
+                        )}
+                      </div>
+                      {canManage && !mergeMode && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button onClick={() => setRenamingTag({ id: tag.id, name: tag.name })} className="text-[#505050] hover:bg-gray-100 p-1.5 rounded-lg">
+                            <Pencil size={14} />
+                          </button>
+                          <button onClick={() => setDeleteTagTarget(tag)} className="text-red-600 hover:bg-red-50 p-1.5 rounded-lg">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="font-mono text-xs text-gray-500">{tag.slug}</p>
+                    <p className="text-xs text-gray-400">{tag.postCount} post{tag.postCount === 1 ? "" : "s"}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop table */}
+              <div className="hidden lg:block bg-white rounded-xl shadow overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      {mergeMode && <th className="px-4 py-3 w-8" />}
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Name</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Slug</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Posts</th>
+                      {canManage && !mergeMode && <th className="px-4 py-3" />}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {tags.map((tag) => (
                       <tr key={tag.id} className="hover:bg-gray-50">
                         {mergeMode && (
                           <td className="px-4 py-3">
@@ -390,7 +463,7 @@ export default function CategoriesTagsPage() {
                               onChange={(e) => setRenamingTag({ id: tag.id, name: e.target.value })}
                               onKeyDown={(e) => e.key === "Enter" && renameTag()}
                               onBlur={renameTag}
-                              className="border border-[#037F44] rounded px-2 py-0.5 text-sm"
+                              className="border border-brand-emerald rounded px-2 py-0.5 text-sm"
                             />
                           ) : (
                             tag.name
@@ -411,11 +484,12 @@ export default function CategoriesTagsPage() {
                           </td>
                         )}
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              </>
+            )}
           </>
         )}
       </div>
@@ -481,7 +555,7 @@ export default function CategoriesTagsPage() {
             <button
               onClick={saveCategory}
               disabled={catSaving}
-              className="w-full bg-[#037F44] text-white py-3 rounded-lg font-semibold mt-6 hover:bg-[#026835] disabled:opacity-60"
+              className="w-full bg-brand-emerald text-white py-3 rounded-lg font-semibold mt-6 hover:bg-brand-emerald-hover disabled:opacity-60"
             >
               {catSaving ? "Saving…" : "Save Category"}
             </button>

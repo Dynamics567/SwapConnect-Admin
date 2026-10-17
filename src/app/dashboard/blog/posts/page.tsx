@@ -40,8 +40,8 @@ const STATUS_TABS: { key: Status | ""; label: string }[] = [
 const STATUS_BADGE: Record<Status, string> = {
   draft: "bg-gray-100 text-gray-600",
   in_review: "bg-blue-100 text-blue-800",
-  scheduled: "bg-[#fef9ec] text-[#a9791f]",
-  published: "bg-[#e6f9f0] text-[#037f44]",
+  scheduled: "bg-brand-gold-light text-brand-gold-hover",
+  published: "bg-brand-emerald-light text-brand-emerald",
   archived: "bg-red-50 text-red-700",
 };
 
@@ -135,7 +135,7 @@ function PostsPageInner() {
           <h1 className="text-2xl font-bold text-[#353535]">Blog Posts</h1>
           <Link
             href="/dashboard/blog/posts/new"
-            className="flex items-center gap-2 bg-[#037F44] hover:bg-[#026835] text-white font-semibold text-sm px-4 py-2.5 rounded-lg transition-colors"
+            className="flex items-center gap-2 bg-brand-emerald hover:bg-brand-emerald-hover text-white font-semibold text-sm px-4 py-2.5 rounded-lg transition-colors"
           >
             <PlusCircle size={16} /> Create Post
           </Link>
@@ -148,7 +148,7 @@ function PostsPageInner() {
               key={tab.key}
               onClick={() => { setStatus(tab.key); setPage(1); }}
               className={`px-3.5 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-                status === tab.key ? "bg-[#037F44] text-white" : "text-[#6b6b6b] hover:bg-[#F7F8FB]"
+                status === tab.key ? "bg-brand-emerald text-white" : "text-[#6b6b6b] hover:bg-[#F7F8FB]"
               }`}
             >
               {tab.label}
@@ -164,7 +164,7 @@ function PostsPageInner() {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder="Search posts…"
-              className="w-full pl-9 pr-3 py-2 border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#037F44]"
+              className="w-full pl-9 pr-3 py-2 border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-brand-emerald"
             />
           </div>
           <select
@@ -186,14 +186,14 @@ function PostsPageInner() {
             <button
               onClick={() => runBulk("publish")}
               disabled={bulkLoading}
-              className="flex items-center gap-1.5 text-xs font-semibold text-[#037F44] bg-[#e6f9f0] px-3 py-1.5 rounded-lg hover:bg-[#d1f0e0] disabled:opacity-50"
+              className="flex items-center gap-1.5 text-xs font-semibold text-brand-emerald bg-brand-emerald-light px-3 py-1.5 rounded-lg hover:bg-brand-emerald-light disabled:opacity-50"
             >
               <CheckCircle2 size={13} /> Publish
             </button>
             <button
               onClick={() => runBulk("archive")}
               disabled={bulkLoading}
-              className="flex items-center gap-1.5 text-xs font-semibold text-[#a9791f] bg-[#fef9ec] px-3 py-1.5 rounded-lg hover:bg-[#fbf0d3] disabled:opacity-50"
+              className="flex items-center gap-1.5 text-xs font-semibold text-brand-gold-hover bg-brand-gold-light px-3 py-1.5 rounded-lg hover:bg-brand-gold-light disabled:opacity-50"
             >
               <Archive size={13} /> Archive
             </button>
@@ -207,8 +207,81 @@ function PostsPageInner() {
           </div>
         )}
 
-        {/* Table */}
-        <div className="bg-white rounded-xl shadow overflow-x-auto">
+        {/* Mobile/tablet cards */}
+        <div className="flex flex-col gap-3 lg:hidden">
+          {loading ? (
+            <p className="text-center py-10 text-gray-400">Loading…</p>
+          ) : posts.length === 0 ? (
+            <p className="text-center py-10 text-gray-400">No posts found. Create your first one.</p>
+          ) : (
+            posts.map((post) => (
+              <div key={post.id} className="bg-white rounded-xl shadow p-4 flex flex-col gap-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2 min-w-0">
+                    {canPublish && (
+                      <input
+                        type="checkbox"
+                        checked={selected.has(post.id)}
+                        onChange={() => toggleSelect(post.id)}
+                        className="mt-1 shrink-0"
+                      />
+                    )}
+                    <Link href={`/dashboard/blog/posts/${post.id}/edit`} className="font-medium text-[#353535] hover:text-brand-emerald break-words">
+                      {post.title}
+                    </Link>
+                  </div>
+                  <span className={`shrink-0 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${STATUS_BADGE[post.status]}`}>
+                    {STATUS_LABEL[post.status]}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500">
+                  {post.Author ? `${post.Author.firstName} ${post.Author.lastName}` : "—"} · {post.Category?.name ?? "No category"}
+                </div>
+                <div className="flex items-center justify-between gap-2 text-xs text-gray-500">
+                  <span className="flex items-center gap-1"><Eye size={12} /> {post.views}</span>
+                  <span className="text-gray-400">
+                    {post.status === "scheduled" && post.scheduledFor
+                      ? new Date(post.scheduledFor).toLocaleString("en-NG", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+                      : post.publishedAt
+                      ? new Date(post.publishedAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })
+                      : new Date(post.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                  </span>
+                </div>
+                {canPublish && (
+                  <div className="flex items-center gap-2 pt-1 border-t border-gray-100">
+                    {post.status !== "published" && post.status !== "archived" && (
+                      <button
+                        onClick={() => quickStatusAction(post.id, "publish")}
+                        className="flex items-center gap-1.5 text-xs font-medium text-brand-emerald hover:bg-brand-emerald-light px-2.5 py-1.5 rounded-lg"
+                      >
+                        <CheckCircle2 size={14} /> Publish
+                      </button>
+                    )}
+                    {post.status === "published" && (
+                      <button
+                        onClick={() => quickStatusAction(post.id, "archive")}
+                        className="flex items-center gap-1.5 text-xs font-medium text-brand-gold-hover hover:bg-brand-gold-light px-2.5 py-1.5 rounded-lg"
+                      >
+                        <Archive size={14} /> Archive
+                      </button>
+                    )}
+                    {post.status === "archived" && (
+                      <button
+                        onClick={() => quickStatusAction(post.id, "restore")}
+                        className="flex items-center gap-1.5 text-xs font-medium text-brand-emerald hover:bg-brand-emerald-light px-2.5 py-1.5 rounded-lg"
+                      >
+                        <RotateCcw size={14} /> Restore
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden lg:block bg-white rounded-xl shadow overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
@@ -244,7 +317,7 @@ function PostsPageInner() {
                       </td>
                     )}
                     <td className="px-4 py-3">
-                      <Link href={`/dashboard/blog/posts/${post.id}/edit`} className="font-medium text-[#353535] hover:text-[#037F44] line-clamp-1">
+                      <Link href={`/dashboard/blog/posts/${post.id}/edit`} className="font-medium text-[#353535] hover:text-brand-emerald line-clamp-1">
                         {post.title}
                       </Link>
                     </td>
@@ -274,7 +347,7 @@ function PostsPageInner() {
                             <button
                               title="Publish"
                               onClick={() => quickStatusAction(post.id, "publish")}
-                              className="text-[#037F44] hover:bg-[#e6f9f0] p-1.5 rounded-lg"
+                              className="text-brand-emerald hover:bg-brand-emerald-light p-1.5 rounded-lg"
                             >
                               <CheckCircle2 size={15} />
                             </button>
@@ -283,7 +356,7 @@ function PostsPageInner() {
                             <button
                               title="Archive"
                               onClick={() => quickStatusAction(post.id, "archive")}
-                              className="text-[#a9791f] hover:bg-[#fef9ec] p-1.5 rounded-lg"
+                              className="text-brand-gold-hover hover:bg-brand-gold-light p-1.5 rounded-lg"
                             >
                               <Archive size={15} />
                             </button>
@@ -292,7 +365,7 @@ function PostsPageInner() {
                             <button
                               title="Restore"
                               onClick={() => quickStatusAction(post.id, "restore")}
-                              className="text-[#037F44] hover:bg-[#e6f9f0] p-1.5 rounded-lg"
+                              className="text-brand-emerald hover:bg-brand-emerald-light p-1.5 rounded-lg"
                             >
                               <RotateCcw size={15} />
                             </button>
@@ -309,13 +382,13 @@ function PostsPageInner() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-2 flex-wrap">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
               <button
                 key={p}
                 onClick={() => setPage(p)}
                 className={`w-8 h-8 rounded-lg text-sm font-medium ${
-                  p === page ? "bg-[#037F44] text-white" : "bg-white text-[#6b6b6b] hover:bg-gray-100"
+                  p === page ? "bg-brand-emerald text-white" : "bg-white text-[#6b6b6b] hover:bg-gray-100"
                 }`}
               >
                 {p}
