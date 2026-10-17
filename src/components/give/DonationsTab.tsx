@@ -138,7 +138,42 @@ export default function DonationsTab() {
       ) : listings.length === 0 ? (
         <div className="text-center py-20 text-gray-400">No donations found.</div>
       ) : (
-        <div className="bg-white rounded-xl shadow overflow-x-auto">
+        <>
+        {/* Mobile/tablet cards */}
+        <div className="flex flex-col gap-3 lg:hidden">
+          {listings.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 cursor-pointer"
+              onClick={() => { setSelected(item); setReason(""); }}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium break-words">
+                    {item.Product?.name ?? "—"}
+                    {item.Product?.brand && <span className="text-gray-400 ml-1">{item.Product.brand}</span>}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {item.identityMode === "ANONYMOUS" ? "Anonymous" : `${item.Donor?.firstName ?? ""} ${item.Donor?.lastName ?? ""}`}
+                  </p>
+                </div>
+                <span className="text-xs text-gray-400 whitespace-nowrap shrink-0">
+                  {new Date(item.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                </span>
+              </div>
+              <span className={`w-fit text-xs px-2 py-1 rounded-full font-medium ${STATE_COLORS[item.state]}`}>{item.state}</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); setSelected(item); setReason(""); }}
+                className="mt-1 min-h-[44px] text-sm bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
+              >
+                Review
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden lg:block bg-white rounded-xl shadow overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
@@ -183,6 +218,7 @@ export default function DonationsTab() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {/* Detail drawer */}
@@ -247,7 +283,7 @@ export default function DonationsTab() {
                   </button>
                   <button
                     onClick={() => setConfirmAction("verify")}
-                    className="flex-1 bg-[#037F44] text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-[#026835]"
+                    className="flex-1 bg-brand-emerald text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-brand-emerald-hover"
                   >
                     Verify
                   </button>

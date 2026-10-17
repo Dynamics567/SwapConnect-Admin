@@ -31,7 +31,7 @@ function NoticeBanner() {
   return (
     <div
       className={`fixed top-5 right-5 z-[200] px-4 py-3 rounded-xl shadow-lg text-sm font-medium ${
-        notice.type === "success" ? "bg-[#037F44] text-white" : "bg-red-600 text-white"
+        notice.type === "success" ? "bg-brand-emerald text-white" : "bg-red-600 text-white"
       }`}
     >
       {notice.text}
@@ -80,7 +80,7 @@ export default function AiStudioPage() {
       <div className="w-full flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-[#037F44] flex items-center gap-2">
+            <h2 className="text-2xl font-bold text-brand-emerald flex items-center gap-2">
               <Sparkles size={22} /> AI Product Studio
             </h2>
             <p className="text-sm text-[#848484] mt-1">Review generated content, monitor usage, and manage the device catalog.</p>
@@ -98,7 +98,7 @@ export default function AiStudioPage() {
               key={key}
               onClick={() => setTab(key)}
               className={`flex items-center gap-1.5 px-5 py-2 rounded-lg text-sm font-semibold transition ${
-                tab === key ? "bg-[#037F44] text-white" : "bg-[#F7F8FB] text-[#037F44] hover:bg-[#e6f4ed]"
+                tab === key ? "bg-brand-emerald text-white" : "bg-[#F7F8FB] text-brand-emerald hover:bg-brand-emerald-light"
               }`}
             >
               <Icon size={15} /> {label}
@@ -172,24 +172,26 @@ function AnalyticsTab({ token }: { token: string | null }) {
         {data.topVendors.length === 0 ? (
           <p className="text-sm text-[#848484]">No usage yet.</p>
         ) : (
-          <table className="w-full table-auto text-sm">
-            <thead>
-              <tr className="bg-[#CCDCD4] text-[#505050] text-left">
-                <th className="py-2 px-4 font-normal">Vendor</th>
-                <th className="py-2 px-4 font-normal">Email</th>
-                <th className="py-2 px-4 font-normal">Jobs</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.topVendors.map((v) => (
-                <tr key={v.accountId} className="text-[#434343]">
-                  <td className="py-2 px-4">{v.account ? `${v.account.firstName} ${v.account.lastName}` : `#${v.accountId}`}</td>
-                  <td className="py-2 px-4">{v.account?.email ?? "—"}</td>
-                  <td className="py-2 px-4">{v.jobCount}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full table-auto text-sm">
+              <thead>
+                <tr className="bg-brand-emerald-light text-[#505050] text-left">
+                  <th className="py-2 px-4 font-normal">Vendor</th>
+                  <th className="py-2 px-4 font-normal">Email</th>
+                  <th className="py-2 px-4 font-normal">Jobs</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.topVendors.map((v) => (
+                  <tr key={v.accountId} className="text-[#434343]">
+                    <td className="py-2 px-4">{v.account ? `${v.account.firstName} ${v.account.lastName}` : `#${v.accountId}`}</td>
+                    <td className="py-2 px-4">{v.account?.email ?? "—"}</td>
+                    <td className="py-2 px-4">{v.jobCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Card>
     </div>
@@ -228,7 +230,7 @@ function ReviewQueueTab({ token }: { token: string | null }) {
                 <p className="text-xs font-semibold text-[#353535] capitalize">{img.angle}</p>
                 <p className="text-[11px] text-[#848484] truncate">{img.flaggedReason || "No reason given"}</p>
                 {img.Job?.Account && (
-                  <p className="text-[11px] text-[#037F44] truncate mt-1">{img.Job.Account.firstName} {img.Job.Account.lastName}</p>
+                  <p className="text-[11px] text-brand-emerald truncate mt-1">{img.Job.Account.firstName} {img.Job.Account.lastName}</p>
                 )}
               </div>
             </div>
@@ -323,7 +325,7 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
         {canManage && (
           <button
             onClick={() => setShowForm((s) => !s)}
-            className="flex items-center gap-1.5 bg-[#037F44] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#025e2e]"
+            className="flex items-center gap-1.5 bg-brand-emerald text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-brand-emerald-hover"
           >
             {showForm ? <X size={15} /> : <Plus size={15} />} {showForm ? "Cancel" : "Add device"}
           </button>
@@ -331,7 +333,7 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
       </div>
 
       {showForm && (
-        <div className="border border-[#e5e7eb] rounded-xl p-4 mb-4 grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="border border-[#e5e7eb] rounded-xl p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <input placeholder="Brand" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} className="border rounded-lg px-3 py-2 text-sm" />
           <input placeholder="Model" value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} className="border rounded-lg px-3 py-2 text-sm" />
           <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="border rounded-lg px-3 py-2 text-sm">
@@ -342,7 +344,7 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
           </select>
           <input placeholder="Release year" value={form.releaseYear} onChange={(e) => setForm({ ...form, releaseYear: e.target.value })} className="border rounded-lg px-3 py-2 text-sm" />
           <input placeholder="Base price (â‚¦)" value={form.basePriceNgn} onChange={(e) => setForm({ ...form, basePriceNgn: e.target.value })} className="border rounded-lg px-3 py-2 text-sm" />
-          <button onClick={submitForm} disabled={saving} className="col-span-2 sm:col-span-5 bg-[#037F44] text-white rounded-lg py-2 text-sm font-semibold disabled:opacity-60 flex items-center justify-center gap-2">
+          <button onClick={submitForm} disabled={saving} className="sm:col-span-2 lg:col-span-5 bg-brand-emerald text-white rounded-lg py-2 text-sm font-semibold disabled:opacity-60 flex items-center justify-center gap-2">
             {saving && <Loader2 size={14} className="animate-spin" />} Save device
           </button>
         </div>
@@ -350,44 +352,68 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
 
       {loading ? (
         <p className="text-[#848484]">Loading…</p>
+      ) : filtered.length === 0 ? (
+        <p className="py-6 text-center text-gray-400">No devices found.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto text-sm">
-            <thead>
-              <tr className="bg-[#CCDCD4] text-[#505050] text-left">
-                <th className="py-2 px-4 font-normal">Brand</th>
-                <th className="py-2 px-4 font-normal">Model</th>
-                <th className="py-2 px-4 font-normal">Category</th>
-                <th className="py-2 px-4 font-normal">Year</th>
-                <th className="py-2 px-4 font-normal">Base price</th>
-                <th className="py-2 px-4 font-normal">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((e) => (
-                <tr key={e.id} className="text-[#434343]">
-                  <td className="py-2 px-4">{e.brand}</td>
-                  <td className="py-2 px-4">{e.model}</td>
-                  <td className="py-2 px-4 capitalize">{e.category || "—"}</td>
-                  <td className="py-2 px-4">{e.releaseYear || "—"}</td>
-                  <td className="py-2 px-4">{e.basePriceNgn ? `₦${e.basePriceNgn.toLocaleString()}` : "—"}</td>
-                  <td className="py-2 px-4">
-                    <button
-                      onClick={() => canManage && toggleActive(e)}
-                      disabled={!canManage}
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${e.isActive ? "bg-[#e6f9f0] text-[#037F44]" : "bg-gray-100 text-gray-500"}`}
-                    >
-                      {e.isActive ? "Active" : "Inactive"}
-                    </button>
-                  </td>
+        <>
+          {/* Mobile/tablet cards */}
+          <div className="flex flex-col gap-3 lg:hidden">
+            {filtered.map((e) => (
+              <div key={e.id} className="border border-[#e5e7eb] rounded-xl p-4 flex flex-col gap-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-[#353535] break-words">{e.brand} {e.model}</p>
+                    <p className="text-xs text-[#848484] capitalize">{e.category || "—"} · {e.releaseYear || "—"}</p>
+                  </div>
+                  <button
+                    onClick={() => canManage && toggleActive(e)}
+                    disabled={!canManage}
+                    className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${e.isActive ? "bg-brand-emerald-light text-brand-emerald" : "bg-gray-100 text-gray-500"}`}
+                  >
+                    {e.isActive ? "Active" : "Inactive"}
+                  </button>
+                </div>
+                <p className="text-sm text-[#434343]">{e.basePriceNgn ? `₦${e.basePriceNgn.toLocaleString()}` : "—"}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden lg:block overflow-x-auto">
+            <table className="w-full table-auto text-sm">
+              <thead>
+                <tr className="bg-brand-emerald-light text-[#505050] text-left">
+                  <th className="py-2 px-4 font-normal">Brand</th>
+                  <th className="py-2 px-4 font-normal">Model</th>
+                  <th className="py-2 px-4 font-normal">Category</th>
+                  <th className="py-2 px-4 font-normal">Year</th>
+                  <th className="py-2 px-4 font-normal">Base price</th>
+                  <th className="py-2 px-4 font-normal">Status</th>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={6} className="py-6 text-center text-gray-400">No devices found.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filtered.map((e) => (
+                  <tr key={e.id} className="text-[#434343]">
+                    <td className="py-2 px-4">{e.brand}</td>
+                    <td className="py-2 px-4">{e.model}</td>
+                    <td className="py-2 px-4 capitalize">{e.category || "—"}</td>
+                    <td className="py-2 px-4">{e.releaseYear || "—"}</td>
+                    <td className="py-2 px-4">{e.basePriceNgn ? `₦${e.basePriceNgn.toLocaleString()}` : "—"}</td>
+                    <td className="py-2 px-4">
+                      <button
+                        onClick={() => canManage && toggleActive(e)}
+                        disabled={!canManage}
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-full ${e.isActive ? "bg-brand-emerald-light text-brand-emerald" : "bg-gray-100 text-gray-500"}`}
+                      >
+                        {e.isActive ? "Active" : "Inactive"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </Card>
   );
@@ -466,7 +492,7 @@ function LimitsTab({ token, canManage }: { token: string | null; canManage: bool
           placeholder="vendor@email.com"
           className="flex-1 border rounded-lg px-3 py-2 text-sm bg-gray-50"
         />
-        <button onClick={search} disabled={searching} className="bg-[#037F44] text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-60">
+        <button onClick={search} disabled={searching} className="bg-brand-emerald text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-60">
           {searching ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />} Find
         </button>
       </div>
@@ -499,7 +525,7 @@ function LimitsTab({ token, canManage }: { token: string | null; canManage: bool
             </div>
           </div>
           {canManage && (
-            <button onClick={saveLimits} disabled={saving} className="w-full bg-[#037F44] text-white rounded-lg py-2 text-sm font-semibold disabled:opacity-60 flex items-center justify-center gap-2">
+            <button onClick={saveLimits} disabled={saving} className="w-full bg-brand-emerald text-white rounded-lg py-2 text-sm font-semibold disabled:opacity-60 flex items-center justify-center gap-2">
               {saving && <Loader2 size={14} className="animate-spin" />} Save limits
             </button>
           )}

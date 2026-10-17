@@ -102,7 +102,40 @@ export default function NeedProfilesTab() {
       ) : needs.length === 0 ? (
         <div className="text-center py-20 text-gray-400">No need profiles found.</div>
       ) : (
-        <div className="bg-white rounded-xl shadow overflow-x-auto">
+        <>
+        {/* Mobile/tablet cards */}
+        <div className="flex flex-col gap-3 lg:hidden">
+          {needs.map((n) => (
+            <div
+              key={n.id}
+              className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 cursor-pointer"
+              onClick={() => setSelected(n)}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium break-words">{n.User?.firstName} {n.User?.lastName}</p>
+                  <p className="text-xs text-gray-500">{n.Category?.name ?? "Any category"} · {n.ageBand} · {n.location}</p>
+                </div>
+                <span className="text-xs text-gray-400 whitespace-nowrap shrink-0">
+                  {new Date(n.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${URGENCY_COLORS[n.urgency]}`}>{n.urgency}</span>
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLORS[n.status]}`}>{n.status}</span>
+              </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); setSelected(n); }}
+                className="mt-1 min-h-[44px] text-sm bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
+              >
+                View
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden lg:block bg-white rounded-xl shadow overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
@@ -145,6 +178,7 @@ export default function NeedProfilesTab() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {selected && (
@@ -161,7 +195,7 @@ export default function NeedProfilesTab() {
               <p className="text-xs text-gray-400">{selected.User?.email} · {selected.User?.phone ?? "No phone on file"}</p>
             </div>
 
-            <div className="mb-4 grid grid-cols-2 gap-3">
+            <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Age Band</p>
                 <p className="text-sm font-medium">{selected.ageBand}</p>
@@ -176,7 +210,7 @@ export default function NeedProfilesTab() {
               <p className="text-xs text-gray-500 mb-1.5">Life / Activity Categories</p>
               <div className="flex flex-wrap gap-1.5">
                 {selected.lifeCategories.map((c) => (
-                  <span key={c} className="text-xs px-2 py-1 rounded-full bg-[#e6f9f0] text-[#037F44] font-medium">
+                  <span key={c} className="text-xs px-2 py-1 rounded-full bg-brand-emerald-light text-brand-emerald font-medium">
                     {LIFE_CATEGORY_LABELS[c] ?? c}
                   </span>
                 ))}
