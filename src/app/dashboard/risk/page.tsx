@@ -229,7 +229,7 @@ export default function RiskReviewPage() {
 
         {/* Summary */}
         {meta && !loading && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-xl shadow p-4">
               <div className="text-xl font-bold text-[#353535]">{meta.scannedCount}</div>
               <div className="text-xs text-[#848484] mt-0.5">Orders scanned</div>
@@ -259,7 +259,73 @@ export default function RiskReviewPage() {
             it does not mean the tool is broken.
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow overflow-x-auto">
+          <>
+          {/* Mobile/tablet cards */}
+          <div className="flex flex-col gap-3 lg:hidden">
+            {orders.map((o) => (
+              <div key={o.id} className="bg-white rounded-xl shadow p-4 flex flex-col gap-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-mono text-xs text-gray-500">#{o.id}</p>
+                    {o.buyer ? (
+                      <>
+                        <p className="font-medium text-gray-800 break-words">{o.buyer.firstName} {o.buyer.lastName}</p>
+                        <p className="text-xs text-gray-400 break-all">{o.buyer.email}</p>
+                      </>
+                    ) : (
+                      <p className="text-gray-400">—</p>
+                    )}
+                  </div>
+                  <span
+                    className={`shrink-0 inline-block px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${LABEL_STYLES[o.riskLabel]}`}
+                  >
+                    {LABEL_TEXT[o.riskLabel]} ({o.riskScore})
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 text-xs text-gray-500">
+                  <span className="font-semibold text-gray-800 text-sm">{formatNGN(o.totalAmount)}</span>
+                  <span className="capitalize">{o.status} · escrow: {o.escrowStatus}</span>
+                </div>
+
+                <div className="text-xs text-gray-600">
+                  {o.riskReasons.length > 0 ? (
+                    <ul className="list-disc list-inside space-y-0.5">
+                      {o.riskReasons.map((r, i) => (
+                        <li key={i}>{r}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="text-gray-300">No rules triggered</span>
+                  )}
+                </div>
+
+                <p className="text-xs text-gray-400">{formatDateTime(o.createdAt)}</p>
+
+                <div className="flex gap-4 pt-2 border-t border-gray-100">
+                  {o.buyer && (
+                    <Link href={`/dashboard/user/${o.buyer.id}`} className="text-xs font-medium text-brand-emerald hover:underline">
+                      View buyer
+                    </Link>
+                  )}
+                  <Link href="/dashboard/disputes" className="text-xs font-medium text-gray-500 hover:underline">
+                    Dispute console
+                  </Link>
+                  {o.buyer && (
+                    <button
+                      onClick={() => openMessageModal(o.buyer as RiskBuyer)}
+                      className="text-xs font-medium text-blue-600 hover:underline"
+                    >
+                      Message buyer
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden lg:block bg-white rounded-xl shadow overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
@@ -322,7 +388,7 @@ export default function RiskReviewPage() {
                         {o.buyer && (
                           <Link
                             href={`/dashboard/user/${o.buyer.id}`}
-                            className="text-xs font-medium text-[#037F44] hover:underline"
+                            className="text-xs font-medium text-brand-emerald hover:underline"
                           >
                             View buyer
                           </Link>
@@ -348,6 +414,7 @@ export default function RiskReviewPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
@@ -378,7 +445,7 @@ export default function RiskReviewPage() {
                 <p className="text-sm text-gray-700 mb-4">Message sent.</p>
                 <button
                   onClick={() => setMessageTarget(null)}
-                  className="px-4 py-2 bg-[#037F44] text-white rounded text-sm font-medium hover:bg-[#025e2e]"
+                  className="px-4 py-2 bg-brand-emerald text-white rounded text-sm font-medium hover:bg-brand-emerald-hover"
                 >
                   Close
                 </button>
@@ -394,7 +461,7 @@ export default function RiskReviewPage() {
                     required
                     value={messageSubject}
                     onChange={(e) => setMessageSubject(e.target.value)}
-                    className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring focus:border-[#037F44]"
+                    className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring focus:border-brand-emerald"
                     placeholder="e.g. Quick check on your recent order"
                   />
                 </div>
@@ -407,7 +474,7 @@ export default function RiskReviewPage() {
                     rows={5}
                     value={messageBody}
                     onChange={(e) => setMessageBody(e.target.value)}
-                    className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring focus:border-[#037F44]"
+                    className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring focus:border-brand-emerald"
                     placeholder="Write your message…"
                   />
                 </div>
@@ -423,8 +490,8 @@ export default function RiskReviewPage() {
                   <button
                     type="submit"
                     disabled={messageSending}
-                    className={`flex-1 px-4 py-2 bg-[#037F44] text-white rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                      messageSending ? "opacity-60 cursor-not-allowed" : "hover:bg-[#025e2e]"
+                    className={`flex-1 px-4 py-2 bg-brand-emerald text-white rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                      messageSending ? "opacity-60 cursor-not-allowed" : "hover:bg-brand-emerald-hover"
                     }`}
                   >
                     {messageSending && (
