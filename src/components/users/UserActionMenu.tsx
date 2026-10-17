@@ -32,7 +32,17 @@ export default function UserActionMenu({
   useEffect(() => {
     if (!open) return;
     const handlePointerDown = (e: PointerEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const container = containerRef.current;
+      if (!container) return;
+      // The desktop table row and the mobile card for the same user are
+      // both always mounted (one hidden via CSS depending on viewport),
+      // and both can end up "open" together since they share one lifted
+      // openMenuId. Without this check, clicking inside the visible one
+      // gets treated as an "outside click" by the hidden sibling's own
+      // listener, closing the menu before the click's own handler runs.
+      // offsetParent is null when an ancestor has display:none.
+      if (container.offsetParent === null) return;
+      if (!container.contains(e.target as Node)) {
         onOpenChange(false);
       }
     };
@@ -74,25 +84,49 @@ export default function UserActionMenu({
           } mt-1 w-44 bg-white border rounded-lg shadow-lg z-20 py-1`}
           onClick={(e) => e.stopPropagation()}
         >
-          <button role="menuitem" className={`${itemClass} text-brand-emerald`} onClick={onView}>
+          <button
+            role="menuitem"
+            className={`${itemClass} text-brand-emerald`}
+            onClick={() => { onOpenChange(false); onView(); }}
+          >
             View
           </button>
-          <button role="menuitem" className={`${itemClass} text-[#434343]`} onClick={onRequestSuspend}>
+          <button
+            role="menuitem"
+            className={`${itemClass} text-[#434343]`}
+            onClick={() => { onOpenChange(false); onRequestSuspend(); }}
+          >
             {user.isSuspended ? "Unsuspend" : "Suspend"}
           </button>
-          <button role="menuitem" className={`${itemClass} text-[#434343]`} onClick={onRequestBadgeToggle}>
+          <button
+            role="menuitem"
+            className={`${itemClass} text-[#434343]`}
+            onClick={() => { onOpenChange(false); onRequestBadgeToggle(); }}
+          >
             {user.hasBadge ? "Remove Badge" : "Assign Badge"}
           </button>
-          <button role="menuitem" className={`${itemClass} text-[#434343]`} onClick={onRequestMessage}>
+          <button
+            role="menuitem"
+            className={`${itemClass} text-[#434343]`}
+            onClick={() => { onOpenChange(false); onRequestMessage(); }}
+          >
             Message
           </button>
           {user.canUpgrade && onRequestUpgrade && (
-            <button role="menuitem" className={`${itemClass} text-[#434343]`} onClick={onRequestUpgrade}>
+            <button
+              role="menuitem"
+              className={`${itemClass} text-[#434343]`}
+              onClick={() => { onOpenChange(false); onRequestUpgrade(); }}
+            >
               Upgrade to Store Owner
             </button>
           )}
           <div className="h-px bg-[#f0f0f0] my-1" />
-          <button role="menuitem" className={`${itemClass} text-red-600 font-medium`} onClick={onRequestBan}>
+          <button
+            role="menuitem"
+            className={`${itemClass} text-red-600 font-medium`}
+            onClick={() => { onOpenChange(false); onRequestBan(); }}
+          >
             Ban
           </button>
         </div>
