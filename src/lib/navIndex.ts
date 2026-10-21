@@ -28,6 +28,7 @@ import {
   HeartHandshake,
   Gift,
   PackageCheck,
+  Percent,
   type LucideIcon,
 } from "lucide-react";
 
@@ -44,6 +45,11 @@ export interface NavEntry {
   url?: string; // standalone entries link directly and have no children
   children?: NavLeaf[];
 }
+
+// Dashboard and AI Studio are standalone -- every signed-in staff role sees
+// them. Declared before navGroups since the "General" settings leaf below
+// reuses it.
+export const STANDALONE_ROLES = ["superadmin", "admin", "supportagent", "verificationofficer"];
 
 // Single source of truth for every navigable admin page -- consumed by both
 // the sidebar and the command palette, so they can never drift apart the way
@@ -243,13 +249,26 @@ export const navGroups: NavEntry[] = [
   {
     label: "Settings",
     icon: Settings,
-    url: "/dashboard/setting",
+    children: [
+      {
+        label: "General",
+        url: "/dashboard/setting",
+        icon: Settings,
+        roles: STANDALONE_ROLES,
+      },
+      {
+        // Changes real commission/withdrawal-fee math for every future
+        // order -- visible to admin+superadmin (matches the backend's
+        // GET /api/admin/fees gating), but the page itself only lets a
+        // superadmin actually save (matches PUT's SUPER_ADMIN-only gating).
+        label: "Payments & Fees",
+        url: "/dashboard/settings/payments",
+        icon: Percent,
+        roles: ["superadmin", "admin"],
+      },
+    ],
   },
 ];
-
-// Dashboard, AI Studio, and Settings are standalone -- every signed-in staff
-// role sees them.
-export const STANDALONE_ROLES = ["superadmin", "admin", "supportagent", "verificationofficer"];
 
 export interface FlatNavItem {
   id: string; // stable key, also the localStorage identity for pinned/recent
