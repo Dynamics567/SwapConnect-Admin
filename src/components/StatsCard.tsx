@@ -13,6 +13,7 @@ interface Stat {
 interface DashboardTotals {
   totalRevenue?: string | number;
   users?: number;
+  products?: number;
   newListings?: number;
   activeSwaps?: number;
   pendingVerifications?: number;
@@ -37,7 +38,7 @@ function statsForRole(role: string | null, totals: DashboardTotals | undefined):
   if (!totals) return [];
 
   const revenue: Stat = {
-    label: "Total Revenue",
+    label: "Revenue (Last 30 Days)",
     value: `₦${totals.totalRevenue ?? 0}`,
     key: "revenue",
     icon: <CircleDollarSign size={24} className="text-[#037F44]" />,
@@ -50,7 +51,7 @@ function statsForRole(role: string | null, totals: DashboardTotals | undefined):
   };
   const items: Stat = {
     label: "Total Items Listed",
-    value: totals.newListings ?? 0,
+    value: totals.products ?? 0,
     key: "items",
     icon: <Store size={24} className="text-[#037F44]" />,
   };
