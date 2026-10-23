@@ -1,17 +1,7 @@
-import WalletContent from "@/components/WalletContent";
-import React from "react";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { redirect } from "next/navigation";
 
-function Page() {
-  return (
-    <ProtectedRoute
-      allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}
-    >
-      <div className="flex flex-col gap-8 w-full min-w-0">
-        <WalletContent />
-      </div>
-    </ProtectedRoute>
-  );
+// The Finance module was redesigned and moved to /dashboard/finance/*.
+// This route is kept (not deleted) so existing bookmarks/links still work.
+export default function Page() {
+  redirect("/dashboard/finance/overview");
 }
-
-export default Page;

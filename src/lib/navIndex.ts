@@ -29,6 +29,11 @@ import {
   Gift,
   PackageCheck,
   Percent,
+  PieChart,
+  BookOpen,
+  HandCoins,
+  Banknote,
+  Undo2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -162,10 +167,40 @@ export const navGroups: NavEntry[] = [
     icon: Wallet,
     children: [
       {
+        label: "Overview",
+        url: "/dashboard/finance/overview",
+        icon: PieChart,
+        roles: ["superadmin", "admin"],
+      },
+      {
         label: "Transactions",
-        url: "/dashboard/wallet",
+        url: "/dashboard/finance/transactions",
         icon: Receipt,
-        roles: ["superadmin", "supportagent", "verificationofficer"],
+        roles: ["superadmin", "admin"],
+      },
+      {
+        label: "Ledger",
+        url: "/dashboard/finance/ledger",
+        icon: BookOpen,
+        roles: ["superadmin", "admin"],
+      },
+      {
+        label: "Seller Balances",
+        url: "/dashboard/finance/seller-balances",
+        icon: HandCoins,
+        roles: ["superadmin", "admin"],
+      },
+      {
+        label: "Withdrawals",
+        url: "/dashboard/finance/withdrawals",
+        icon: Banknote,
+        roles: ["superadmin", "admin"],
+      },
+      {
+        label: "Refunds",
+        url: "/dashboard/finance/refunds",
+        icon: Undo2,
+        roles: ["superadmin", "admin"],
       },
     ],
   },
