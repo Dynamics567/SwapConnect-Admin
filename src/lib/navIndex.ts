@@ -34,6 +34,7 @@ import {
   HandCoins,
   Banknote,
   Undo2,
+  UserPlus,
   type LucideIcon,
 } from "lucide-react";
 
@@ -243,6 +244,12 @@ export const navGroups: NavEntry[] = [
         url: "/dashboard/coupons",
         icon: Tag,
         roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Referral & Earn",
+        url: "/dashboard/marketing/referrals",
+        icon: UserPlus,
+        roles: ["superadmin", "admin"],
       },
     ],
   },
