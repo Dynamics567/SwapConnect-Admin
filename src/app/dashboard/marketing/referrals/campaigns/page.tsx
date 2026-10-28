@@ -78,6 +78,8 @@ interface FormState {
   maxRewardsTotal: string;
   totalBudgetAmount: string;
   requiresManualReview: boolean;
+  startAt: string;
+  endAt: string;
   termsText: string;
   stages: StageFormState[];
 }
@@ -87,8 +89,14 @@ const EMPTY_STAGE: StageFormState = { name: "", qualifyingAction: "first_sale", 
 const EMPTY_FORM: FormState = {
   name: "", description: "", referredUserType: "ANY", qualifyingAction: "first_purchase",
   rewardAmount: "", completionWindowDays: "", maxRewardsPerReferrer: "", maxRewardsTotal: "",
-  totalBudgetAmount: "", requiresManualReview: false, termsText: "", stages: [],
+  totalBudgetAmount: "", requiresManualReview: false, startAt: "", endAt: "", termsText: "", stages: [],
 };
+
+// Campaign.startAt/endAt come back from the API as full ISO timestamps;
+// an <input type="date"> needs just the yyyy-mm-dd portion.
+function toDateInputValue(iso: string | null): string {
+  return iso ? iso.slice(0, 10) : "";
+}
 
 function toForm(c: Campaign): FormState {
   return {
@@ -102,6 +110,8 @@ function toForm(c: Campaign): FormState {
     maxRewardsTotal: c.maxRewardsTotal != null ? String(c.maxRewardsTotal) : "",
     totalBudgetAmount: c.totalBudgetAmount != null ? String(c.totalBudgetAmount) : "",
     requiresManualReview: c.requiresManualReview,
+    startAt: toDateInputValue(c.startAt),
+    endAt: toDateInputValue(c.endAt),
     termsText: c.termsText || "",
     stages: (c.Stages || []).map((s) => ({
       id: s.id, name: s.name, qualifyingAction: s.qualifyingAction,
@@ -159,6 +169,8 @@ function ReferralCampaignsContent() {
     maxRewardsTotal: form.maxRewardsTotal ? parseInt(form.maxRewardsTotal, 10) : null,
     totalBudgetAmount: form.totalBudgetAmount ? Number(form.totalBudgetAmount) : null,
     requiresManualReview: form.requiresManualReview,
+    startAt: form.startAt ? `${form.startAt}T00:00:00` : null,
+    endAt: form.endAt ? `${form.endAt}T23:59:59` : null,
     termsText: form.termsText.trim() || null,
     stages: form.stages
       .filter((s) => s.name.trim() && s.rewardAmount)
@@ -305,6 +317,28 @@ function ReferralCampaignsContent() {
         <input type="checkbox" checked={form.requiresManualReview} onChange={(e) => setForm({ ...form, requiresManualReview: e.target.checked })} />
         Require manual review before a reward is credited
       </label>
+      <div>
+        <label className={labelClass}>Program duration (optional)</label>
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            type="date"
+            className={inputClass}
+            value={form.startAt}
+            max={form.endAt || undefined}
+            onChange={(e) => setForm({ ...form, startAt: e.target.value })}
+          />
+          <input
+            type="date"
+            className={inputClass}
+            value={form.endAt}
+            min={form.startAt || undefined}
+            onChange={(e) => setForm({ ...form, endAt: e.target.value })}
+          />
+        </div>
+        <p className="text-xs text-[#9ca3af] mt-1">
+          Leave either blank for no limit. Outside this window the campaign cannot attribute new referrals or qualify rewards, even while its status is "active".
+        </p>
+      </div>
       <div className="border-t border-[#e5e7eb] pt-4">
         <div className="flex items-center justify-between mb-2">
           <label className={labelClass}>
@@ -422,6 +456,11 @@ function ReferralCampaignsContent() {
                   <td className="py-3 px-4">
                     <p className="font-medium text-[#353535]">{c.name}</p>
                     <p className="text-xs text-[#9ca3af]">{c.referredUserType === "ANY" ? "Any referred user" : c.referredUserType === "BUYER" ? "Customers" : "Store owners"}</p>
+                    {(c.startAt || c.endAt) && (
+                      <p className="text-[11px] text-[#9ca3af] mt-0.5">
+                        {c.startAt ? fmtDate(c.startAt) : "No start"} – {c.endAt ? fmtDate(c.endAt) : "No end"}
+                      </p>
+                    )}
                   </td>
                   <td className="py-3 px-4 text-[#6b7280]">
                     {ACTION_LABELS[c.qualifyingAction]}
