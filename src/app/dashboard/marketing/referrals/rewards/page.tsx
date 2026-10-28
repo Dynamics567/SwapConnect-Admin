@@ -5,6 +5,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ReferralTabs from "@/components/referrals/ReferralTabs";
 import PageButton from "@/components/PageButton";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { Download } from "lucide-react";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { useAuthContext } from "@/context/AuthContext";
 import { API_URL } from "@/lib/config";
@@ -43,6 +44,7 @@ function ReferralRewardsContent() {
   const [confirmAction, setConfirmAction] = useState<{ reward: RewardRow; type: "approve" | "reject" } | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => { setPage(1); }, [status]);
 
@@ -66,6 +68,32 @@ function ReferralRewardsContent() {
   }, [token, page, status]);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleExport = async () => {
+    if (!token) return;
+    setExporting(true);
+    try {
+      const params = new URLSearchParams();
+      if (status) params.set("status", status);
+      const res = await fetch(`${API_URL}/api/admin/referrals/rewards/export?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Export failed");
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition") || "";
+      const match = disposition.match(/filename="(.+)"/);
+      const filename = match?.[1] || `SwapConnect_Referral_Rewards_${new Date().toISOString().slice(0, 10)}.csv`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleConfirm = async () => {
     if (!token || !confirmAction) return;
@@ -93,12 +121,21 @@ function ReferralRewardsContent() {
     <div className="flex flex-col gap-0 w-full min-w-0">
       <ReferralTabs />
       <div className="flex flex-col gap-5">
-        <div>
-          <h1 className="text-xl font-bold text-[#353535]">Rewards</h1>
-          <p className="text-sm text-[#6b7280] mt-1">
-            Rewards from campaigns marked &quot;requires manual review&quot; wait here until approved or rejected.
-            Everything else is auto-credited at qualification.
-          </p>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-xl font-bold text-[#353535]">Rewards</h1>
+            <p className="text-sm text-[#6b7280] mt-1">
+              Rewards from campaigns marked &quot;requires manual review&quot; wait here until approved or rejected.
+              Everything else is auto-credited at qualification.
+            </p>
+          </div>
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="flex items-center gap-1.5 text-sm font-medium border border-[#e5e7eb] rounded-lg px-3 py-1.5 text-[#353535] hover:bg-[#f8f9fb] disabled:opacity-50"
+          >
+            <Download size={15} /> {exporting ? "Exporting…" : "Download CSV"}
+          </button>
         </div>
 
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-[#e5e7eb] rounded-lg px-2.5 py-1.5 text-sm max-w-xs">
