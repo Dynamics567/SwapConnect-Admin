@@ -15,6 +15,16 @@ type QualifyingAction = "registration" | "first_product_published" | "first_purc
 type ReferredUserType = "ANY" | "BUYER" | "STORE_OWNER";
 type CampaignStatus = "draft" | "scheduled" | "active" | "paused" | "completed" | "archived";
 
+interface CampaignStage {
+  id?: number;
+  name: string;
+  qualifyingAction: QualifyingAction;
+  rewardAmount: number;
+  completionWindowDays: number | null;
+  requiresManualReview: boolean | null;
+  active?: boolean;
+}
+
 interface Campaign {
   id: number;
   name: string;
@@ -37,6 +47,7 @@ interface Campaign {
   rewardCount: number;
   budgetConsumed: number;
   updatedAt: string;
+  Stages?: CampaignStage[];
 }
 
 const ACTION_LABELS: Record<QualifyingAction, string> = {
@@ -47,6 +58,14 @@ const ACTION_LABELS: Record<QualifyingAction, string> = {
 };
 
 const STATUSES: CampaignStatus[] = ["draft", "scheduled", "active", "paused", "completed", "archived"];
+
+interface StageFormState {
+  id?: number;
+  name: string;
+  qualifyingAction: QualifyingAction;
+  rewardAmount: string;
+  completionWindowDays: string;
+}
 
 interface FormState {
   name: string;
@@ -60,12 +79,15 @@ interface FormState {
   totalBudgetAmount: string;
   requiresManualReview: boolean;
   termsText: string;
+  stages: StageFormState[];
 }
+
+const EMPTY_STAGE: StageFormState = { name: "", qualifyingAction: "first_sale", rewardAmount: "", completionWindowDays: "" };
 
 const EMPTY_FORM: FormState = {
   name: "", description: "", referredUserType: "ANY", qualifyingAction: "first_purchase",
   rewardAmount: "", completionWindowDays: "", maxRewardsPerReferrer: "", maxRewardsTotal: "",
-  totalBudgetAmount: "", requiresManualReview: false, termsText: "",
+  totalBudgetAmount: "", requiresManualReview: false, termsText: "", stages: [],
 };
 
 function toForm(c: Campaign): FormState {
@@ -81,6 +103,11 @@ function toForm(c: Campaign): FormState {
     totalBudgetAmount: c.totalBudgetAmount != null ? String(c.totalBudgetAmount) : "",
     requiresManualReview: c.requiresManualReview,
     termsText: c.termsText || "",
+    stages: (c.Stages || []).map((s) => ({
+      id: s.id, name: s.name, qualifyingAction: s.qualifyingAction,
+      rewardAmount: String(s.rewardAmount),
+      completionWindowDays: s.completionWindowDays != null ? String(s.completionWindowDays) : "",
+    })),
   };
 }
 
@@ -133,6 +160,15 @@ function ReferralCampaignsContent() {
     totalBudgetAmount: form.totalBudgetAmount ? Number(form.totalBudgetAmount) : null,
     requiresManualReview: form.requiresManualReview,
     termsText: form.termsText.trim() || null,
+    stages: form.stages
+      .filter((s) => s.name.trim() && s.rewardAmount)
+      .map((s) => ({
+        id: s.id,
+        name: s.name.trim(),
+        qualifyingAction: s.qualifyingAction,
+        rewardAmount: Number(s.rewardAmount),
+        completionWindowDays: s.completionWindowDays ? parseInt(s.completionWindowDays, 10) : null,
+      })),
   });
 
   const handleCreate = async () => {
@@ -269,6 +305,65 @@ function ReferralCampaignsContent() {
         <input type="checkbox" checked={form.requiresManualReview} onChange={(e) => setForm({ ...form, requiresManualReview: e.target.checked })} />
         Require manual review before a reward is credited
       </label>
+      <div className="border-t border-[#e5e7eb] pt-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className={labelClass}>
+            Additional reward stages (optional)
+          </label>
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, stages: [...form.stages, { ...EMPTY_STAGE }] })}
+            className="text-xs text-brand-emerald hover:underline"
+          >
+            + Add stage
+          </button>
+        </div>
+        <p className="text-xs text-[#9ca3af] mb-3">
+          The qualifying action/reward above is always "Stage 1". Each stage below only unlocks once the one before it (Stage 1, then stage 2, etc.) has already been earned -- e.g. Stage 2: first sale, after Stage 1: first product published.
+        </p>
+        {form.stages.length === 0 && <p className="text-xs text-[#9ca3af] italic">No additional stages -- this is a single-stage campaign.</p>}
+        {form.stages.map((stage, i) => (
+          <div key={i} className="border border-[#e5e7eb] rounded-lg p-3 mb-2 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-[#6b7280]">Stage {i + 2}</span>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, stages: form.stages.filter((_, j) => j !== i) })}
+                className="text-xs text-red-600 hover:underline"
+              >
+                Remove
+              </button>
+            </div>
+            <input
+              className={inputClass}
+              placeholder="Stage name (e.g. First Sale)"
+              value={stage.name}
+              onChange={(e) => setForm({ ...form, stages: form.stages.map((s, j) => j === i ? { ...s, name: e.target.value } : s) })}
+            />
+            <div className="grid grid-cols-3 gap-2">
+              <select
+                className={inputClass}
+                value={stage.qualifyingAction}
+                onChange={(e) => setForm({ ...form, stages: form.stages.map((s, j) => j === i ? { ...s, qualifyingAction: e.target.value as QualifyingAction } : s) })}
+              >
+                {(Object.entries(ACTION_LABELS) as [QualifyingAction, string][]).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
+              <input
+                type="number" min="1" className={inputClass} placeholder="Reward (₦)"
+                value={stage.rewardAmount}
+                onChange={(e) => setForm({ ...form, stages: form.stages.map((s, j) => j === i ? { ...s, rewardAmount: e.target.value } : s) })}
+              />
+              <input
+                type="number" min="1" className={inputClass} placeholder="Window (days)"
+                value={stage.completionWindowDays}
+                onChange={(e) => setForm({ ...form, stages: form.stages.map((s, j) => j === i ? { ...s, completionWindowDays: e.target.value } : s) })}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
       <div>
         <label className={labelClass}>Terms &amp; conditions (shown to users)</label>
         <textarea className={inputClass} rows={4} value={form.termsText} onChange={(e) => setForm({ ...form, termsText: e.target.value })} />
@@ -328,7 +423,12 @@ function ReferralCampaignsContent() {
                     <p className="font-medium text-[#353535]">{c.name}</p>
                     <p className="text-xs text-[#9ca3af]">{c.referredUserType === "ANY" ? "Any referred user" : c.referredUserType === "BUYER" ? "Customers" : "Store owners"}</p>
                   </td>
-                  <td className="py-3 px-4 text-[#6b7280]">{ACTION_LABELS[c.qualifyingAction]}</td>
+                  <td className="py-3 px-4 text-[#6b7280]">
+                    {ACTION_LABELS[c.qualifyingAction]}
+                    {!!c.Stages?.length && (
+                      <span className="block text-[11px] text-brand-emerald mt-0.5">+{c.Stages.length} more stage{c.Stages.length > 1 ? "s" : ""}</span>
+                    )}
+                  </td>
                   <td className="py-3 px-4 text-right font-medium text-[#353535]">{fmtNaira(c.rewardAmount)}</td>
                   <td className="py-3 px-4 text-right text-[#6b7280]">{c.referralCount}</td>
                   <td className="py-3 px-4 text-right text-[#6b7280]">{c.rewardCount} ({fmtNaira(c.budgetConsumed)})</td>
