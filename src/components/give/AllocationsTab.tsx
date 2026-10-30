@@ -59,13 +59,11 @@ interface MatchRow {
   id: number;
   status: string;
   matchNotes: string | null;
-  // Exactly one of these is ever set -- see backend Match.js. Lets the UI
-  // tell apart a recipient directly requesting this item (status lands at
-  // ACCEPTED immediately, requestedByUserId set) from an admin-proposed
-  // match still awaiting the recipient's own accept/decline (status
-  // PROPOSED, matchedByAdminId set).
-  requestedByUserId: number | null;
-  matchedByAdminId: number | null;
+  // Backend-computed (adminGetGiveListingDetail) from which of
+  // matchedByAdminId/requestedByUserId is set -- the "exactly one of these
+  // two is ever set" invariant belongs to the backend's Match model, not
+  // something this UI should re-derive from raw FK nullability itself.
+  origin: "ADMIN" | "RECIPIENT";
   NeedProfile: { id: number; reason: string; deliveryAddress: string | null; User: { id: number; firstName: string; lastName: string } | null } | null;
 }
 
@@ -99,7 +97,13 @@ export default function AllocationsTab() {
   const [fulfilmentNote, setFulfilmentNote] = useState("");
   const [confirmAllocateMatchId, setConfirmAllocateMatchId] = useState<number | null>(null);
   const [confirmDeclineMatchId, setConfirmDeclineMatchId] = useState<number | null>(null);
-  const [declineReason, setDeclineReason] = useState("");
+  // Keyed by match id, not a single shared string -- a listing with more
+  // than one live match (not reachable today, since proposing/requesting a
+  // match atomically requires the listing to still be AVAILABLE, but not
+  // guarded by this UI itself) would otherwise let a reason typed for one
+  // match get sent as the decline reason for a different one.
+  const [declineReasons, setDeclineReasons] = useState<Record<number, string>>({});
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchListings = useCallback(async () => {
     if (!token) return;
@@ -139,18 +143,26 @@ export default function AllocationsTab() {
   const selectListing = async (id: number) => {
     setSelectedId(id);
     setNotes("");
+    setDeclineReasons({});
+    setActionError(null);
     await loadDetail(id);
   };
 
   const proposeMatch = async (needProfileId: number) => {
     if (!selectedId || !token) return;
     setSaving(true);
+    setActionError(null);
     try {
-      await fetch(`${API_URL}/api/admin/give/listings/${selectedId}/matches`, {
+      const res = await fetch(`${API_URL}/api/admin/give/listings/${selectedId}/matches`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ needProfileId, notes: notes || undefined }),
       });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setActionError(data?.message || "Failed to propose match.");
+        return;
+      }
       await fetchListings();
       await loadDetail(selectedId);
     } finally {
@@ -161,13 +173,19 @@ export default function AllocationsTab() {
   const allocate = async (matchId: number) => {
     if (!selectedId || !token) return;
     setSaving(true);
+    setActionError(null);
     try {
-      await fetch(`${API_URL}/api/admin/give/listings/${selectedId}/allocate`, {
+      const res = await fetch(`${API_URL}/api/admin/give/listings/${selectedId}/allocate`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
       });
+      const data = await res.json().catch(() => null);
       setConfirmAllocateMatchId(null);
+      if (!res.ok) {
+        setActionError(data?.message || "Failed to allocate.");
+        return;
+      }
       await fetchListings();
       await loadDetail(selectedId);
     } finally {
@@ -179,18 +197,30 @@ export default function AllocationsTab() {
   // need profile -> OPEN) -- works on a still-PROPOSED admin match or an
   // already-ACCEPTED one, including a recipient-initiated request, which
   // lands at ACCEPTED immediately and has no separate "reject" state of
-  // its own to transition out of.
+  // its own to transition out of. The backend refuses this once the match
+  // has actually been allocated (409) -- surfaced via actionError below
+  // rather than silently closing the dialog as if it had succeeded.
   const declineMatch = async (matchId: number) => {
     if (!selectedId || !token) return;
     setSaving(true);
+    setActionError(null);
     try {
-      await fetch(`${API_URL}/api/admin/give/matches/${matchId}/decline`, {
+      const res = await fetch(`${API_URL}/api/admin/give/matches/${matchId}/decline`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ reason: declineReason || undefined }),
+        body: JSON.stringify({ reason: declineReasons[matchId] || undefined }),
       });
+      const data = await res.json().catch(() => null);
       setConfirmDeclineMatchId(null);
-      setDeclineReason("");
+      if (!res.ok) {
+        setActionError(data?.message || "Failed to decline match.");
+        return;
+      }
+      setDeclineReasons((prev) => {
+        const next = { ...prev };
+        delete next[matchId];
+        return next;
+      });
       await fetchListings();
       await loadDetail(selectedId);
     } finally {
@@ -201,12 +231,18 @@ export default function AllocationsTab() {
   const updateFulfilment = async (fulfilmentId: number, status: "IN_TRANSIT" | "DELIVERED" | "FAILED") => {
     if (!selectedId || !token) return;
     setSaving(true);
+    setActionError(null);
     try {
-      await fetch(`${API_URL}/api/admin/give/fulfilment/${fulfilmentId}`, {
+      const res = await fetch(`${API_URL}/api/admin/give/fulfilment/${fulfilmentId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ status, note: fulfilmentNote || undefined }),
       });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setActionError(data?.message || "Failed to update fulfilment status.");
+        return;
+      }
       setFulfilmentNote("");
       await fetchListings();
       await loadDetail(selectedId);
@@ -253,6 +289,10 @@ export default function AllocationsTab() {
               <p className="text-xs text-gray-500 mt-1">Eligibility: {describeEligibility(detail)}</p>
             </div>
 
+            {actionError && (
+              <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{actionError}</div>
+            )}
+
             {detail.state === "AVAILABLE" && (
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Candidate recipients</h3>
@@ -294,57 +334,59 @@ export default function AllocationsTab() {
             )}
 
             {detail.state === "MATCHED" && livematches.length > 0 && (
-              <div>
+              <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Match</h3>
-                <textarea
-                  value={declineReason}
-                  onChange={(e) => setDeclineReason(e.target.value)}
-                  placeholder="Decline reason (optional, shown if you decline below)"
-                  rows={2}
-                  className="w-full border rounded-lg px-3 py-2 text-sm resize-none mb-2"
-                />
                 {livematches.map((m) => {
                   const hasAddress = !!m.NeedProfile?.deliveryAddress;
-                  const isRecipientRequest = m.requestedByUserId != null;
+                  const isRecipientRequest = m.origin === "RECIPIENT";
                   return (
-                    <div key={m.id} className="flex items-center justify-between gap-3 border rounded-lg px-3 py-2">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-medium">{m.NeedProfile?.User?.firstName} {m.NeedProfile?.User?.lastName}</p>
-                          <span
-                            className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
-                              isRecipientRequest ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
-                            }`}
-                          >
-                            {isRecipientRequest ? "Recipient request" : "Admin-proposed"}
-                          </span>
+                    <div key={m.id} className="border rounded-lg px-3 py-2 space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-medium">{m.NeedProfile?.User?.firstName} {m.NeedProfile?.User?.lastName}</p>
+                            <span
+                              className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
+                                isRecipientRequest ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
+                              }`}
+                            >
+                              {isRecipientRequest ? "Recipient request" : "Admin-proposed"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {m.status === "PROPOSED" ? "Awaiting recipient response" : "Accepted — ready to allocate"}
+                          </p>
+                          {!hasAddress && (
+                            <span className="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 uppercase">
+                              Recipient hasn&apos;t provided a delivery address — allocation will be blocked
+                            </span>
+                          )}
                         </div>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {m.status === "PROPOSED" ? "Awaiting recipient response" : "Accepted — ready to allocate"}
-                        </p>
-                        {!hasAddress && (
-                          <span className="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 uppercase">
-                            Recipient hasn&apos;t provided a delivery address — allocation will be blocked
-                          </span>
-                        )}
+                        <div className="flex gap-2 shrink-0">
+                          <button
+                            onClick={() => setConfirmDeclineMatchId(m.id)}
+                            disabled={saving}
+                            className="text-xs border border-red-200 text-red-700 px-3 py-1.5 rounded-lg font-medium hover:bg-red-50 disabled:opacity-60"
+                          >
+                            Decline
+                          </button>
+                          <button
+                            onClick={() => setConfirmAllocateMatchId(m.id)}
+                            disabled={!hasAddress}
+                            title={!hasAddress ? "Recipient must supply a delivery address before this can be allocated" : undefined}
+                            className="text-xs bg-[#037F44] text-white px-3 py-1.5 rounded-lg font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            Allocate
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex gap-2 shrink-0">
-                        <button
-                          onClick={() => setConfirmDeclineMatchId(m.id)}
-                          disabled={saving}
-                          className="text-xs border border-red-200 text-red-700 px-3 py-1.5 rounded-lg font-medium hover:bg-red-50 disabled:opacity-60"
-                        >
-                          Decline
-                        </button>
-                        <button
-                          onClick={() => setConfirmAllocateMatchId(m.id)}
-                          disabled={!hasAddress}
-                          title={!hasAddress ? "Recipient must supply a delivery address before this can be allocated" : undefined}
-                          className="text-xs bg-[#037F44] text-white px-3 py-1.5 rounded-lg font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          Allocate
-                        </button>
-                      </div>
+                      <textarea
+                        value={declineReasons[m.id] ?? ""}
+                        onChange={(e) => setDeclineReasons((prev) => ({ ...prev, [m.id]: e.target.value }))}
+                        placeholder="Decline reason (optional, included in the donor's notification)"
+                        rows={2}
+                        className="w-full border rounded-lg px-3 py-2 text-xs resize-none"
+                      />
                     </div>
                   );
                 })}
@@ -414,7 +456,7 @@ export default function AllocationsTab() {
         confirmLabel="Decline"
         loading={saving}
         onConfirm={() => confirmDeclineMatchId && declineMatch(confirmDeclineMatchId)}
-        onClose={() => { setConfirmDeclineMatchId(null); setDeclineReason(""); }}
+        onClose={() => setConfirmDeclineMatchId(null)}
       />
     </div>
   );
