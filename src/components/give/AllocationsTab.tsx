@@ -59,6 +59,13 @@ interface MatchRow {
   id: number;
   status: string;
   matchNotes: string | null;
+  // Exactly one of these is ever set -- see backend Match.js. Lets the UI
+  // tell apart a recipient directly requesting this item (status lands at
+  // ACCEPTED immediately, requestedByUserId set) from an admin-proposed
+  // match still awaiting the recipient's own accept/decline (status
+  // PROPOSED, matchedByAdminId set).
+  requestedByUserId: number | null;
+  matchedByAdminId: number | null;
   NeedProfile: { id: number; reason: string; deliveryAddress: string | null; User: { id: number; firstName: string; lastName: string } | null } | null;
 }
 
@@ -91,6 +98,8 @@ export default function AllocationsTab() {
   const [saving, setSaving] = useState(false);
   const [fulfilmentNote, setFulfilmentNote] = useState("");
   const [confirmAllocateMatchId, setConfirmAllocateMatchId] = useState<number | null>(null);
+  const [confirmDeclineMatchId, setConfirmDeclineMatchId] = useState<number | null>(null);
+  const [declineReason, setDeclineReason] = useState("");
 
   const fetchListings = useCallback(async () => {
     if (!token) return;
@@ -159,6 +168,29 @@ export default function AllocationsTab() {
         body: JSON.stringify({ matchId }),
       });
       setConfirmAllocateMatchId(null);
+      await fetchListings();
+      await loadDetail(selectedId);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Reverts both sides back into the matching pool (listing -> AVAILABLE,
+  // need profile -> OPEN) -- works on a still-PROPOSED admin match or an
+  // already-ACCEPTED one, including a recipient-initiated request, which
+  // lands at ACCEPTED immediately and has no separate "reject" state of
+  // its own to transition out of.
+  const declineMatch = async (matchId: number) => {
+    if (!selectedId || !token) return;
+    setSaving(true);
+    try {
+      await fetch(`${API_URL}/api/admin/give/matches/${matchId}/decline`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ reason: declineReason || undefined }),
+      });
+      setConfirmDeclineMatchId(null);
+      setDeclineReason("");
       await fetchListings();
       await loadDetail(selectedId);
     } finally {
@@ -263,28 +295,56 @@ export default function AllocationsTab() {
 
             {detail.state === "MATCHED" && livematches.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Proposed match</h3>
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">Match</h3>
+                <textarea
+                  value={declineReason}
+                  onChange={(e) => setDeclineReason(e.target.value)}
+                  placeholder="Decline reason (optional, shown if you decline below)"
+                  rows={2}
+                  className="w-full border rounded-lg px-3 py-2 text-sm resize-none mb-2"
+                />
                 {livematches.map((m) => {
                   const hasAddress = !!m.NeedProfile?.deliveryAddress;
+                  const isRecipientRequest = m.requestedByUserId != null;
                   return (
-                    <div key={m.id} className="flex items-center justify-between border rounded-lg px-3 py-2">
-                      <div>
-                        <p className="text-sm font-medium">{m.NeedProfile?.User?.firstName} {m.NeedProfile?.User?.lastName}</p>
-                        <p className="text-xs text-gray-400">{m.status}</p>
+                    <div key={m.id} className="flex items-center justify-between gap-3 border rounded-lg px-3 py-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-medium">{m.NeedProfile?.User?.firstName} {m.NeedProfile?.User?.lastName}</p>
+                          <span
+                            className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
+                              isRecipientRequest ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            {isRecipientRequest ? "Recipient request" : "Admin-proposed"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {m.status === "PROPOSED" ? "Awaiting recipient response" : "Accepted — ready to allocate"}
+                        </p>
                         {!hasAddress && (
                           <span className="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 uppercase">
                             Recipient hasn&apos;t provided a delivery address — allocation will be blocked
                           </span>
                         )}
                       </div>
-                      <button
-                        onClick={() => setConfirmAllocateMatchId(m.id)}
-                        disabled={!hasAddress}
-                        title={!hasAddress ? "Recipient must supply a delivery address before this can be allocated" : undefined}
-                        className="text-xs bg-[#037F44] text-white px-3 py-1.5 rounded-lg font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        Allocate
-                      </button>
+                      <div className="flex gap-2 shrink-0">
+                        <button
+                          onClick={() => setConfirmDeclineMatchId(m.id)}
+                          disabled={saving}
+                          className="text-xs border border-red-200 text-red-700 px-3 py-1.5 rounded-lg font-medium hover:bg-red-50 disabled:opacity-60"
+                        >
+                          Decline
+                        </button>
+                        <button
+                          onClick={() => setConfirmAllocateMatchId(m.id)}
+                          disabled={!hasAddress}
+                          title={!hasAddress ? "Recipient must supply a delivery address before this can be allocated" : undefined}
+                          className="text-xs bg-[#037F44] text-white px-3 py-1.5 rounded-lg font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          Allocate
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -344,6 +404,17 @@ export default function AllocationsTab() {
         loading={saving}
         onConfirm={() => confirmAllocateMatchId && allocate(confirmAllocateMatchId)}
         onClose={() => setConfirmAllocateMatchId(null)}
+      />
+
+      <ConfirmDialog
+        open={confirmDeclineMatchId !== null}
+        title="Decline this match?"
+        message="The item returns to AVAILABLE and the recipient's need profile reopens, so it can be matched with someone else. This notifies the donor."
+        variant="warning"
+        confirmLabel="Decline"
+        loading={saving}
+        onConfirm={() => confirmDeclineMatchId && declineMatch(confirmDeclineMatchId)}
+        onClose={() => { setConfirmDeclineMatchId(null); setDeclineReason(""); }}
       />
     </div>
   );
