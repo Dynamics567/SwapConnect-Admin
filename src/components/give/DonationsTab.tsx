@@ -19,8 +19,33 @@ interface GiveListing {
   eligibleAgeMin: number | null;
   eligibleAgeMax: number | null;
   eligibleLocation: string | null;
-  Product: { id: number; name: string; imageUrl: string; brand: string | null; condition: string; categoryId: number | null } | null;
+  Product: {
+    id: number;
+    name: string;
+    imageUrl: string;
+    otherImages?: string[] | null;
+    brand: string | null;
+    condition: string;
+    categoryId: number | null;
+    metaData?: Record<string, unknown> | null;
+  } | null;
   Donor: { id: number; firstName: string; lastName: string; email: string; phone: string | null } | null;
+}
+
+// metaData keys are whatever the donor form submitted (ram, storage/rom,
+// batteryHealth, batteryCycleCount, batteryCondition, plus any dynamic
+// category attributes) -- camelCase -> "Title Case" so the panel doesn't
+// need a hand-maintained label map that drifts from the form.
+function formatSpecLabel(key: string): string {
+  return key
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/^./, (c) => c.toUpperCase());
+}
+
+function formatSpecValue(value: unknown): string | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
 }
 
 const LIFE_CATEGORY_LABELS: Record<string, string> = {
@@ -70,9 +95,34 @@ export default function DonationsTab() {
   const [loading, setLoading] = useState(true);
   const [stateFilter, setStateFilter] = useState<GiveState | "">("");
   const [selected, setSelected] = useState<GiveListing | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmAction, setConfirmAction] = useState<"verify" | "reject" | "cancel" | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+  // The list endpoint's Product include is attribute-whitelisted (id, name,
+  // imageUrl, brand, condition, categoryId only -- see GiveService.
+  // adminListGiveListings) so photos beyond the cover image and every spec
+  // the donor entered (metaData: RAM/storage/battery health/etc.) never
+  // reach this row at all. The detail endpoint has no such restriction, so
+  // opening a donation fetches the full record instead of settling for
+  // whatever the list happened to include.
+  const openReview = async (item: GiveListing) => {
+    setSelected(item);
+    setReason("");
+    if (!token) return;
+    setDetailLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/give/listings/${item.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data?.data) setSelected(data.data);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const fetchListings = useCallback(async () => {
     if (!token) return;
@@ -145,7 +195,7 @@ export default function DonationsTab() {
             <div
               key={item.id}
               className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 cursor-pointer"
-              onClick={() => { setSelected(item); setReason(""); }}
+              onClick={() => openReview(item)}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -163,7 +213,7 @@ export default function DonationsTab() {
               </div>
               <span className={`w-fit text-xs px-2 py-1 rounded-full font-medium ${STATE_COLORS[item.state]}`}>{item.state}</span>
               <button
-                onClick={(e) => { e.stopPropagation(); setSelected(item); setReason(""); }}
+                onClick={(e) => { e.stopPropagation(); openReview(item); }}
                 className="mt-1 min-h-[44px] text-sm bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
               >
                 Review
@@ -204,10 +254,7 @@ export default function DonationsTab() {
                   </td>
                   <td className="px-4 py-3">
                     <button
-                      onClick={() => {
-                        setSelected(item);
-                        setReason("");
-                      }}
+                      onClick={() => openReview(item)}
                       className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium"
                     >
                       Review
@@ -227,7 +274,7 @@ export default function DonationsTab() {
           <div className="bg-white w-full max-w-md h-full overflow-y-auto p-6 shadow-xl">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold">Review Donation</h2>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+              <button onClick={() => { setSelected(null); setLightboxImage(null); }} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
             </div>
 
             <div className="mb-4">
@@ -235,6 +282,54 @@ export default function DonationsTab() {
               <p className="font-semibold text-sm">{selected.Product?.name}</p>
               <p className="text-xs text-gray-400">{selected.Product?.brand} · {selected.Product?.condition}</p>
             </div>
+
+            {(() => {
+              const photos = [selected.Product?.imageUrl, ...(selected.Product?.otherImages ?? [])].filter(
+                (src): src is string => !!src
+              );
+              if (photos.length === 0) {
+                return detailLoading ? (
+                  <div className="mb-4 h-24 bg-gray-50 rounded-lg animate-pulse" />
+                ) : null;
+              }
+              return (
+                <div className="mb-4">
+                  <p className="text-xs text-gray-500 mb-1">Photos</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {photos.map((src, i) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={i}
+                        src={src}
+                        alt={`${selected.Product?.name ?? "Item"} photo ${i + 1}`}
+                        onClick={() => setLightboxImage(src)}
+                        className="w-full aspect-square object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80"
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {(() => {
+              const entries = Object.entries(selected.Product?.metaData ?? {})
+                .map(([key, value]) => [key, formatSpecValue(value)] as const)
+                .filter((entry): entry is [string, string] => entry[1] !== null);
+              if (entries.length === 0) return null;
+              return (
+                <div className="mb-4">
+                  <p className="text-xs text-gray-500 mb-1">Properties</p>
+                  <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 bg-gray-50 rounded-lg p-3">
+                    {entries.map(([key, value]) => (
+                      <div key={key}>
+                        <dt className="text-[11px] text-gray-400">{formatSpecLabel(key)}</dt>
+                        <dd className="text-sm text-gray-800 break-words">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              );
+            })()}
 
             <div className="mb-4">
               <p className="text-xs text-gray-500 mb-1">Donor</p>
@@ -309,6 +404,16 @@ export default function DonationsTab() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-6"
+          onClick={() => setLightboxImage(null)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightboxImage} alt="Donated item" className="max-h-full max-w-full rounded-lg object-contain" />
         </div>
       )}
 
