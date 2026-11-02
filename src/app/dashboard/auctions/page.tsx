@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Gavel } from "lucide-react";
+import { Gavel, CheckCircle2, XCircle } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { useRole } from "@/hooks/useRole";
@@ -239,17 +239,17 @@ function AuctionsPageContent() {
                     {a.state === "PENDING_REVIEW" && (
                       <button
                         onClick={() => { setApproveTarget(a); setApproveReferencePrice(""); setActionError(""); }}
-                        className="text-xs font-semibold text-brand-emerald hover:underline"
+                        className="flex items-center gap-1 text-xs font-semibold text-brand-emerald bg-brand-emerald-light hover:bg-brand-emerald hover:text-white px-2.5 py-1.5 rounded-lg transition-colors"
                       >
-                        Approve
+                        <CheckCircle2 size={13} /> Approve
                       </button>
                     )}
                     {!["COMPLETED", "CANCELLED", "ENDED"].includes(a.state) && (
                       <button
                         onClick={() => { setCancelTarget(a); setCancelReason(""); setActionError(""); }}
-                        className="text-xs font-semibold text-red-600 hover:underline"
+                        className="flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white px-2.5 py-1.5 rounded-lg transition-colors"
                       >
-                        Cancel
+                        <XCircle size={13} /> Cancel
                       </button>
                     )}
                   </div>
@@ -331,17 +331,17 @@ function AuctionsPageContent() {
                           {a.state === "PENDING_REVIEW" && (
                             <button
                               onClick={() => { setApproveTarget(a); setApproveReferencePrice(""); setActionError(""); }}
-                              className="text-xs font-semibold text-brand-emerald hover:underline"
+                              className="flex items-center gap-1 text-xs font-semibold text-brand-emerald bg-brand-emerald-light hover:bg-brand-emerald hover:text-white px-2.5 py-1.5 rounded-lg transition-colors"
                             >
-                              Approve
+                              <CheckCircle2 size={13} /> Approve
                             </button>
                           )}
                           {!["COMPLETED", "CANCELLED", "ENDED"].includes(a.state) && (
                             <button
                               onClick={() => { setCancelTarget(a); setCancelReason(""); setActionError(""); }}
-                              className="text-xs font-semibold text-red-600 hover:underline"
+                              className="flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white px-2.5 py-1.5 rounded-lg transition-colors"
                             >
-                              Cancel
+                              <XCircle size={13} /> Cancel
                             </button>
                           )}
                         </div>

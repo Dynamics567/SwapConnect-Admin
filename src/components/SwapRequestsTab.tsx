@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { Eye, ChevronRight } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import ProtectedRoute from "./ProtectedRoute";
@@ -184,11 +185,20 @@ export default function SwapRequestsTab() {
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
                   <th className="px-4 py-3" />
+                  <th className="pr-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {swaps.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
+                  <tr
+                    key={item.id}
+                    onClick={() => {
+                      setSelected(item);
+                      setNewStatus(item.status === "PENDING" ? "APPROVED" : item.status);
+                      setStoreOwnerNotes(item.storeOwnerNotes ?? "");
+                    }}
+                    className="cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-4 py-3 font-mono text-xs text-gray-500">{item.referenceId}</td>
                     <td className="px-4 py-3">
                       {item.User ? (
@@ -222,15 +232,19 @@ export default function SwapRequestsTab() {
                     </td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelected(item);
                           setNewStatus(item.status === "PENDING" ? "APPROVED" : item.status);
                           setStoreOwnerNotes(item.storeOwnerNotes ?? "");
                         }}
-                        className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium"
+                        className="flex items-center gap-1 text-xs text-brand-emerald bg-brand-emerald-light hover:bg-brand-emerald hover:text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
                       >
-                        Review
+                        <Eye size={13} /> Review
                       </button>
+                    </td>
+                    <td className="pr-3">
+                      <ChevronRight size={16} className="text-gray-300" />
                     </td>
                   </tr>
                 ))}

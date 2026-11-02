@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { Eye, ChevronRight } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import ProtectedRoute from "./ProtectedRoute";
@@ -137,7 +138,7 @@ export default function TradeInsTab() {
             {submissions.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 cursor-pointer"
+                className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 cursor-pointer transition-shadow hover:shadow-md active:bg-gray-50"
                 onClick={() => {
                   setSelected(item);
                   setNewStatus(item.status === "pending" ? "reviewed" : item.status);
@@ -180,9 +181,9 @@ export default function TradeInsTab() {
                     setNewStatus(item.status === "pending" ? "reviewed" : item.status);
                     setAdminNotes(item.adminNotes ?? "");
                   }}
-                  className="mt-1 min-h-[44px] text-sm bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
+                  className="mt-1 min-h-[44px] flex items-center justify-center gap-1.5 text-sm text-brand-emerald bg-brand-emerald-light hover:bg-brand-emerald hover:text-white rounded-lg font-semibold transition-colors"
                 >
-                  Review
+                  <Eye size={15} /> Review
                 </button>
               </div>
             ))}
@@ -201,11 +202,20 @@ export default function TradeInsTab() {
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
                   <th className="px-4 py-3" />
+                  <th className="pr-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {submissions.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
+                  <tr
+                    key={item.id}
+                    onClick={() => {
+                      setSelected(item);
+                      setNewStatus(item.status === "pending" ? "reviewed" : item.status);
+                      setAdminNotes(item.adminNotes ?? "");
+                    }}
+                    className="cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-4 py-3 font-mono text-xs text-gray-500">{item.referenceId}</td>
                     <td className="px-4 py-3 capitalize">{item.deviceType}</td>
                     <td className="px-4 py-3">
@@ -236,15 +246,19 @@ export default function TradeInsTab() {
                     </td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelected(item);
                           setNewStatus(item.status === "pending" ? "reviewed" : item.status);
                           setAdminNotes(item.adminNotes ?? "");
                         }}
-                        className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium"
+                        className="flex items-center gap-1 text-xs text-brand-emerald bg-brand-emerald-light hover:bg-brand-emerald hover:text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
                       >
-                        Review
+                        <Eye size={13} /> Review
                       </button>
+                    </td>
+                    <td className="pr-3">
+                      <ChevronRight size={16} className="text-gray-300" />
                     </td>
                   </tr>
                 ))}

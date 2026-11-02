@@ -1,7 +1,7 @@
 ﻿"use client";
 import { useState, useEffect, useCallback } from "react";
 import {
-  Sparkles, Flag, BarChart2, Database, Gauge, Search, Plus, X, Loader2,
+  Sparkles, Flag, BarChart2, Database, Gauge, Search, Plus, X, Loader2, Power,
 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
@@ -368,8 +368,12 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
                   <button
                     onClick={() => canManage && toggleActive(e)}
                     disabled={!canManage}
-                    className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${e.isActive ? "bg-brand-emerald-light text-brand-emerald" : "bg-gray-100 text-gray-500"}`}
+                    title={canManage ? "Click to toggle catalog visibility" : undefined}
+                    className={`shrink-0 flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors ${
+                      e.isActive ? "bg-brand-emerald-light text-brand-emerald border-brand-emerald/30" : "bg-gray-100 text-gray-500 border-gray-200"
+                    } ${canManage ? "cursor-pointer hover:brightness-95" : "cursor-default opacity-70"}`}
                   >
+                    <Power size={11} />
                     {e.isActive ? "Active" : "Inactive"}
                   </button>
                 </div>
@@ -403,8 +407,12 @@ function CatalogTab({ token, canManage }: { token: string | null; canManage: boo
                       <button
                         onClick={() => canManage && toggleActive(e)}
                         disabled={!canManage}
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-full ${e.isActive ? "bg-brand-emerald-light text-brand-emerald" : "bg-gray-100 text-gray-500"}`}
+                        title={canManage ? "Click to toggle catalog visibility" : undefined}
+                        className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors ${
+                          e.isActive ? "bg-brand-emerald-light text-brand-emerald border-brand-emerald/30" : "bg-gray-100 text-gray-500 border-gray-200"
+                        } ${canManage ? "cursor-pointer hover:brightness-95" : "cursor-default opacity-70"}`}
                       >
+                        <Power size={11} />
                         {e.isActive ? "Active" : "Inactive"}
                       </button>
                     </td>

@@ -5,7 +5,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ReferralTabs from "@/components/referrals/ReferralTabs";
 import PageButton from "@/components/PageButton";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { Download } from "lucide-react";
+import { Download, CheckCircle2, XCircle } from "lucide-react";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { useAuthContext } from "@/context/AuthContext";
 import { API_URL } from "@/lib/config";
@@ -179,9 +179,19 @@ function ReferralRewardsContent() {
                   {canAct && (
                     <td className="py-3 px-4">
                       {r.status === "pending_review" ? (
-                        <div className="flex gap-2 text-xs">
-                          <button onClick={() => setConfirmAction({ reward: r, type: "approve" })} className="text-brand-emerald hover:underline">Approve</button>
-                          <button onClick={() => setConfirmAction({ reward: r, type: "reject" })} className="text-red-600 hover:underline">Reject</button>
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={() => setConfirmAction({ reward: r, type: "approve" })}
+                            className="flex items-center gap-1 text-xs font-medium text-brand-emerald bg-brand-emerald-light hover:bg-brand-emerald hover:text-white px-2 py-1 rounded-lg transition-colors"
+                          >
+                            <CheckCircle2 size={12} /> Approve
+                          </button>
+                          <button
+                            onClick={() => setConfirmAction({ reward: r, type: "reject" })}
+                            className="flex items-center gap-1 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-600 hover:text-white px-2 py-1 rounded-lg transition-colors"
+                          >
+                            <XCircle size={12} /> Reject
+                          </button>
                         </div>
                       ) : (
                         <span className="text-xs text-[#9ca3af]">—</span>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Copy } from "lucide-react";
+import { Plus, Copy, Pencil, Pause, Play, Archive } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ReferralTabs from "@/components/referrals/ReferralTabs";
 import SidePanel from "@/components/finance/SidePanel";
@@ -476,17 +476,47 @@ function ReferralCampaignsContent() {
                   </td>
                   <td className="py-3 px-4">
                     {canEdit ? (
-                      <div className="flex items-center gap-2 text-xs">
-                        <button onClick={() => { setForm(toForm(c)); setEditing(c); }} className="text-brand-emerald hover:underline">Edit</button>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <button
+                          onClick={() => { setForm(toForm(c)); setEditing(c); }}
+                          title="Edit"
+                          className="flex items-center gap-1 text-xs font-medium text-brand-emerald bg-brand-emerald-light hover:bg-brand-emerald hover:text-white px-2 py-1 rounded-lg transition-colors"
+                        >
+                          <Pencil size={12} /> Edit
+                        </button>
                         {c.status === "active" ? (
-                          <button onClick={() => setStatusConfirm({ campaign: c, newStatus: "paused" })} className="text-brand-gold-hover hover:underline">Pause</button>
+                          <button
+                            onClick={() => setStatusConfirm({ campaign: c, newStatus: "paused" })}
+                            title="Pause"
+                            className="flex items-center gap-1 text-xs font-medium text-brand-gold-hover bg-brand-gold-light hover:bg-brand-gold-hover hover:text-white px-2 py-1 rounded-lg transition-colors"
+                          >
+                            <Pause size={12} /> Pause
+                          </button>
                         ) : c.status !== "archived" ? (
-                          <button onClick={() => setStatusConfirm({ campaign: c, newStatus: "active" })} className="text-brand-emerald hover:underline">Activate</button>
+                          <button
+                            onClick={() => setStatusConfirm({ campaign: c, newStatus: "active" })}
+                            title="Activate"
+                            className="flex items-center gap-1 text-xs font-medium text-brand-emerald bg-brand-emerald-light hover:bg-brand-emerald hover:text-white px-2 py-1 rounded-lg transition-colors"
+                          >
+                            <Play size={12} /> Activate
+                          </button>
                         ) : null}
                         {c.status !== "archived" && (
-                          <button onClick={() => setStatusConfirm({ campaign: c, newStatus: "archived" })} className="text-red-600 hover:underline">Archive</button>
+                          <button
+                            onClick={() => setStatusConfirm({ campaign: c, newStatus: "archived" })}
+                            title="Archive"
+                            className="flex items-center gap-1 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-600 hover:text-white px-2 py-1 rounded-lg transition-colors"
+                          >
+                            <Archive size={12} /> Archive
+                          </button>
                         )}
-                        <button onClick={() => handleDuplicate(c)} className="text-[#6b7280] hover:underline flex items-center gap-1"><Copy size={12} /> Duplicate</button>
+                        <button
+                          onClick={() => handleDuplicate(c)}
+                          title="Duplicate"
+                          className="flex items-center gap-1 text-xs font-medium text-[#6b7280] bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded-lg transition-colors"
+                        >
+                          <Copy size={12} /> Duplicate
+                        </button>
                       </div>
                     ) : (
                       <span className="text-xs text-[#9ca3af]">View only</span>

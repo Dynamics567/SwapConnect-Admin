@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { Eye, ChevronRight } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 
@@ -108,7 +109,7 @@ export default function NeedProfilesTab() {
           {needs.map((n) => (
             <div
               key={n.id}
-              className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 cursor-pointer"
+              className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 cursor-pointer transition-shadow hover:shadow-md active:bg-gray-50"
               onClick={() => setSelected(n)}
             >
               <div className="flex items-start justify-between gap-2">
@@ -126,9 +127,9 @@ export default function NeedProfilesTab() {
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); setSelected(n); }}
-                className="mt-1 min-h-[44px] text-sm bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
+                className="mt-1 min-h-[44px] flex items-center justify-center gap-1.5 text-sm text-brand-emerald bg-brand-emerald-light hover:bg-brand-emerald hover:text-white rounded-lg font-semibold transition-colors"
               >
-                View
+                <Eye size={15} /> View
               </button>
             </div>
           ))}
@@ -147,11 +148,12 @@ export default function NeedProfilesTab() {
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
                 <th className="px-4 py-3" />
+                <th className="pr-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {needs.map((n) => (
-                <tr key={n.id} className="hover:bg-gray-50">
+                <tr key={n.id} onClick={() => setSelected(n)} className="cursor-pointer hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3 font-medium">{n.User?.firstName} {n.User?.lastName}</td>
                   <td className="px-4 py-3 text-gray-500">{n.Category?.name ?? "Any category"}</td>
                   <td className="px-4 py-3 text-gray-500">{n.ageBand}</td>
@@ -167,11 +169,14 @@ export default function NeedProfilesTab() {
                   </td>
                   <td className="px-4 py-3">
                     <button
-                      onClick={() => setSelected(n)}
-                      className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium"
+                      onClick={(e) => { e.stopPropagation(); setSelected(n); }}
+                      className="flex items-center gap-1 text-xs text-brand-emerald bg-brand-emerald-light hover:bg-brand-emerald hover:text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
                     >
-                      View
+                      <Eye size={13} /> View
                     </button>
+                  </td>
+                  <td className="pr-3">
+                    <ChevronRight size={16} className="text-gray-300" />
                   </td>
                 </tr>
               ))}

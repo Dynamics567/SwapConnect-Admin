@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { MessageCircle } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -314,9 +315,9 @@ export default function RiskReviewPage() {
                   {o.buyer && (
                     <button
                       onClick={() => openMessageModal(o.buyer as RiskBuyer)}
-                      className="text-xs font-medium text-blue-600 hover:underline"
+                      className="flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white px-2 py-1 rounded-lg transition-colors"
                     >
-                      Message buyer
+                      <MessageCircle size={12} /> Message buyer
                     </button>
                   )}
                 </div>
@@ -402,9 +403,9 @@ export default function RiskReviewPage() {
                         {o.buyer && (
                           <button
                             onClick={() => openMessageModal(o.buyer as RiskBuyer)}
-                            className="text-xs font-medium text-blue-600 hover:underline text-left"
+                            className="flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white px-2 py-1 rounded-lg transition-colors text-left w-fit"
                           >
-                            Message buyer
+                            <MessageCircle size={12} /> Message buyer
                           </button>
                         )}
                       </div>

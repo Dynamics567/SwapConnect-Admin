@@ -86,7 +86,7 @@ function FinanceRefundsContent() {
               {loading && <tr><td colSpan={8} className="py-8 text-center text-[#9ca3af]">Loading…</td></tr>}
               {!loading && rows.length === 0 && <tr><td colSpan={8} className="py-8 text-center text-[#9ca3af]">No refunds in this period.</td></tr>}
               {!loading && rows.map((r) => (
-                <tr key={r.id} className="border-b border-[#f3f4f6] last:border-0 hover:bg-[#f8f9fb]">
+                <tr key={r.id} className="border-b border-[#f3f4f6] last:border-0">
                   <td className="py-3 px-4 font-medium text-[#353535]">{r.reference}</td>
                   <td className="py-3 px-4 text-[#6b7280]">{r.orderId ?? "—"}</td>
                   <td className="py-3 px-4">
