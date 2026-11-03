@@ -327,9 +327,14 @@ function CouponsPageInner() {
     setTotalDiscountGiven(0);
   };
 
-  const summaryCards = [
-    { label: "Total Coupons", value: stats.total, icon: <Ticket size={20} className="text-brand-emerald" /> },
-    { label: "Currently Active", value: stats.active, icon: <Tag size={20} className="text-brand-emerald" /> },
+  // "Total Coupons" and "Currently Active" map exactly onto the segmented
+  // filter below (all / active), so those two set it directly. "Total
+  // Redemptions" and "Codes In Use" are pure aggregates with no matching
+  // list view (redemptions are only viewable per-coupon, via the modal),
+  // so those stay static.
+  const summaryCards: { label: string; value: number; icon: React.ReactNode; filter?: "all" | "active" }[] = [
+    { label: "Total Coupons", value: stats.total, icon: <Ticket size={20} className="text-brand-emerald" />, filter: "all" },
+    { label: "Currently Active", value: stats.active, icon: <Tag size={20} className="text-brand-emerald" />, filter: "active" },
     { label: "Total Redemptions", value: stats.totalUses, icon: <Receipt size={20} className="text-brand-emerald" /> },
     { label: "Codes In Use", value: stats.totalRedeemable, icon: <Users size={20} className="text-brand-emerald" /> },
   ];
@@ -352,15 +357,30 @@ function CouponsPageInner() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {summaryCards.map((s) => (
-          <div key={s.label} className="bg-white rounded-xl shadow p-5">
-            <div className="flex items-center justify-between mb-2">
-              <span className="bg-brand-emerald-light rounded-lg p-2">{s.icon}</span>
+        {summaryCards.map((s) =>
+          s.filter ? (
+            <button
+              key={s.label}
+              type="button"
+              onClick={() => setStatusFilter(s.filter!)}
+              className="text-left bg-white rounded-xl shadow p-5 cursor-pointer transition-shadow hover:shadow-md active:bg-[#F7F8FB]"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="bg-brand-emerald-light rounded-lg p-2">{s.icon}</span>
+              </div>
+              <div className="text-xl font-bold text-[#353535]">{loading ? "—" : s.value}</div>
+              <div className="text-xs text-[#848484] mt-0.5">{s.label}</div>
+            </button>
+          ) : (
+            <div key={s.label} className="bg-white rounded-xl shadow p-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="bg-brand-emerald-light rounded-lg p-2">{s.icon}</span>
+              </div>
+              <div className="text-xl font-bold text-[#353535]">{loading ? "—" : s.value}</div>
+              <div className="text-xs text-[#848484] mt-0.5">{s.label}</div>
             </div>
-            <div className="text-xl font-bold text-[#353535]">{loading ? "—" : s.value}</div>
-            <div className="text-xs text-[#848484] mt-0.5">{s.label}</div>
-          </div>
-        ))}
+          )
+        )}
       </div>
 
       {/* Filter segmented control */}

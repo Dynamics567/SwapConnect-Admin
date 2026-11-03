@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ReferralTabs from "@/components/referrals/ReferralTabs";
 import PageButton from "@/components/PageButton";
@@ -33,6 +34,7 @@ function ReferralRewardsContent() {
   const token = useAuthToken();
   const { role } = useAuthContext();
   const canAct = role === "superadmin";
+  const searchParams = useSearchParams();
 
   const [rows, setRows] = useState<RewardRow[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -45,6 +47,15 @@ function ReferralRewardsContent() {
   const [rejectReason, setRejectReason] = useState("");
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  // Lets the Referral Overview page's "Awaiting Manual Review" / "Rewards
+  // Paid" cards deep-link straight into this exact filter instead of
+  // landing on the default pending-review view regardless of which number
+  // was clicked.
+  useEffect(() => {
+    const fromUrl = searchParams.get("status");
+    if (fromUrl && STATUSES.includes(fromUrl)) setStatus(fromUrl);
+  }, [searchParams]);
 
   useEffect(() => { setPage(1); }, [status]);
 
@@ -241,7 +252,9 @@ function ReferralRewardsContent() {
 export default function ReferralRewardsPage() {
   return (
     <ProtectedRoute allowedRoles={["superadmin", "admin"]}>
-      <ReferralRewardsContent />
+      <Suspense fallback={null}>
+        <ReferralRewardsContent />
+      </Suspense>
     </ProtectedRoute>
   );
 }

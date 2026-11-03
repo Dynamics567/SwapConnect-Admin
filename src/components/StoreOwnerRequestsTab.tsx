@@ -66,15 +66,27 @@ function StatusBadge({ status }: { status: RequestStatus }) {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="bg-white rounded-lg shadow p-4 flex items-center gap-3 w-[180px] h-[74px]">
+function StatCard({ label, value, onClick }: { label: string; value: number; onClick?: () => void }) {
+  const inner = (
+    <>
       <span className="w-9 h-9 rounded-full bg-[#F7F8FB] flex items-center justify-center shrink-0 text-[#037F44] font-bold text-sm">
         {value}
       </span>
       <p className="text-xs text-[#6b6b6b]">{label}</p>
-    </div>
+    </>
   );
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="text-left bg-white rounded-lg shadow p-4 flex items-center gap-3 w-[180px] h-[74px] cursor-pointer transition-shadow hover:shadow-md active:bg-[#F7F8FB]"
+      >
+        {inner}
+      </button>
+    );
+  }
+  return <div className="bg-white rounded-lg shadow p-4 flex items-center gap-3 w-[180px] h-[74px]">{inner}</div>;
 }
 
 const formatDate = (v: string | null | undefined) =>
@@ -220,9 +232,9 @@ export default function StoreOwnerRequestsTab() {
 
       {stats && (
         <div className="flex flex-wrap gap-4 mb-6">
-          <StatCard label="Pending" value={stats.pending} />
-          <StatCard label="Approved" value={stats.approved} />
-          <StatCard label="Declined" value={stats.declined} />
+          <StatCard label="Pending" value={stats.pending} onClick={() => setStatusFilter("pending_review")} />
+          <StatCard label="Approved" value={stats.approved} onClick={() => setStatusFilter("approved")} />
+          <StatCard label="Declined" value={stats.declined} onClick={() => setStatusFilter("declined")} />
           <StatCard label="This Month" value={stats.thisMonth} />
         </div>
       )}

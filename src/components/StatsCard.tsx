@@ -1,13 +1,15 @@
 "use client";
 import React from "react";
 import type { JSX } from "react";
-import { CircleDollarSign, Store, Users, Repeat, ShieldAlert, AlertTriangle, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { CircleDollarSign, Store, Users, Repeat, ShieldAlert, AlertTriangle, ShieldCheck, ChevronRight } from "lucide-react";
 
 interface Stat {
   label: string;
   value: string | number;
   key: string;
   icon: JSX.Element;
+  href: string;
 }
 
 interface DashboardTotals {
@@ -42,42 +44,49 @@ function statsForRole(role: string | null, totals: DashboardTotals | undefined):
     value: `₦${totals.totalRevenue ?? 0}`,
     key: "revenue",
     icon: <CircleDollarSign size={24} className="text-[#037F44]" />,
+    href: "/dashboard/finance/overview",
   };
   const users: Stat = {
     label: "Total Users",
     value: totals.users ?? 0,
     key: "users",
     icon: <Users size={24} className="text-[#037F44]" />,
+    href: "/dashboard/user",
   };
   const items: Stat = {
     label: "Total Items Listed",
     value: totals.products ?? 0,
     key: "items",
     icon: <Store size={24} className="text-[#037F44]" />,
+    href: "/dashboard/items?tab=listed",
   };
   const swaps: Stat = {
     label: "Active Swaps",
     value: totals.activeSwaps ?? 0,
     key: "swaps",
     icon: <Repeat size={24} className="text-[#037F44]" />,
+    href: "/dashboard/items?tab=swap-requests",
   };
   const pendingVerifications: Stat = {
     label: "Pending Verifications",
     value: totals.pendingVerifications ?? 0,
     key: "pendingVerifications",
     icon: <ShieldCheck size={24} className="text-[#037F44]" />,
+    href: "/dashboard/user?tab=verification",
   };
   const openDisputes: Stat = {
     label: "Open Disputes",
     value: totals.openDisputes ?? 0,
     key: "openDisputes",
     icon: <ShieldAlert size={24} className="text-[#037F44]" />,
+    href: "/dashboard/disputes",
   };
   const highRiskOrders: Stat = {
     label: "High-Risk Orders",
     value: totals.highRiskOrders ?? 0,
     key: "highRiskOrders",
     icon: <AlertTriangle size={24} className="text-[#037F44]" />,
+    href: "/dashboard/risk",
   };
 
   switch (role) {
@@ -120,15 +129,16 @@ function StatsCard({ data, loading }: StatsCardProps) {
               </div>
             ))
           : stats.map((stat) => (
-              <div
+              <Link
                 key={stat.label}
-                className="bg-white w-full h-[90px] rounded-lg shadow p-6 flex flex-col justify-center"
+                href={stat.href}
+                className="group bg-white w-full h-[90px] rounded-lg shadow p-6 flex flex-col justify-center cursor-pointer transition-shadow hover:shadow-md active:bg-[#F7F8FB]"
               >
                 <div className="flex items-center gap-3">
-                  <span className="bg-[#F7F8FB] rounded-full p-2 flex items-center justify-center">
+                  <span className="bg-[#F7F8FB] rounded-full p-2 flex items-center justify-center shrink-0">
                     {stat.icon}
                   </span>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <div className="text-xs md:text-sm text-[#6b6b6b] mb-1">
                       {stat.label}
                     </div>
@@ -136,8 +146,12 @@ function StatsCard({ data, loading }: StatsCardProps) {
                       {stat.value}
                     </div>
                   </div>
+                  <ChevronRight
+                    size={16}
+                    className="shrink-0 text-[#9a9a9a] opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0"
+                  />
                 </div>
-              </div>
+              </Link>
             ))}
       </div>
     </div>

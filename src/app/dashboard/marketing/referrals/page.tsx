@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ReferralTabs from "@/components/referrals/ReferralTabs";
 import { useAuthToken } from "@/hooks/useAuthToken";
@@ -23,14 +25,33 @@ interface Overview {
   paidAmount: number;
 }
 
-function MetricCard({ label, value, sub }: { label: string; value: React.ReactNode; sub?: string }) {
-  return (
-    <div className="bg-white rounded-2xl border border-[#e5e7eb] p-5">
-      <p className="text-xs font-semibold text-[#6b7280] uppercase tracking-wide mb-1">{label}</p>
+function MetricCard({ label, value, sub, href }: { label: string; value: React.ReactNode; sub?: string; href?: string }) {
+  const body = (
+    <>
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs font-semibold text-[#6b7280] uppercase tracking-wide mb-1">{label}</p>
+        {href && (
+          <ChevronRight
+            size={14}
+            className="shrink-0 text-[#9ca3af] opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0"
+          />
+        )}
+      </div>
       <p className="text-2xl font-bold text-[#353535]">{value}</p>
       {sub && <p className="text-xs text-[#9ca3af] mt-1">{sub}</p>}
-    </div>
+    </>
   );
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="group bg-white rounded-2xl border border-[#e5e7eb] p-5 cursor-pointer transition-shadow hover:shadow-md active:bg-[#F7F8FB]"
+      >
+        {body}
+      </Link>
+    );
+  }
+  return <div className="bg-white rounded-2xl border border-[#e5e7eb] p-5">{body}</div>;
 }
 
 function ReferralOverviewContent() {
@@ -73,8 +94,14 @@ function ReferralOverviewContent() {
 
         {data && !loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <MetricCard label="Total Referrals" value={data.totalReferrals} />
-            <MetricCard label="Qualified" value={data.qualifiedCount} sub={`${data.conversionRate}% conversion`} />
+            <MetricCard label="Total Referrals" value={data.totalReferrals} href="/dashboard/marketing/referrals/referrals" />
+            <MetricCard label="Qualified" value={data.qualifiedCount} sub={`${data.conversionRate}% conversion`} href="/dashboard/marketing/referrals/referrals?status=qualified" />
+            {/* "Awaiting Qualification" is a combined count of two distinct
+                statuses (registered + awaiting_qualification) -- the
+                referrals list filters each separately, so there's no single
+                filter value that would show exactly this number. Left
+                static rather than linking somewhere that'd show a different
+                count than what was clicked. */}
             <MetricCard label="Awaiting Qualification" value={data.registeredCount} />
             <MetricCard label="Store Owners Referred" value={data.storeOwnersReferred} />
             <MetricCard label="Customers Referred" value={data.customersReferred} />
@@ -88,8 +115,14 @@ function ReferralOverviewContent() {
               label="Awaiting Manual Review"
               value={data.pendingReviewCount}
               sub={fmtNaira(data.pendingReviewAmount)}
+              href="/dashboard/marketing/referrals/rewards?status=pending_review"
             />
-            <MetricCard label="Rewards Paid" value={data.paidCount} sub={fmtNaira(data.paidAmount)} />
+            <MetricCard
+              label="Rewards Paid"
+              value={data.paidCount}
+              sub={fmtNaira(data.paidAmount)}
+              href="/dashboard/marketing/referrals/rewards?status=paid"
+            />
           </div>
         )}
       </div>

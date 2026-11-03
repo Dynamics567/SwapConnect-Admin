@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ReferralTabs from "@/components/referrals/ReferralTabs";
 import PageButton from "@/components/PageButton";
@@ -25,12 +26,22 @@ const STATUSES = ["", "registered", "awaiting_qualification", "qualification_pen
 
 function ReferralsListContent() {
   const token = useAuthToken();
+  const searchParams = useSearchParams();
   const [rows, setRows] = useState<ReferralRow[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState("");
+
+  // Lets the Referral Overview page's summary cards deep-link straight into
+  // the matching filtered view (e.g. ?status=qualified), instead of landing
+  // here with every referral mixed together regardless of which number was
+  // clicked.
+  useEffect(() => {
+    const fromUrl = searchParams.get("status");
+    if (fromUrl && STATUSES.includes(fromUrl)) setStatus(fromUrl);
+  }, [searchParams]);
 
   useEffect(() => { setPage(1); }, [status]);
 
@@ -121,7 +132,9 @@ function ReferralsListContent() {
 export default function ReferralsListPage() {
   return (
     <ProtectedRoute allowedRoles={["superadmin", "admin"]}>
-      <ReferralsListContent />
+      <Suspense fallback={null}>
+        <ReferralsListContent />
+      </Suspense>
     </ProtectedRoute>
   );
 }

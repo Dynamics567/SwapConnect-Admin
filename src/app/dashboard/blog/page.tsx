@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   FileText, CheckCircle2, Clock, CalendarClock, Eye, Heart, Share2,
-  PlusCircle, TrendingUp, AlertCircle,
+  PlusCircle, TrendingUp, AlertCircle, ChevronRight,
 } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
@@ -22,16 +22,33 @@ interface OverviewData {
   recentPublications: { id: number; title: string; publishedAt: string; views: number; Author?: { firstName: string; lastName: string } }[];
 }
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
-  return (
-    <div className="bg-white rounded-lg shadow p-6 flex items-center gap-3">
+function StatCard({ icon, label, value, href }: { icon: React.ReactNode; label: string; value: string | number; href?: string }) {
+  const content = (
+    <>
       <span className="bg-[#F7F8FB] rounded-full p-2 flex items-center justify-center shrink-0">{icon}</span>
-      <div>
+      <div className="min-w-0 flex-1">
         <div className="text-xs md:text-sm text-[#6b6b6b] mb-1">{label}</div>
         <div className="md:text-2xl text-lg font-bold text-[#353535]">{value}</div>
       </div>
-    </div>
+      {href && (
+        <ChevronRight
+          size={16}
+          className="shrink-0 text-[#9ca3af] opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0"
+        />
+      )}
+    </>
   );
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="group bg-white rounded-lg shadow p-6 flex items-center gap-3 cursor-pointer transition-shadow hover:shadow-md active:bg-[#F7F8FB]"
+      >
+        {content}
+      </Link>
+    );
+  }
+  return <div className="bg-white rounded-lg shadow p-6 flex items-center gap-3">{content}</div>;
 }
 
 function ActivityRow({ label, value, href }: { label: string; value: number; href: string }) {
@@ -108,10 +125,10 @@ export default function BlogOverviewPage() {
           <>
             {/* Content statistics */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard icon={<FileText size={22} className="text-[#037F44]" />} label="Total Posts" value={data.counts.total} />
-              <StatCard icon={<CheckCircle2 size={22} className="text-[#037F44]" />} label="Published" value={data.counts.published} />
-              <StatCard icon={<Clock size={22} className="text-[#037F44]" />} label="Drafts" value={data.counts.draft} />
-              <StatCard icon={<CalendarClock size={22} className="text-[#037F44]" />} label="Scheduled" value={data.counts.scheduled} />
+              <StatCard icon={<FileText size={22} className="text-[#037F44]" />} label="Total Posts" value={data.counts.total} href="/dashboard/blog/posts" />
+              <StatCard icon={<CheckCircle2 size={22} className="text-[#037F44]" />} label="Published" value={data.counts.published} href="/dashboard/blog/posts?status=published" />
+              <StatCard icon={<Clock size={22} className="text-[#037F44]" />} label="Drafts" value={data.counts.draft} href="/dashboard/blog/posts?status=draft" />
+              <StatCard icon={<CalendarClock size={22} className="text-[#037F44]" />} label="Scheduled" value={data.counts.scheduled} href="/dashboard/blog/posts?status=scheduled" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

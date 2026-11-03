@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   TrendingUp,
   Users,
@@ -7,6 +8,7 @@ import {
   DollarSign,
   Download,
   Loader2,
+  ChevronRight,
 } from "lucide-react";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
@@ -232,6 +234,7 @@ export default function ReportsPage() {
       icon: <DollarSign size={20} className="text-[#037F44]" />,
       sub: data ? rangeLabel : "Selected period",
       trend: null,
+      href: null,
     },
     {
       label: "Total Users",
@@ -239,6 +242,7 @@ export default function ReportsPage() {
       icon: <Users size={20} className="text-[#037F44]" />,
       sub: "All-time registered accounts",
       trend: null,
+      href: "/dashboard/user",
     },
     {
       label: "Orders",
@@ -246,6 +250,7 @@ export default function ReportsPage() {
       icon: <ShoppingBag size={20} className="text-[#037F44]" />,
       sub: data ? rangeLabel : "Selected period",
       trend: null,
+      href: null,
     },
     {
       label: "New Signups",
@@ -255,6 +260,7 @@ export default function ReportsPage() {
       icon: <TrendingUp size={20} className="text-[#037F44]" />,
       sub: data ? rangeLabel : "Selected period",
       trend: null,
+      href: null,
     },
   ];
 
@@ -344,16 +350,37 @@ export default function ReportsPage() {
           <>
             {/* Summary cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              {summary.map((s) => (
-                <div key={s.label} className="bg-white rounded-xl shadow p-5">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="bg-[#f0faf5] rounded-lg p-2">{s.icon}</span>
+              {summary.map((s) => {
+                const body = (
+                  <>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="bg-[#f0faf5] rounded-lg p-2">{s.icon}</span>
+                      {s.href && (
+                        <ChevronRight
+                          size={14}
+                          className="text-[#c0c0c0] opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0"
+                        />
+                      )}
+                    </div>
+                    <div className="text-xl font-bold text-[#353535]">{s.value}</div>
+                    <div className="text-xs text-[#848484] mt-0.5">{s.label}</div>
+                    {s.sub && <div className="text-[10px] text-[#c0c0c0] mt-1">{s.sub}</div>}
+                  </>
+                );
+                return s.href ? (
+                  <Link
+                    key={s.label}
+                    href={s.href}
+                    className="group bg-white rounded-xl shadow p-5 cursor-pointer transition-shadow hover:shadow-md active:bg-[#F7F8FB]"
+                  >
+                    {body}
+                  </Link>
+                ) : (
+                  <div key={s.label} className="bg-white rounded-xl shadow p-5">
+                    {body}
                   </div>
-                  <div className="text-xl font-bold text-[#353535]">{s.value}</div>
-                  <div className="text-xs text-[#848484] mt-0.5">{s.label}</div>
-                  {s.sub && <div className="text-[10px] text-[#c0c0c0] mt-1">{s.sub}</div>}
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Charts row */}

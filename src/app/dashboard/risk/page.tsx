@@ -228,13 +228,24 @@ export default function RiskReviewPage() {
           </button>
         </div>
 
-        {/* Summary */}
+        {/* Summary -- "Orders scanned" and "High risk" map exactly onto the
+            filter dropdown above (All / High risk only), so those two are
+            clickable shortcuts into it. "With at least one flag" and
+            "Medium risk" have no exact single-value filter match (the
+            dropdown's medium option is "Medium & High risk only", which
+            wouldn't match the medium-only count shown here) so those stay
+            static rather than linking somewhere that'd show a different
+            count than what was clicked. */}
         {meta && !loading && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-xl shadow p-4">
+            <button
+              type="button"
+              onClick={() => setLabelFilter("")}
+              className="text-left bg-white rounded-xl shadow p-4 cursor-pointer transition-shadow hover:shadow-md active:bg-gray-50"
+            >
               <div className="text-xl font-bold text-[#353535]">{meta.scannedCount}</div>
               <div className="text-xs text-[#848484] mt-0.5">Orders scanned</div>
-            </div>
+            </button>
             <div className="bg-white rounded-xl shadow p-4">
               <div className="text-xl font-bold text-[#353535]">{meta.flaggedCount}</div>
               <div className="text-xs text-[#848484] mt-0.5">With at least one flag</div>
@@ -243,10 +254,14 @@ export default function RiskReviewPage() {
               <div className="text-xl font-bold text-amber-600">{meta.mediumCount}</div>
               <div className="text-xs text-[#848484] mt-0.5">Medium risk</div>
             </div>
-            <div className="bg-white rounded-xl shadow p-4">
+            <button
+              type="button"
+              onClick={() => setLabelFilter("high")}
+              className="text-left bg-white rounded-xl shadow p-4 cursor-pointer transition-shadow hover:shadow-md active:bg-gray-50"
+            >
               <div className="text-xl font-bold text-red-600">{meta.highCount}</div>
               <div className="text-xs text-[#848484] mt-0.5">High risk</div>
-            </div>
+            </button>
           </div>
         )}
 
