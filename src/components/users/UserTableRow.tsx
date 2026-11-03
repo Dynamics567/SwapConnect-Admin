@@ -14,6 +14,7 @@ interface UserTableRowProps {
   onRequestBadgeToggle: () => void;
   onRequestMessage: () => void;
   onRequestUpgrade?: () => void;
+  onRequestPasswordReset?: () => void;
 }
 
 export default function UserTableRow({
@@ -27,6 +28,7 @@ export default function UserTableRow({
   onRequestBadgeToggle,
   onRequestMessage,
   onRequestUpgrade,
+  onRequestPasswordReset,
 }: UserTableRowProps) {
   return (
     <tr
@@ -55,6 +57,7 @@ export default function UserTableRow({
           onRequestBadgeToggle={onRequestBadgeToggle}
           onRequestMessage={onRequestMessage}
           onRequestUpgrade={onRequestUpgrade}
+          onRequestPasswordReset={onRequestPasswordReset}
         />
       </td>
     </tr>

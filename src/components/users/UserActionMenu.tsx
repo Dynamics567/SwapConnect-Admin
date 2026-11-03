@@ -12,6 +12,10 @@ interface UserActionMenuProps {
   onRequestBadgeToggle: () => void;
   onRequestMessage: () => void;
   onRequestUpgrade?: () => void;
+  // Super-Admin only (mirrors the backend route's own gating) -- omitted
+  // entirely for any other role rather than shown disabled, same pattern
+  // as onRequestUpgrade.
+  onRequestPasswordReset?: () => void;
   align?: "left" | "right";
 }
 
@@ -25,6 +29,7 @@ export default function UserActionMenu({
   onRequestBadgeToggle,
   onRequestMessage,
   onRequestUpgrade,
+  onRequestPasswordReset,
   align = "right",
 }: UserActionMenuProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -119,6 +124,15 @@ export default function UserActionMenu({
               onClick={() => { onOpenChange(false); onRequestUpgrade(); }}
             >
               Upgrade to Store Owner
+            </button>
+          )}
+          {onRequestPasswordReset && (
+            <button
+              role="menuitem"
+              className={`${itemClass} text-[#434343]`}
+              onClick={() => { onOpenChange(false); onRequestPasswordReset(); }}
+            >
+              Reset Password
             </button>
           )}
           <div className="h-px bg-[#f0f0f0] my-1" />

@@ -155,6 +155,31 @@ export default function UserDetailsPage() {
   const [changingEmail, setChangingEmail] = useState(false);
   const [changeEmailError, setChangeEmailError] = useState<string | null>(null);
 
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
+
+  const handleConfirmResetPassword = async () => {
+    setResettingPassword(true);
+    setResetPasswordError(null);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users/${userId}/trigger-password-reset`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setResetPasswordError(data.message || "Failed to send password reset email.");
+        return;
+      }
+      setShowResetPassword(false);
+    } catch {
+      setResetPasswordError("Something went wrong. Please try again.");
+    } finally {
+      setResettingPassword(false);
+    }
+  };
+
   const handleConfirmChangeEmail = async () => {
     if (!newEmail.trim() || !newEmail.includes("@")) {
       setChangeEmailError("Enter a valid email address.");
@@ -310,6 +335,17 @@ export default function UserDetailsPage() {
                     className="px-4 py-2 rounded-full text-xs font-semibold bg-brand-emerald-light text-brand-emerald hover:bg-[#dcf3e7] transition-colors"
                   >
                     Change Email
+                  </button>
+                )}
+                {role === "superadmin" && (
+                  <button
+                    onClick={() => {
+                      setResetPasswordError(null);
+                      setShowResetPassword(true);
+                    }}
+                    className="px-4 py-2 rounded-full text-xs font-semibold bg-brand-emerald-light text-brand-emerald hover:bg-[#dcf3e7] transition-colors"
+                  >
+                    Reset Password
                   </button>
                 )}
                 {canManageAccounts && (
@@ -580,6 +616,29 @@ export default function UserDetailsPage() {
         onClose={() => {
           setShowChangeEmail(false);
           setChangeEmailError(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={showResetPassword}
+        title="Send password reset email?"
+        message={
+          <div className="flex flex-col gap-2">
+            <p>
+              {users.firstName} {users.lastName} will get an email at {users.email} with a link
+              to set a new password themselves. You won&apos;t see or set the password directly.
+            </p>
+            {resetPasswordError && (
+              <p className="text-red-600 text-xs">{resetPasswordError}</p>
+            )}
+          </div>
+        }
+        confirmLabel="Send Reset Email"
+        loading={resettingPassword}
+        onConfirm={handleConfirmResetPassword}
+        onClose={() => {
+          setShowResetPassword(false);
+          setResetPasswordError(null);
         }}
       />
 

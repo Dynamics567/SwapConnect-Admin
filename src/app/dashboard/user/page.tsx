@@ -93,6 +93,9 @@ function UserPageInner() {
   const [badgeTarget, setBadgeTarget] = useState<FormattedUserRow | null>(null);
   const [badgeToggling, setBadgeToggling] = useState(false);
 
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<FormattedUserRow | null>(null);
+  const [resettingPassword, setResettingPassword] = useState(false);
+
   // Direct manual upgrade (Buyer -> Store Owner, bypassing the request
   // queue entirely) -- more powerful than ordinary review, so gated to
   // admin/superadmin only, same audience as suspend/ban.
@@ -293,6 +296,25 @@ function UserPageInner() {
       toast.error(err instanceof Error ? err.message : "Failed to toggle badge.");
     } finally {
       setBadgeToggling(false);
+    }
+  };
+
+  const confirmResetPassword = async () => {
+    if (!token || !resetPasswordTarget) return;
+    setResettingPassword(true);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users/${resetPasswordTarget.id}/trigger-password-reset`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message || "Failed to send password reset email");
+      toast.success(data?.message || `A password reset link has been sent to ${resetPasswordTarget.email}.`);
+      setResetPasswordTarget(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to send password reset email.");
+    } finally {
+      setResettingPassword(false);
     }
   };
 
@@ -588,6 +610,7 @@ function UserPageInner() {
               onRequestBadgeToggle={(user) => setBadgeTarget(user)}
               onRequestMessage={(user) => { setMessageUserTarget(user); setMessageError(""); }}
               onRequestUpgrade={(user) => { setUpgradeTarget(user); setUpgradeReason(""); setUpgradeError(""); }}
+              onRequestPasswordReset={role === "superadmin" ? (user) => setResetPasswordTarget(user) : undefined}
             />
             {formattedUsers.length > 0 && (
               <div className="hidden lg:block">
@@ -626,6 +649,7 @@ function UserPageInner() {
                           ? () => { setUpgradeTarget(user); setUpgradeReason(""); setUpgradeError(""); }
                           : undefined
                       }
+                      onRequestPasswordReset={role === "superadmin" ? () => setResetPasswordTarget(user) : undefined}
                     />
                   ))}
                 </div>
@@ -679,6 +703,16 @@ function UserPageInner() {
               loading={badgeToggling}
               onConfirm={confirmBadgeToggle}
               onClose={() => setBadgeTarget(null)}
+            />
+
+            <ConfirmDialog
+              open={!!resetPasswordTarget}
+              title="Send Password Reset Email?"
+              message={`${resetPasswordTarget?.name} will get an email at ${resetPasswordTarget?.email} with a link to set a new password. You won't see or set the password yourself -- they do it themselves via the link.`}
+              confirmLabel="Send Reset Email"
+              loading={resettingPassword}
+              onConfirm={confirmResetPassword}
+              onClose={() => setResetPasswordTarget(null)}
             />
 
             <ConfirmDialog

@@ -12,6 +12,9 @@ interface UserTableProps {
   onRequestBadgeToggle: (user: FormattedUserRow) => void;
   onRequestMessage: (user: FormattedUserRow) => void;
   onRequestUpgrade: (user: FormattedUserRow) => void;
+  // Omitted (not just disabled) for any role below Super Admin, mirroring
+  // the backend route's own gating -- see UserActionMenu.
+  onRequestPasswordReset?: (user: FormattedUserRow) => void;
 }
 
 const HEADERS = [
@@ -36,6 +39,7 @@ export default function UserTable({
   onRequestBadgeToggle,
   onRequestMessage,
   onRequestUpgrade,
+  onRequestPasswordReset,
 }: UserTableProps) {
   return (
     <div className="hidden lg:block bg-white rounded-lg shadow p-6 overflow-x-auto min-w-0">
@@ -63,6 +67,7 @@ export default function UserTable({
               onRequestBadgeToggle={() => onRequestBadgeToggle(user)}
               onRequestMessage={() => onRequestMessage(user)}
               onRequestUpgrade={user.canUpgrade ? () => onRequestUpgrade(user) : undefined}
+              onRequestPasswordReset={onRequestPasswordReset ? () => onRequestPasswordReset(user) : undefined}
             />
           ))}
         </tbody>

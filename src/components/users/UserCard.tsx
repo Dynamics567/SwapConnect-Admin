@@ -14,6 +14,7 @@ interface UserCardProps {
   onRequestBadgeToggle: () => void;
   onRequestMessage: () => void;
   onRequestUpgrade?: () => void;
+  onRequestPasswordReset?: () => void;
 }
 
 export default function UserCard({
@@ -27,6 +28,7 @@ export default function UserCard({
   onRequestBadgeToggle,
   onRequestMessage,
   onRequestUpgrade,
+  onRequestPasswordReset,
 }: UserCardProps) {
   return (
     <div
@@ -75,6 +77,7 @@ export default function UserCard({
             onRequestBadgeToggle={onRequestBadgeToggle}
             onRequestMessage={onRequestMessage}
             onRequestUpgrade={onRequestUpgrade}
+            onRequestPasswordReset={onRequestPasswordReset}
           />
         </div>
       </div>
