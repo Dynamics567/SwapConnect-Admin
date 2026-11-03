@@ -250,7 +250,7 @@ export default function ReportsPage() {
       icon: <ShoppingBag size={20} className="text-[#037F44]" />,
       sub: data ? rangeLabel : "Selected period",
       trend: null,
-      href: null,
+      href: "/dashboard/orders",
     },
     {
       label: "New Signups",

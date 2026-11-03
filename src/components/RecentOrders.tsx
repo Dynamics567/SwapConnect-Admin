@@ -1,4 +1,6 @@
 import React from "react";
+import { useRouter } from "next/navigation";
+import { ChevronRight } from "lucide-react";
 
 interface Category {
   id: number;
@@ -29,6 +31,7 @@ interface RecentOrdersProps {
 }
 
 function RecentOrders({ orders, loading }: RecentOrdersProps) {
+  const router = useRouter();
   const isEmpty = !loading && orders.length === 0;
 
   return (
@@ -55,12 +58,17 @@ function RecentOrders({ orders, loading }: RecentOrdersProps) {
                   <th className="py-2  text-[#6b6b6b] pr-4">DESCRIPTION</th>
                   <th className="py-2  text-[#6b6b6b] pr-4">PRICE</th>
                   <th className="py-2 text-[#6b6b6b]">Date</th>
+                  <th className="py-2 pr-4" />
                 </tr>
               </thead>
               <tbody>
                 {orders.map((order) =>
                   order.OrderProducts?.map((product) => (
-                    <tr key={`${order.id}-${product.id}`} className="border-t">
+                    <tr
+                      key={`${order.id}-${product.id}`}
+                      className="border-t cursor-pointer hover:bg-[#F7F8FB] transition-colors"
+                      onClick={() => router.push(`/dashboard/orders/${order.id}`)}
+                    >
                       <td className="py-2 pl-4 text-[#353535] pr-4">
                         {order.id}
                       </td>
@@ -78,6 +86,9 @@ function RecentOrders({ orders, loading }: RecentOrdersProps) {
                       </td>
                       <td className="py-2 text-[#353535]">
                         {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="py-2 pr-4">
+                        <ChevronRight size={15} className="text-[#9ca3af]" />
                       </td>
                     </tr>
                   ))
@@ -106,7 +117,8 @@ function RecentOrders({ orders, loading }: RecentOrdersProps) {
                   order.OrderProducts?.map((product) => (
                     <div
                       key={`${order.id}-${product.id}`}
-                      className="border rounded-lg p-4 shadow-sm bg-[#F7F8FB]"
+                      className="border rounded-lg p-4 shadow-sm bg-[#F7F8FB] cursor-pointer transition-shadow hover:shadow-md active:bg-[#eef1f0]"
+                      onClick={() => router.push(`/dashboard/orders/${order.id}`)}
                     >
                       <div className="flex justify-between items-center mb-2">
                         <span className="font-semibold text-[#353535]">

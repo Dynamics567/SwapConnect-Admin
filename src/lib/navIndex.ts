@@ -35,6 +35,7 @@ import {
   Banknote,
   Undo2,
   UserPlus,
+  ShoppingCart,
   type LucideIcon,
 } from "lucide-react";
 
@@ -75,6 +76,12 @@ export const navGroups: NavEntry[] = [
         label: "Listings",
         url: "/dashboard/items",
         icon: Package,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Orders",
+        url: "/dashboard/orders",
+        icon: ShoppingCart,
         roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
       },
       {
