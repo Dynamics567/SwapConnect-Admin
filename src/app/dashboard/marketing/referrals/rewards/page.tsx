@@ -29,6 +29,10 @@ interface RewardRow {
 interface Pagination { totalItems: number; totalPages: number; currentPage: number; itemsPerPage: number }
 
 const STATUSES = ["", "pending_review", "approved", "paid", "rejected", "reversed"];
+const VALID_STATUS_TOKENS = new Set(STATUSES.filter(Boolean));
+function isValidStatusParam(value: string): boolean {
+  return value.split(",").every((s) => VALID_STATUS_TOKENS.has(s.trim()));
+}
 
 function ReferralRewardsContent() {
   const token = useAuthToken();
@@ -54,7 +58,7 @@ function ReferralRewardsContent() {
   // was clicked.
   useEffect(() => {
     const fromUrl = searchParams.get("status");
-    if (fromUrl && STATUSES.includes(fromUrl)) setStatus(fromUrl);
+    if (fromUrl && isValidStatusParam(fromUrl)) setStatus(fromUrl);
   }, [searchParams]);
 
   useEffect(() => { setPage(1); }, [status]);
@@ -151,6 +155,7 @@ function ReferralRewardsContent() {
 
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-[#e5e7eb] rounded-lg px-2.5 py-1.5 text-sm max-w-xs">
           {STATUSES.map((s) => <option key={s} value={s}>{s ? s.replace(/_/g, " ") : "All statuses"}</option>)}
+          <option value="pending_review,approved">Pending liability (not yet paid)</option>
         </select>
 
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-4">{error}</div>}

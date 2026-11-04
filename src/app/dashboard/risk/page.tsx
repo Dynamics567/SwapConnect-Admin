@@ -88,7 +88,8 @@ export default function RiskReviewPage() {
   const [meta, setMeta] = useState<RiskMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [labelFilter, setLabelFilter] = useState<"" | "medium" | "high">("");
+  const [labelFilter, setLabelFilter] = useState<"" | "medium" | "medium-only" | "high">("");
+  const [flaggedFilter, setFlaggedFilter] = useState(false);
   const [scanLimit, setScanLimit] = useState(200);
 
   // Message modal state (reuses the existing admin-message endpoint -- the
@@ -106,6 +107,7 @@ export default function RiskReviewPage() {
     setError("");
     const params = new URLSearchParams({ limit: String(scanLimit) });
     if (labelFilter) params.set("label", labelFilter);
+    if (flaggedFilter) params.set("flagged", "true");
 
     try {
       const res = await fetch(`${API_URL}/api/admin/risk/orders?${params}`, {
@@ -125,7 +127,7 @@ export default function RiskReviewPage() {
     } finally {
       setLoading(false);
     }
-  }, [token, labelFilter, scanLimit]);
+  }, [token, labelFilter, flaggedFilter, scanLimit]);
 
   useEffect(() => {
     fetchRiskOrders();
@@ -198,11 +200,15 @@ export default function RiskReviewPage() {
             </label>
             <select
               value={labelFilter}
-              onChange={(e) => setLabelFilter(e.target.value as "" | "medium" | "high")}
+              onChange={(e) => {
+                setLabelFilter(e.target.value as "" | "medium" | "medium-only" | "high");
+                setFlaggedFilter(false);
+              }}
               className="border rounded-lg px-3 py-2 text-sm bg-white"
             >
               <option value="">All scanned orders</option>
               <option value="medium">Medium &amp; High risk only</option>
+              <option value="medium-only">Medium risk only</option>
               <option value="high">High risk only</option>
             </select>
           </div>
@@ -228,35 +234,41 @@ export default function RiskReviewPage() {
           </button>
         </div>
 
-        {/* Summary -- "Orders scanned" and "High risk" map exactly onto the
-            filter dropdown above (All / High risk only), so those two are
-            clickable shortcuts into it. "With at least one flag" and
-            "Medium risk" have no exact single-value filter match (the
-            dropdown's medium option is "Medium & High risk only", which
-            wouldn't match the medium-only count shown here) so those stay
-            static rather than linking somewhere that'd show a different
-            count than what was clicked. */}
+        {/* Every tile below now maps exactly onto a real filter -- "Medium
+            risk" and "With at least one flag" used to have no exact
+            single-value match (the dropdown's old "medium" option was
+            "Medium & High" combined), so the backend gained a true
+            medium-only mode and a separate flagged-only mode just for
+            these two tiles. */}
         {meta && !loading && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <button
               type="button"
-              onClick={() => setLabelFilter("")}
+              onClick={() => { setLabelFilter(""); setFlaggedFilter(false); }}
               className="text-left bg-white rounded-xl shadow p-4 cursor-pointer transition-shadow hover:shadow-md active:bg-gray-50"
             >
               <div className="text-xl font-bold text-[#353535]">{meta.scannedCount}</div>
               <div className="text-xs text-[#848484] mt-0.5">Orders scanned</div>
             </button>
-            <div className="bg-white rounded-xl shadow p-4">
-              <div className="text-xl font-bold text-[#353535]">{meta.flaggedCount}</div>
-              <div className="text-xs text-[#848484] mt-0.5">With at least one flag</div>
-            </div>
-            <div className="bg-white rounded-xl shadow p-4">
-              <div className="text-xl font-bold text-amber-600">{meta.mediumCount}</div>
-              <div className="text-xs text-[#848484] mt-0.5">Medium risk</div>
-            </div>
             <button
               type="button"
-              onClick={() => setLabelFilter("high")}
+              onClick={() => { setLabelFilter(""); setFlaggedFilter(true); }}
+              className="text-left bg-white rounded-xl shadow p-4 cursor-pointer transition-shadow hover:shadow-md active:bg-gray-50"
+            >
+              <div className="text-xl font-bold text-[#353535]">{meta.flaggedCount}</div>
+              <div className="text-xs text-[#848484] mt-0.5">With at least one flag</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setLabelFilter("medium-only"); setFlaggedFilter(false); }}
+              className="text-left bg-white rounded-xl shadow p-4 cursor-pointer transition-shadow hover:shadow-md active:bg-gray-50"
+            >
+              <div className="text-xl font-bold text-amber-600">{meta.mediumCount}</div>
+              <div className="text-xs text-[#848484] mt-0.5">Medium risk</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setLabelFilter("high"); setFlaggedFilter(false); }}
               className="text-left bg-white rounded-xl shadow p-4 cursor-pointer transition-shadow hover:shadow-md active:bg-gray-50"
             >
               <div className="text-xl font-bold text-red-600">{meta.highCount}</div>

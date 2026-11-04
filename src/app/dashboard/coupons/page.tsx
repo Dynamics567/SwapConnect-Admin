@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
   Tag,
   Plus,
@@ -170,6 +171,11 @@ function CouponsPageInner() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  // "Codes In Use" (stats.totalRedeemable below) counts every coupon with
+  // at least one redemption, regardless of active/inactive -- a separate
+  // axis from statusFilter, so it's its own boolean rather than a 4th
+  // statusFilter value that would conflict with the other three.
+  const [usedOnly, setUsedOnly] = useState(false);
 
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
@@ -214,7 +220,14 @@ function CouponsPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deepLinkCode, coupons]);
 
+  // Lets the "Codes In Use" summary card deep-link straight into this
+  // filter instead of landing here with every coupon mixed together.
+  useEffect(() => {
+    if (searchParams.get("used") === "true") setUsedOnly(true);
+  }, [searchParams]);
+
   const visibleCoupons = coupons.filter((c) => {
+    if (usedOnly && !(c.usedCount > 0)) return false;
     if (statusFilter === "active") return c.active && !isExpired(c.expiresAt);
     if (statusFilter === "inactive") return !c.active || isExpired(c.expiresAt);
     return true;
@@ -327,16 +340,22 @@ function CouponsPageInner() {
     setTotalDiscountGiven(0);
   };
 
-  // "Total Coupons" and "Currently Active" map exactly onto the segmented
-  // filter below (all / active), so those two set it directly. "Total
-  // Redemptions" and "Codes In Use" are pure aggregates with no matching
-  // list view (redemptions are only viewable per-coupon, via the modal),
-  // so those stay static.
-  const summaryCards: { label: string; value: number; icon: React.ReactNode; filter?: "all" | "active" }[] = [
+  // "Total Coupons"/"Currently Active" set the segmented filter below.
+  // "Codes In Use" sets the new usedOnly filter on this same page. "Total
+  // Redemptions" is a cross-coupon count with no matching view on this
+  // page at all -- it links out to the new all-redemptions list instead.
+  const summaryCards: {
+    label: string;
+    value: number;
+    icon: React.ReactNode;
+    filter?: "all" | "active";
+    onClick?: () => void;
+    href?: string;
+  }[] = [
     { label: "Total Coupons", value: stats.total, icon: <Ticket size={20} className="text-brand-emerald" />, filter: "all" },
     { label: "Currently Active", value: stats.active, icon: <Tag size={20} className="text-brand-emerald" />, filter: "active" },
-    { label: "Total Redemptions", value: stats.totalUses, icon: <Receipt size={20} className="text-brand-emerald" /> },
-    { label: "Codes In Use", value: stats.totalRedeemable, icon: <Users size={20} className="text-brand-emerald" /> },
+    { label: "Total Redemptions", value: stats.totalUses, icon: <Receipt size={20} className="text-brand-emerald" />, href: "/dashboard/coupons/redemptions" },
+    { label: "Codes In Use", value: stats.totalRedeemable, icon: <Users size={20} className="text-brand-emerald" />, onClick: () => { setUsedOnly(true); setStatusFilter("all"); } },
   ];
 
   return (
@@ -357,45 +376,69 @@ function CouponsPageInner() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {summaryCards.map((s) =>
-          s.filter ? (
-            <button
-              key={s.label}
-              type="button"
-              onClick={() => setStatusFilter(s.filter!)}
-              className="text-left bg-white rounded-xl shadow p-5 cursor-pointer transition-shadow hover:shadow-md active:bg-[#F7F8FB]"
-            >
+        {summaryCards.map((s) => {
+          const body = (
+            <>
               <div className="flex items-center justify-between mb-2">
                 <span className="bg-brand-emerald-light rounded-lg p-2">{s.icon}</span>
               </div>
               <div className="text-xl font-bold text-[#353535]">{loading ? "—" : s.value}</div>
               <div className="text-xs text-[#848484] mt-0.5">{s.label}</div>
-            </button>
-          ) : (
+            </>
+          );
+          const className = "text-left bg-white rounded-xl shadow p-5 cursor-pointer transition-shadow hover:shadow-md active:bg-[#F7F8FB]";
+          if (s.href) {
+            return (
+              <Link key={s.label} href={s.href} className={className}>
+                {body}
+              </Link>
+            );
+          }
+          if (s.filter) {
+            return (
+              <button key={s.label} type="button" onClick={() => setStatusFilter(s.filter!)} className={className}>
+                {body}
+              </button>
+            );
+          }
+          if (s.onClick) {
+            return (
+              <button key={s.label} type="button" onClick={s.onClick} className={className}>
+                {body}
+              </button>
+            );
+          }
+          return (
             <div key={s.label} className="bg-white rounded-xl shadow p-5">
-              <div className="flex items-center justify-between mb-2">
-                <span className="bg-brand-emerald-light rounded-lg p-2">{s.icon}</span>
-              </div>
-              <div className="text-xl font-bold text-[#353535]">{loading ? "—" : s.value}</div>
-              <div className="text-xs text-[#848484] mt-0.5">{s.label}</div>
+              {body}
             </div>
-          )
-        )}
+          );
+        })}
       </div>
 
       {/* Filter segmented control */}
-      <div className="flex items-center gap-1 mb-4 bg-white border border-[#e5e7eb] rounded-lg p-1 w-full sm:w-fit overflow-x-auto min-w-0">
-        {(["all", "active", "inactive"] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setStatusFilter(f)}
-            className={`px-3.5 py-1.5 rounded-md text-sm font-medium capitalize transition-colors ${
-              statusFilter === f ? "bg-brand-emerald text-white" : "text-[#6b7280] hover:bg-[#f8f9fb]"
-            }`}
-          >
-            {f}
-          </button>
-        ))}
+      <div className="flex items-center flex-wrap gap-3 mb-4">
+        <div className="flex items-center gap-1 bg-white border border-[#e5e7eb] rounded-lg p-1 w-full sm:w-fit overflow-x-auto min-w-0">
+          {(["all", "active", "inactive"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setStatusFilter(f)}
+              className={`px-3.5 py-1.5 rounded-md text-sm font-medium capitalize transition-colors ${
+                statusFilter === f ? "bg-brand-emerald text-white" : "text-[#6b7280] hover:bg-[#f8f9fb]"
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+        {usedOnly && (
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-brand-emerald-light text-brand-emerald px-3 py-1.5 rounded-full">
+            Only codes with redemptions
+            <button type="button" onClick={() => setUsedOnly(false)} className="hover:text-brand-emerald-hover" aria-label="Clear filter">
+              <X size={12} />
+            </button>
+          </span>
+        )}
       </div>
 
       {loading ? (

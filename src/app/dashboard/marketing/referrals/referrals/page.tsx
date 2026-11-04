@@ -23,6 +23,17 @@ interface ReferralRow {
 interface Pagination { totalItems: number; totalPages: number; currentPage: number; itemsPerPage: number }
 
 const STATUSES = ["", "registered", "awaiting_qualification", "qualification_pending_review", "qualified", "expired", "rejected"];
+const ACCOUNT_TYPES = ["", "BUYER", "STORE_OWNER"];
+
+// Combined, comma-separated values the Overview page's tiles link to (e.g.
+// "registered,awaiting_qualification" for its "Awaiting Qualification"
+// tile) -- these aren't individually selectable from the dropdown, which
+// stays single-status, but a deep link carrying one must still be accepted
+// and reflected rather than silently dropped back to "all statuses".
+const VALID_STATUS_TOKENS = new Set(STATUSES.filter(Boolean));
+function isValidStatusParam(value: string): boolean {
+  return value.split(",").every((s) => VALID_STATUS_TOKENS.has(s.trim()));
+}
 
 function ReferralsListContent() {
   const token = useAuthToken();
@@ -33,17 +44,20 @@ function ReferralsListContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState("");
+  const [accountType, setAccountType] = useState("");
 
   // Lets the Referral Overview page's summary cards deep-link straight into
-  // the matching filtered view (e.g. ?status=qualified), instead of landing
-  // here with every referral mixed together regardless of which number was
-  // clicked.
+  // the matching filtered view (e.g. ?status=qualified or
+  // ?accountType=STORE_OWNER), instead of landing here with every referral
+  // mixed together regardless of which number was clicked.
   useEffect(() => {
-    const fromUrl = searchParams.get("status");
-    if (fromUrl && STATUSES.includes(fromUrl)) setStatus(fromUrl);
+    const statusFromUrl = searchParams.get("status");
+    if (statusFromUrl && isValidStatusParam(statusFromUrl)) setStatus(statusFromUrl);
+    const accountTypeFromUrl = searchParams.get("accountType");
+    if (accountTypeFromUrl && ACCOUNT_TYPES.includes(accountTypeFromUrl)) setAccountType(accountTypeFromUrl);
   }, [searchParams]);
 
-  useEffect(() => { setPage(1); }, [status]);
+  useEffect(() => { setPage(1); }, [status, accountType]);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -52,6 +66,7 @@ function ReferralsListContent() {
     try {
       const params = new URLSearchParams({ page: String(page), limit: "20" });
       if (status) params.set("status", status);
+      if (accountType) params.set("accountType", accountType);
       const res = await fetch(`${API_URL}/api/admin/referrals/referrals?${params}`, { headers: { Authorization: `Bearer ${token}` } });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Failed to load referrals");
@@ -62,7 +77,7 @@ function ReferralsListContent() {
     } finally {
       setLoading(false);
     }
-  }, [token, page, status]);
+  }, [token, page, status, accountType]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -75,9 +90,18 @@ function ReferralsListContent() {
           <p className="text-sm text-[#6b7280] mt-1">Every referral attribution, across every campaign.</p>
         </div>
 
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-[#e5e7eb] rounded-lg px-2.5 py-1.5 text-sm max-w-xs">
-          {STATUSES.map((s) => <option key={s} value={s}>{s ? s.replace(/_/g, " ") : "All statuses"}</option>)}
-        </select>
+        <div className="flex flex-wrap gap-3">
+          <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-[#e5e7eb] rounded-lg px-2.5 py-1.5 text-sm max-w-xs">
+            {STATUSES.map((s) => <option key={s} value={s}>{s ? s.replace(/_/g, " ") : "All statuses"}</option>)}
+            <option value="registered,awaiting_qualification">Awaiting qualification</option>
+            <option value="expired,rejected">Expired or rejected</option>
+          </select>
+          <select value={accountType} onChange={(e) => setAccountType(e.target.value)} className="border border-[#e5e7eb] rounded-lg px-2.5 py-1.5 text-sm max-w-xs">
+            <option value="">All account types</option>
+            <option value="BUYER">Customers (Buyers)</option>
+            <option value="STORE_OWNER">Store Owners</option>
+          </select>
+        </div>
 
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-4">{error}</div>}
 

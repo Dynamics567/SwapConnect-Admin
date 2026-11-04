@@ -96,20 +96,20 @@ function ReferralOverviewContent() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <MetricCard label="Total Referrals" value={data.totalReferrals} href="/dashboard/marketing/referrals/referrals" />
             <MetricCard label="Qualified" value={data.qualifiedCount} sub={`${data.conversionRate}% conversion`} href="/dashboard/marketing/referrals/referrals?status=qualified" />
-            {/* "Awaiting Qualification" is a combined count of two distinct
-                statuses (registered + awaiting_qualification) -- the
-                referrals list filters each separately, so there's no single
-                filter value that would show exactly this number. Left
-                static rather than linking somewhere that'd show a different
-                count than what was clicked. */}
-            <MetricCard label="Awaiting Qualification" value={data.registeredCount} />
-            <MetricCard label="Store Owners Referred" value={data.storeOwnersReferred} />
-            <MetricCard label="Customers Referred" value={data.customersReferred} />
-            <MetricCard label="Expired / Rejected" value={data.expiredCount + data.rejectedCount} />
+            {/* "Awaiting Qualification" and "Expired / Rejected" are each a
+                combined count of two distinct statuses -- the referrals list
+                now accepts a comma-separated status list (added for exactly
+                this) so these can link to the exact matching set instead of
+                a single status that would show a different count. */}
+            <MetricCard label="Awaiting Qualification" value={data.registeredCount} href="/dashboard/marketing/referrals/referrals?status=registered,awaiting_qualification" />
+            <MetricCard label="Store Owners Referred" value={data.storeOwnersReferred} href="/dashboard/marketing/referrals/referrals?accountType=STORE_OWNER" />
+            <MetricCard label="Customers Referred" value={data.customersReferred} href="/dashboard/marketing/referrals/referrals?accountType=BUYER" />
+            <MetricCard label="Expired / Rejected" value={data.expiredCount + data.rejectedCount} href="/dashboard/marketing/referrals/referrals?status=expired,rejected" />
             <MetricCard
               label="Pending Reward Liability"
               value={fmtNaira(data.pendingRewardLiability)}
               sub="Approved + awaiting review, not yet paid"
+              href="/dashboard/marketing/referrals/rewards?status=pending_review,approved"
             />
             <MetricCard
               label="Awaiting Manual Review"

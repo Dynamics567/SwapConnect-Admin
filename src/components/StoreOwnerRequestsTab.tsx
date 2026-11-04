@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { X } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -105,6 +106,7 @@ export default function StoreOwnerRequestsTab() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<RequestStatus | "">("pending_review");
+  const [thisMonthOnly, setThisMonthOnly] = useState(false);
 
   const [selected, setSelected] = useState<StoreOwnerRequest | null>(null);
   const [previousRequests, setPreviousRequests] = useState<StoreOwnerRequest[]>([]);
@@ -118,6 +120,7 @@ export default function StoreOwnerRequestsTab() {
     setLoading(true);
     const params = new URLSearchParams();
     if (statusFilter) params.set("status", statusFilter);
+    if (thisMonthOnly) params.set("period", "this_month");
 
     try {
       const res = await fetch(`${API_URL}/api/admin/store-owner-requests?${params}`, {
@@ -129,7 +132,7 @@ export default function StoreOwnerRequestsTab() {
     } finally {
       setLoading(false);
     }
-  }, [token, statusFilter]);
+  }, [token, statusFilter, thisMonthOnly]);
 
   useEffect(() => {
     fetchRequests();
@@ -218,24 +221,34 @@ export default function StoreOwnerRequestsTab() {
             Buyers requesting to become Store Owners. Approving upgrades their account immediately.
           </p>
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as RequestStatus | "")}
-          className="border rounded-lg px-3 py-2 text-sm h-fit"
-        >
-          <option value="">All Status</option>
-          <option value="pending_review">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="declined">Declined</option>
-        </select>
+        <div className="flex items-center gap-2 flex-wrap">
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value as RequestStatus | ""); setThisMonthOnly(false); }}
+            className="border rounded-lg px-3 py-2 text-sm h-fit"
+          >
+            <option value="">All Status</option>
+            <option value="pending_review">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="declined">Declined</option>
+          </select>
+          {thisMonthOnly && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-brand-emerald-light text-brand-emerald px-3 py-1.5 rounded-full h-fit">
+              This month only
+              <button type="button" onClick={() => setThisMonthOnly(false)} className="hover:text-brand-emerald-hover" aria-label="Clear filter">
+                <X size={12} />
+              </button>
+            </span>
+          )}
+        </div>
       </div>
 
       {stats && (
         <div className="flex flex-wrap gap-4 mb-6">
-          <StatCard label="Pending" value={stats.pending} onClick={() => setStatusFilter("pending_review")} />
-          <StatCard label="Approved" value={stats.approved} onClick={() => setStatusFilter("approved")} />
-          <StatCard label="Declined" value={stats.declined} onClick={() => setStatusFilter("declined")} />
-          <StatCard label="This Month" value={stats.thisMonth} />
+          <StatCard label="Pending" value={stats.pending} onClick={() => { setStatusFilter("pending_review"); setThisMonthOnly(false); }} />
+          <StatCard label="Approved" value={stats.approved} onClick={() => { setStatusFilter("approved"); setThisMonthOnly(false); }} />
+          <StatCard label="Declined" value={stats.declined} onClick={() => { setStatusFilter("declined"); setThisMonthOnly(false); }} />
+          <StatCard label="This Month" value={stats.thisMonth} onClick={() => { setStatusFilter(""); setThisMonthOnly(true); }} />
         </div>
       )}
 
