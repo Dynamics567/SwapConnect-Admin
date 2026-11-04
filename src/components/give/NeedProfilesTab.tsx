@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { Eye, ChevronRight } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 
 type NeedStatus = "OPEN" | "MATCHED" | "FULFILLED" | "CLOSED" | "WITHDRAWN";
+const NEED_STATUSES: NeedStatus[] = ["OPEN", "MATCHED", "FULFILLED", "CLOSED", "WITHDRAWN"];
 
 const LIFE_CATEGORY_LABELS: Record<string, string> = {
   STUDENT: "Student",
@@ -55,10 +57,20 @@ const URGENCY_COLORS: Record<string, string> = {
 
 export default function NeedProfilesTab() {
   const token = useAuthToken();
+  const searchParams = useSearchParams();
   const [needs, setNeeds] = useState<NeedProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<NeedStatus | "">("");
   const [selected, setSelected] = useState<NeedProfile | null>(null);
+
+  // Lets the Give Impact tab's tiles deep-link straight into the matching
+  // filtered view (e.g. ?tab=needs&status=OPEN) instead of landing here
+  // with every need profile mixed together regardless of which tile was
+  // clicked.
+  useEffect(() => {
+    const fromUrl = searchParams.get("status");
+    if (fromUrl && NEED_STATUSES.includes(fromUrl as NeedStatus)) setStatusFilter(fromUrl as NeedStatus);
+  }, [searchParams]);
 
   const fetchNeeds = useCallback(async () => {
     if (!token) return;

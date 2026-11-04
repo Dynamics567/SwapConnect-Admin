@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { Eye, ChevronRight } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 type GiveState = "SUBMITTED" | "AVAILABLE" | "MATCHED" | "ALLOCATED" | "IN_FULFILMENT" | "COMPLETED" | "REJECTED" | "CANCELLED";
+const GIVE_STATES: GiveState[] = ["SUBMITTED", "AVAILABLE", "MATCHED", "ALLOCATED", "IN_FULFILMENT", "COMPLETED", "REJECTED", "CANCELLED"];
 
 interface GiveListing {
   id: number;
@@ -92,9 +94,19 @@ const STATE_COLORS: Record<GiveState, string> = {
 
 export default function DonationsTab() {
   const token = useAuthToken();
+  const searchParams = useSearchParams();
   const [listings, setListings] = useState<GiveListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [stateFilter, setStateFilter] = useState<GiveState | "">("");
+
+  // Lets the Give Impact tab's tiles deep-link straight into the matching
+  // filtered view (e.g. ?tab=donations&state=AVAILABLE) instead of landing
+  // here with every donation mixed together regardless of which tile was
+  // clicked.
+  useEffect(() => {
+    const fromUrl = searchParams.get("state");
+    if (fromUrl && GIVE_STATES.includes(fromUrl as GiveState)) setStateFilter(fromUrl as GiveState);
+  }, [searchParams]);
   const [selected, setSelected] = useState<GiveListing | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [reason, setReason] = useState("");
