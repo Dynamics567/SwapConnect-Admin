@@ -76,10 +76,23 @@ interface User {
   status: string;
   phone: string;
   role: string;
+  accountType?: "BUYER" | "STORE_OWNER" | "STAFF";
   productCount: number;
   profileCompletion?: ProfileCompletion;
   location?: UserLocation;
   profileUpdatedAt?: string | null;
+  storeName?: string | null;
+  storeTagline?: string | null;
+  storePrimaryColor?: string | null;
+  storeSecondaryColor?: string | null;
+  storeAccentColor?: string | null;
+  storePolicyDelivery?: string | null;
+  storePolicyReturn?: string | null;
+  storePolicyRefund?: string | null;
+  storePolicyWarranty?: string | null;
+  storeCustomisationStatus?: "draft" | "published";
+  storePublishedAt?: string | null;
+  activeBannerCount?: number;
   orderHistory: [
     {
       id: string;
@@ -461,6 +474,70 @@ export default function UserDetailsPage() {
                 {users.profileUpdatedAt ? new Date(users.profileUpdatedAt).toLocaleString() : "Never"}
               </p>
             </div>
+
+            {users.accountType === "STORE_OWNER" && (
+              <div className="mt-6 pt-6 border-t border-[#e5e7eb]">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-[#353535]">Storefront customization</h3>
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                      users.storeCustomisationStatus === "draft"
+                        ? "bg-brand-gold-light text-brand-gold-hover"
+                        : "bg-brand-emerald-light text-brand-emerald"
+                    }`}
+                  >
+                    {users.storeCustomisationStatus === "draft" ? "Unpublished changes" : "Published"}
+                  </span>
+                </div>
+
+                <p className="text-sm text-[#505050] mb-1">{users.storeName || "No store name set"}</p>
+                {users.storeTagline && (
+                  <p className="text-xs text-[#848484] italic mb-3">&ldquo;{users.storeTagline}&rdquo;</p>
+                )}
+
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-xs text-[#848484]">Brand colors:</span>
+                  {[users.storePrimaryColor, users.storeSecondaryColor, users.storeAccentColor].map((hex, i) =>
+                    hex ? (
+                      <span
+                        key={i}
+                        className="w-5 h-5 rounded-full border border-[#e5e7eb]"
+                        style={{ backgroundColor: hex }}
+                        title={hex}
+                      />
+                    ) : (
+                      <span key={i} className="w-5 h-5 rounded-full border border-dashed border-[#e5e7eb]" title="Not set" />
+                    )
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                  <span className="text-xs text-[#848484]">Policies:</span>
+                  {[
+                    ["Delivery", users.storePolicyDelivery],
+                    ["Return", users.storePolicyReturn],
+                    ["Refund", users.storePolicyRefund],
+                    ["Warranty", users.storePolicyWarranty],
+                  ].map(([label, value]) => (
+                    <span
+                      key={label}
+                      className={`px-2 py-0.5 rounded-full text-xs ${
+                        value ? "bg-brand-emerald-light text-brand-emerald" : "bg-[#f3f4f6] text-[#9ca3af]"
+                      }`}
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+
+                <p className="text-xs text-[#848484]">
+                  {users.activeBannerCount ?? 0} active promotional {(users.activeBannerCount ?? 0) === 1 ? "banner" : "banners"}
+                  {users.storePublishedAt && (
+                    <> · Last published {new Date(users.storePublishedAt).toLocaleString()}</>
+                  )}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
