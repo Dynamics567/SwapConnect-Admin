@@ -4,12 +4,21 @@ import type { JSX } from "react";
 import Link from "next/link";
 import { CircleDollarSign, Store, Users, Repeat, ShieldAlert, AlertTriangle, ShieldCheck, ChevronRight } from "lucide-react";
 
+// A raw revenue figure (e.g. ₦2595600) has no thousands grouping at all and
+// overflows this tile's fixed 90px height on mobile, visually colliding
+// with the tile below it. Compact notation (₦2.6M) keeps the tile's width
+// bounded regardless of how large revenue grows.
+const formatCompactNaira = (n: number) =>
+  `₦${new Intl.NumberFormat("en-NG", { notation: "compact", maximumFractionDigits: 1 }).format(n)}`;
+
 interface Stat {
   label: string;
   value: string | number;
   key: string;
   icon: JSX.Element;
   href: string;
+  /** Exact value shown on hover when `value` has been abbreviated (e.g. the compact revenue figure). */
+  title?: string;
 }
 
 interface DashboardTotals {
@@ -41,7 +50,8 @@ function statsForRole(role: string | null, totals: DashboardTotals | undefined):
 
   const revenue: Stat = {
     label: "Revenue (Last 30 Days)",
-    value: `₦${totals.totalRevenue ?? 0}`,
+    value: formatCompactNaira(Number(totals.totalRevenue ?? 0)),
+    title: `₦${new Intl.NumberFormat("en-NG").format(Number(totals.totalRevenue ?? 0))}`,
     key: "revenue",
     icon: <CircleDollarSign size={24} className="text-[#037F44]" />,
     href: "/dashboard/finance/overview",
@@ -142,7 +152,7 @@ function StatsCard({ data, loading }: StatsCardProps) {
                     <div className="text-xs md:text-sm text-[#6b6b6b] mb-1">
                       {stat.label}
                     </div>
-                    <div className="md:text-2xl text-lg font-bold text-[#353535]">
+                    <div className="md:text-2xl text-lg font-bold text-[#353535]" title={stat.title}>
                       {stat.value}
                     </div>
                   </div>
