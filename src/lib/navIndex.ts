@@ -26,6 +26,7 @@ import {
   Images,
   Timer,
   HeartHandshake,
+  MessageCircleHeart,
   Gift,
   PackageCheck,
   Percent,
@@ -124,6 +125,12 @@ export const navGroups: NavEntry[] = [
         label: "Allocations",
         url: "/dashboard/give?tab=allocations",
         icon: PackageCheck,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Gift Management",
+        url: "/dashboard/give?tab=giftManagement",
+        icon: MessageCircleHeart,
         roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
       },
       {

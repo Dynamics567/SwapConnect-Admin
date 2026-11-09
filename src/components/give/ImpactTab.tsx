@@ -4,7 +4,16 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
-import { Gift, PackageCheck, HeartHandshake, Users, ChevronRight } from "lucide-react";
+import { Gift, PackageCheck, HeartHandshake, Users, ChevronRight, MessageCircleHeart, ShieldAlert, Heart } from "lucide-react";
+
+interface AppreciationMetrics {
+  totalDelivered: number;
+  receiptConfirmations: number;
+  appreciationNotes: number;
+  submissionRate: number;
+  unresolvedDisputes: number;
+  publicConsentCount: number;
+}
 
 interface ImpactMetrics {
   submitted: number;
@@ -16,6 +25,7 @@ interface ImpactMetrics {
   cancelled: number;
   openNeeds: number;
   fulfilledNeeds: number;
+  appreciation?: AppreciationMetrics;
 }
 
 function Tile({ label, value, icon, href }: { label: string; value: number; icon: React.ReactNode; href: string }) {
@@ -67,6 +77,50 @@ export default function ImpactTab() {
         <Tile label="Rejected" value={metrics.rejected} icon={<Gift size={20} />} href="/dashboard/give?tab=donations&state=REJECTED" />
         <Tile label="Cancelled" value={metrics.cancelled} icon={<Gift size={20} />} href="/dashboard/give?tab=donations&state=CANCELLED" />
       </div>
+
+      {metrics.appreciation && (
+        <>
+          <h2 className="text-base font-bold text-gray-800 mb-4">Receipt &amp; Appreciation</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-2">
+            <Tile
+              label="Gifts delivered"
+              value={metrics.appreciation.totalDelivered}
+              icon={<PackageCheck size={20} />}
+              href="/dashboard/give?tab=giftManagement"
+            />
+            <Tile
+              label="Receipt confirmations"
+              value={metrics.appreciation.receiptConfirmations}
+              icon={<MessageCircleHeart size={20} />}
+              href="/dashboard/give?tab=giftManagement"
+            />
+            <Tile
+              label="Appreciation notes received"
+              value={metrics.appreciation.appreciationNotes}
+              icon={<MessageCircleHeart size={20} />}
+              href="/dashboard/give?tab=giftManagement&status=APPRECIATION_SUBMITTED"
+            />
+            <Tile
+              label="Appreciation submission rate (%)"
+              value={metrics.appreciation.submissionRate}
+              icon={<Heart size={20} />}
+              href="/dashboard/give?tab=giftManagement"
+            />
+            <Tile
+              label="Unresolved delivery disputes"
+              value={metrics.appreciation.unresolvedDisputes}
+              icon={<ShieldAlert size={20} />}
+              href="/dashboard/give?tab=giftManagement&status=DELIVERY_DISPUTED"
+            />
+            <Tile
+              label="Consenting to public impact stories"
+              value={metrics.appreciation.publicConsentCount}
+              icon={<Heart size={20} />}
+              href="/dashboard/give?tab=giftManagement"
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
