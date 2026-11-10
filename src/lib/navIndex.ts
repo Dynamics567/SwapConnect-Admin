@@ -142,6 +142,42 @@ export const navGroups: NavEntry[] = [
     ],
   },
   {
+    label: "Community & Partnerships",
+    icon: HeartHandshake,
+    children: [
+      {
+        label: "Contributors Overview",
+        url: "/dashboard/contributors",
+        icon: Users,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Device Donations",
+        url: "/dashboard/contributors?tab=give",
+        icon: Gift,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Sponsorship Enquiries",
+        url: "/dashboard/contributors?tab=sponsor",
+        icon: Banknote,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Partnership Enquiries",
+        url: "/dashboard/contributors?tab=partner",
+        icon: Building2,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Follow-ups",
+        url: "/dashboard/contributors?tab=followups",
+        icon: Activity,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+    ],
+  },
+  {
     label: "Customers",
     icon: Users,
     children: [
