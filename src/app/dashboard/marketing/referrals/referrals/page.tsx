@@ -2,7 +2,8 @@
 
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { X, Info } from "lucide-react";
+import Link from "next/link";
+import { X, Info, UserRound } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ReferralTabs from "@/components/referrals/ReferralTabs";
 import PageButton from "@/components/PageButton";
@@ -83,6 +84,20 @@ function StatusBadge({ status }: { status: string }) {
   }
   const tone = status === "qualified" ? "success" : status === "expired" || status === "rejected" ? "failed" : "pending";
   return <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusBadgeClass(tone)}`}>{status.replace(/_/g, " ")}</span>;
+}
+
+// Opens the account's admin profile. stopPropagation so it never also
+// triggers a clickable row's "filter to this referrer" action.
+function ProfileLink({ id, label = "View profile" }: { id: number; label?: string }) {
+  return (
+    <Link
+      href={`/dashboard/user/${id}`}
+      onClick={(e) => e.stopPropagation()}
+      className="inline-flex items-center gap-1 text-[11px] font-medium text-[#6b7280] hover:text-[#037F44] hover:underline"
+    >
+      <UserRound size={11} /> {label}
+    </Link>
+  );
 }
 
 function ReferralsListContent() {
@@ -321,10 +336,12 @@ function ReferralsListContent() {
                         </span>
                         <span className="block text-xs text-[#9ca3af]">{r.referrer.email}</span>
                       </button>
+                      <div className="mt-0.5"><ProfileLink id={r.referrer.id} /></div>
                     </td>
                     <td className="py-3 px-4">
                       <p className="text-[#353535]">{r.referred.name}</p>
                       <p className="text-xs text-[#9ca3af]">{r.referred.accountType}</p>
+                      <div className="mt-0.5"><ProfileLink id={r.referred.id} /></div>
                     </td>
                     <td className="py-3 px-4">
                       {r.campaign ? <span className="text-[#6b7280]">{r.campaign.name}</span> : <span className="text-[#9ca3af] italic">No campaign</span>}
@@ -370,6 +387,7 @@ function ReferralsListContent() {
                     <td className="py-3 px-4">
                       <p className="text-[#353535]">{r.referrer.name}</p>
                       <p className="text-xs text-[#9ca3af]">{r.referrer.email}</p>
+                      <div className="mt-0.5"><ProfileLink id={r.referrer.id} /></div>
                     </td>
                     <td className="py-3 px-4 text-right font-bold text-[#353535] tabular-nums">{r.totalSignups}</td>
                     <td className="py-3 px-4 text-right font-semibold text-[#037F44] tabular-nums">{r.counted}</td>
