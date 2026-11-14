@@ -1,4 +1,5 @@
 "use client";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import React from "react";
 import { CheckCircle } from "lucide-react";
 import Link from "next/link";
@@ -34,7 +35,7 @@ interface Item {
   };
   otherImages: string[];
 }
-export default function ListingDetails() {
+function ListingDetailsContent() {
   const [loading, setLoading] = useState(false);
   const token = useAuthToken();
   const [selectedConditionTag, setSelectedConditionTag] = useState("");
@@ -297,5 +298,13 @@ export default function ListingDetails() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ListingDetails() {
+  return (
+    <ProtectedRoute allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}>
+      <ListingDetailsContent />
+    </ProtectedRoute>
   );
 }

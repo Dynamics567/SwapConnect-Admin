@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "sonner";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react"; // Import back arrow icon
@@ -55,7 +56,7 @@ const params = useParams();
     e.preventDefault();
 
     if (!name || !address || !contact) {
-      alert("Please fill in all fields.");
+      toast.error("Please fill in all fields.");
       return;
     }
 

@@ -1,4 +1,5 @@
 "use client";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { API_URL } from "@/lib/config";
 import { useState } from "react";
@@ -11,7 +12,7 @@ const ROLE_OPTIONS = [
   { value: "VERIFICATION_OFFICER", label: "Verification Officer" },
 ];
 
-export default function AddTeamMemberPage() {
+function AddTeamMemberPageContent() {
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("ADMIN");
@@ -143,5 +144,13 @@ export default function AddTeamMemberPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AddTeamMemberPage() {
+  return (
+    <ProtectedRoute allowedRoles={["superadmin"]}>
+      <AddTeamMemberPageContent />
+    </ProtectedRoute>
   );
 }

@@ -3,6 +3,7 @@ import type React from "react";
 import { useState } from "react";
 import ConversationsList from "../../../components/ConversationsList";
 import ChatInterface from "../../../components/ChatInterface";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 interface Conversation {
   id: number;
@@ -99,4 +100,10 @@ const SupportPage: React.FC = () => {
   );
 };
 
-export default SupportPage;
+export default function SupportRoute() {
+  return (
+    <ProtectedRoute allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}>
+      <SupportPage />
+    </ProtectedRoute>
+  );
+}

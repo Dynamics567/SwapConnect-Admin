@@ -24,7 +24,6 @@ export default function SettingsContent() {
   >("personal");
   const [image, setImage] = useState<string | null>(null);
 
-  // Dummy state for form fields
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");

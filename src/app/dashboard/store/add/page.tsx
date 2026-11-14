@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "sonner";
 import React, { useState } from "react";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
@@ -17,7 +18,7 @@ export default function AddStorePage() {
     e.preventDefault();
 
     if (!name || !address || !contact) {
-      alert("Please fill in all fields.");
+      toast.error("Please fill in all fields.");
       return;
     }
 

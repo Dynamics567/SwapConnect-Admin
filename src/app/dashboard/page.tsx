@@ -1,4 +1,5 @@
 "use client";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import React from "react";
 
 import StatsCard from "@/components/StatsCard";
@@ -6,7 +7,7 @@ import StatGraph from "@/components/StatGraph";
 import RecentOrders from "@/components/RecentOrders";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
-export default function Page() {
+function PageContent() {
   const { data, loading } = useDashboardData();
 
   return (
@@ -18,5 +19,13 @@ export default function Page() {
       {/* Third Column: Recent Orders Table */}
       <RecentOrders orders={data?.dashboard?.recentOrders ?? []} loading={loading} />
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <ProtectedRoute allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}>
+      <PageContent />
+    </ProtectedRoute>
   );
 }

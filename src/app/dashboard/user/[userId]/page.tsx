@@ -1,4 +1,5 @@
 "use client";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, UserCircle } from "lucide-react";
@@ -9,7 +10,6 @@ import { useAuthToken } from "@/hooks/useAuthToken";
 import { useAuthContext } from "@/context/AuthContext";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
-// Mock users data (replace with real data fetching in production)
 
 const tabs = [
   { key: "personal", label: "Personal Details" },
@@ -125,7 +125,7 @@ interface User {
   ];
 }
 
-export default function UserDetailsPage() {
+function UserDetailsPageContent() {
   const params = useParams();
   const router = useRouter();
   const [users, setUsers] = useState<User | null>(null);
@@ -743,5 +743,13 @@ export default function UserDetailsPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function UserDetailsPage() {
+  return (
+    <ProtectedRoute allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}>
+      <UserDetailsPageContent />
+    </ProtectedRoute>
   );
 }

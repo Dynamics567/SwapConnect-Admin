@@ -1,4 +1,5 @@
 "use client";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { Suspense, useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
@@ -815,10 +816,18 @@ function CouponsPageInner() {
   );
 }
 
-export default function CouponsPage() {
+function CouponsPageContent() {
   return (
     <Suspense fallback={null}>
       <CouponsPageInner />
     </Suspense>
+  );
+}
+
+export default function CouponsPage() {
+  return (
+    <ProtectedRoute allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}>
+      <CouponsPageContent />
+    </ProtectedRoute>
   );
 }

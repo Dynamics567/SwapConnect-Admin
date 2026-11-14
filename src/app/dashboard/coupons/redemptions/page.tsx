@@ -1,4 +1,5 @@
 "use client";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
@@ -39,7 +40,7 @@ function discountLabel(coupon: Redemption["coupon"]) {
   return coupon.discountType === "percentage" ? `${coupon.discountValue}% off` : `${fmtNaira(coupon.discountValue)} off`;
 }
 
-export default function CouponRedemptionsPage() {
+function CouponRedemptionsPageContent() {
   const token = useAuthToken();
   const [rows, setRows] = useState<Redemption[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -183,5 +184,13 @@ export default function CouponRedemptionsPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function CouponRedemptionsPage() {
+  return (
+    <ProtectedRoute allowedRoles={["superadmin", "admin", "supportagent", "verificationofficer"]}>
+      <CouponRedemptionsPageContent />
+    </ProtectedRoute>
   );
 }

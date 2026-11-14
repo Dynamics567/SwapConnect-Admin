@@ -1,11 +1,12 @@
 "use client";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { ArrowLeft } from "lucide-react";
 
-export default function EditTeamMemberPage() {
+function EditTeamMemberPageContent() {
   const { id } = useParams();
   const router = useRouter();
   const token = useAuthToken();
@@ -173,5 +174,13 @@ export default function EditTeamMemberPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function EditTeamMemberPage() {
+  return (
+    <ProtectedRoute allowedRoles={["superadmin"]}>
+      <EditTeamMemberPageContent />
+    </ProtectedRoute>
   );
 }
