@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/config";
 import { useAuthToken } from "@/hooks/useAuthToken";
+import ProgrammeDonationsSection from "./ProgrammeDonationsSection";
 import { Gift, PackageCheck, HeartHandshake, Users, ChevronRight, MessageCircleHeart, ShieldAlert, Heart } from "lucide-react";
 
 interface AppreciationMetrics {
@@ -121,6 +122,8 @@ export default function ImpactTab() {
           </div>
         </>
       )}
+
+      {token && <ProgrammeDonationsSection token={token} />}
     </div>
   );
 }
