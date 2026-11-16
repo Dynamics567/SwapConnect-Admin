@@ -13,6 +13,26 @@ const Sidebar: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [userExpanded, setUserExpanded] = useState(false);
+  // Several leaves can share one path and differ only by ?tab= (Give,
+  // Contributors, Campaigns). Navigation is a full page load, so the query
+  // read on mount is current.
+  const [currentTab, setCurrentTab] = useState<string | null>(null);
+  useEffect(() => {
+    setCurrentTab(new URLSearchParams(window.location.search).get("tab"));
+  }, [pathname]);
+
+  const isLeafActive = (child: NavLeaf, siblings: NavLeaf[]) => {
+    const [childPath, childQuery] = child.url.split("?");
+    if (pathname !== childPath) return false;
+    const samePath = siblings.filter((c) => c.url.split("?")[0] === childPath);
+    if (samePath.length === 1) return true;
+    const childTab = new URLSearchParams(childQuery || "").get("tab");
+    const tabs = samePath.map((c) => new URLSearchParams(c.url.split("?")[1] || "").get("tab"));
+    if (currentTab && tabs.includes(currentTab)) return childTab === currentTab;
+    // No (or unknown) tab in the URL: the page shows its default view, which
+    // is the first leaf listed for that path.
+    return samePath[0] === child;
+  };
 
   const activeGroupLabel = useMemo(() => {
     if (!pathname) return null;
@@ -109,7 +129,7 @@ const Sidebar: React.FC = () => {
                   {isOpen && (
                     <ul className="list-none ml-[36px] border-l border-[#eee] pl-3 mb-1">
                       {children.map((child) => {
-                        const isActive = pathname === child.url.split("?")[0];
+                        const isActive = isLeafActive(child, children);
                         return (
                           <li key={child.label}>
                             <button

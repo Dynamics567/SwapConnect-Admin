@@ -37,6 +37,7 @@ import {
   Undo2,
   UserPlus,
   ShoppingCart,
+  Handshake,
   type LucideIcon,
 } from "lucide-react";
 
@@ -145,6 +146,18 @@ export const navGroups: NavEntry[] = [
     label: "Community & Partnerships",
     icon: HeartHandshake,
     children: [
+      {
+        label: "Campaigns",
+        url: "/dashboard/campaigns?tab=campaigns",
+        icon: Megaphone,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
+      {
+        label: "Partner Platforms",
+        url: "/dashboard/campaigns?tab=partners",
+        icon: Handshake,
+        roles: ["superadmin", "admin", "supportagent", "verificationofficer"],
+      },
       {
         label: "Contributors Overview",
         url: "/dashboard/contributors",

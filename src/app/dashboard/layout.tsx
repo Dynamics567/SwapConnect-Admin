@@ -28,6 +28,9 @@ function getTitleFromPath(pathname: string) {
   if (pathname.startsWith("/dashboard/activity")) return "Activity Log";
   if (pathname.startsWith("/dashboard/setting")) return "Settings";
   if (pathname.startsWith("/dashboard/support")) return "Support";
+  if (pathname.startsWith("/dashboard/campaigns")) return "Campaigns & Partners";
+  if (pathname.startsWith("/dashboard/contributors")) return "Community & Partnerships";
+  if (pathname.startsWith("/dashboard/give")) return "Give & Circular";
   return "Dashboard";
 }
 
