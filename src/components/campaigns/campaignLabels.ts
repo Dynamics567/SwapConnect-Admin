@@ -172,7 +172,9 @@ export function fmtDate(iso?: string | null, withTime = false) {
 // yyyy-mm-dd for <input type="date"> from an ISO timestamp.
 export function toDateInput(iso?: string | null) {
   if (!iso) return "";
-  return new Date(iso).toISOString().slice(0, 10);
+  // Campaign dates are saved as WAT (UTC+1) day bounds; read them back in
+  // WAT or a start date shows as the day before.
+  return new Date(new Date(iso).getTime() + 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
 export const BTN = {
