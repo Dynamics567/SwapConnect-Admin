@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Bell, Menu, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
+import NotificationBell from "./NotificationBell";
 import Link from "next/link";
 import { navGroups, STANDALONE_ROLES } from "../../lib/navIndex";
 import { useRole } from "../../hooks/useRole";
@@ -116,9 +117,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
             <span className="hidden lg:inline">Search</span>
             <span className="hidden lg:inline text-[11px] border border-[#e5e7eb] rounded px-1.5 py-0.5 ml-1">Ctrl K</span>
           </button>
-          <button className="flex cursor-pointer" aria-label="Notifications">
-            <Bell size={24} color="#848484" />
-          </button>
+          <NotificationBell size={24} />
           <div className="h-8 w-px bg-gray-300" />
 
           <div className="flex items-center gap-2 lg:gap-3">
@@ -154,9 +153,7 @@ const Navbar: React.FC<NavProps> = ({ title }) => {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <button className="flex cursor-pointer" aria-label="Notifications">
-            <Bell size={22} color="#848484" />
-          </button>
+          <NotificationBell size={22} />
           <button
             className="flex cursor-pointer"
             aria-label="Open menu"
