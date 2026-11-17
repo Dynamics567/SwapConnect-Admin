@@ -29,6 +29,7 @@ interface Entry {
   answers: Record<string, string>;
   reviewNote: string | null;
   createdAt: string;
+  score?: string | number | null;
   participant: { id?: number; name: string; email?: string; phone?: string | null } | null;
 }
 type Summary = Record<Entry["status"] | "total", number>;
@@ -72,12 +73,14 @@ export default function CampaignPrizesEntries({
   campaignStatus,
   participationMode,
   canEdit,
+  scored = false,
 }: {
   token: string | null;
   campaignId: number;
   campaignStatus: string;
   participationMode: string;
   canEdit: boolean;
+  scored?: boolean;
 }) {
   const [items, setItems] = useState<Item[] | null>(null);
   const [entries, setEntries] = useState<Entry[] | null>(null);
@@ -154,6 +157,15 @@ export default function CampaignPrizesEntries({
       toast.error((e as Error).message);
     } finally {
       setBusy(false);
+    }
+  };
+  const saveScore = async (entry: Entry, value: string) => {
+    try {
+      await api(token, `/campaigns/${campaignId}/entries/${entry.id}/score`, { method: "POST", body: JSON.stringify({ score: value }) });
+      toast.success("Score saved");
+      loadEntries();
+    } catch (e) {
+      toast.error((e as Error).message);
     }
   };
   const review = async (entry: Entry, action: "approve" | "reject", reason?: string) => {
@@ -258,6 +270,24 @@ export default function CampaignPrizesEntries({
                   </dl>
                 )}
                 {e.reviewNote && <p className="mt-1 text-gray-500">Note: {e.reviewNote}</p>}
+                {scored && (
+                  <form
+                    className="flex items-center gap-2 mt-2"
+                    onSubmit={(ev) => {
+                      ev.preventDefault();
+                      const v = (new FormData(ev.currentTarget).get("score") as string) ?? "";
+                      saveScore(e, v);
+                    }}
+                  >
+                    <span className="text-gray-500">Score</span>
+                    <input name="score" defaultValue={e.score ?? ""} disabled={!canEdit} inputMode="decimal" className="w-20 border border-gray-200 rounded-md px-2 py-1 text-xs tabular-nums" />
+                    {canEdit && (
+                      <button type="submit" className={`text-[11px] font-semibold px-2 py-1 rounded-md ${BTN.secondary}`}>
+                        Save
+                      </button>
+                    )}
+                  </form>
+                )}
                 {canEdit && ["SUBMITTED", "APPROVED", "REJECTED"].includes(e.status) && (
                   <div className="flex gap-2 mt-2">
                     {e.status !== "APPROVED" && (

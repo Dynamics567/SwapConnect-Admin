@@ -24,7 +24,7 @@ export default function CampaignTraffic({ token, campaignId, slug, isPublic, par
   useEffect(() => {
     if (!token) return;
     api<Stats>(token, `/campaigns/${campaignId}/stats`)
-      .then(setStats)
+      .then((s) => setStats(s && typeof s === "object" && !Array.isArray(s) ? s : null))
       .catch(() => setStats(null));
   }, [token, campaignId]);
 
@@ -71,7 +71,7 @@ export default function CampaignTraffic({ token, campaignId, slug, isPublic, par
               </div>
             ))}
           </div>
-          {stats.bySource.length > 0 && (
+          {stats.bySource?.length > 0 && (
             <table className="w-full text-[11px] mt-3">
               <thead>
                 <tr className="text-gray-400 text-left">
@@ -82,7 +82,7 @@ export default function CampaignTraffic({ token, campaignId, slug, isPublic, par
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {stats.bySource.map((s) => (
+                {(stats.bySource || []).map((s) => (
                   <tr key={s.source} className="text-gray-700">
                     <td className="py-1">{s.source === "direct" ? "Direct / unknown" : s.source}</td>
                     <td className="py-1 text-right tabular-nums">{s.VIEW}</td>

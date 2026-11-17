@@ -9,6 +9,7 @@ import { useRole } from "@/hooks/useRole";
 import CampaignForm, { type CampaignFull } from "./CampaignForm";
 import CampaignPrizesEntries from "./CampaignPrizesEntries";
 import CampaignTraffic from "./CampaignTraffic";
+import CampaignWinners from "./CampaignWinners";
 import { Sheet, Field, INPUT, Pill } from "./Sheet";
 import {
   api,
@@ -413,6 +414,15 @@ export default function CampaignsTab({ meta }: { meta: Meta | null }) {
                 partnerSlug={detail.Partner?.slug}
                 isPublic={["PUBLISHED", "ACTIVE", "COMPLETED"].includes(detail.status) && detail.visibility !== "PRIVATE"}
               />
+              <CampaignWinners
+                key={`w${detail.id}${detail.status}`}
+                token={token}
+                campaignId={detail.id}
+                campaignStatus={detail.status}
+                allocationMethod={detail.allocationMethod}
+                participationMode={detail.participationMode}
+                canEdit={canEdit}
+              />
               <CampaignPrizesEntries
                 key={detail.id}
                 token={token}
@@ -420,6 +430,7 @@ export default function CampaignsTab({ meta }: { meta: Meta | null }) {
                 campaignStatus={detail.status}
                 participationMode={detail.participationMode}
                 canEdit={canEdit}
+                scored={detail.allocationMethod === "SCORE"}
               />
 
               <section className="border-t border-gray-100 pt-4">

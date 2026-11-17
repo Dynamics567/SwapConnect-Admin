@@ -160,6 +160,13 @@ export const ACTIVITY_LABEL: Record<string, string> = {
   item_removed: "Prize removed",
   entry_approve: "Entry accepted",
   entry_reject: "Entry rejected",
+  entry_scored: "Entry scored",
+  winner_selected: "Winner chosen",
+  winner_proposed: "Winner proposed by partner",
+  winner_approved: "Winner approved",
+  award_cancelled: "Award cancelled",
+  award_expired: "Prize not claimed",
+  prize_claimed: "Prize claimed, sent to Give",
 };
 
 export function fmtDate(iso?: string | null, withTime = false) {
