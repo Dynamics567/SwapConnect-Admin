@@ -10,6 +10,8 @@ import { useRole } from "@/hooks/useRole";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import PartnerForm, { type PartnerFull } from "./PartnerForm";
 import PartnerIntegration from "./PartnerIntegration";
+import AllPartnersReport from "./AllPartnersReport";
+import { downloadAdminCsv } from "./CampaignReportCard";
 import { Sheet, Field, INPUT, Pill } from "./Sheet";
 import {
   api,
@@ -230,6 +232,8 @@ export default function PartnersTab({ meta }: { meta: Meta | null }) {
         )}
       </div>
 
+      <AllPartnersReport token={token} onOpen={(id) => setSelectedId(id)} />
+
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white">
           <option value="">All statuses</option>
@@ -447,7 +451,14 @@ export default function PartnersTab({ meta }: { meta: Meta | null }) {
               />
 
               <section className="border-t border-gray-100 pt-4">
-                <p className="text-xs font-semibold text-gray-700 mb-2">Campaigns</p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-gray-700">Campaigns</p>
+                  {detail.campaigns.length > 0 && (
+                    <button onClick={() => downloadAdminCsv(token, `/partners/${detail.id}/report.csv`, `${detail.slug}-campaign-report.csv`)} className="text-[11px] font-semibold text-[#037F44] hover:underline">
+                      Report CSV
+                    </button>
+                  )}
+                </div>
                 {detail.campaigns.length === 0 ? (
                   <p className="text-xs text-gray-400">No campaigns yet.</p>
                 ) : (

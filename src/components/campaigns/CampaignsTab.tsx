@@ -10,6 +10,7 @@ import CampaignForm, { type CampaignFull } from "./CampaignForm";
 import CampaignPrizesEntries from "./CampaignPrizesEntries";
 import CampaignTraffic from "./CampaignTraffic";
 import CampaignWinners from "./CampaignWinners";
+import CampaignReportCard from "./CampaignReportCard";
 import { Sheet, Field, INPUT, Pill } from "./Sheet";
 import {
   api,
@@ -406,6 +407,9 @@ export default function CampaignsTab({ meta }: { meta: Meta | null }) {
                 </div>
               )}
 
+              {["PUBLISHED", "ACTIVE", "COMPLETED", "ARCHIVED"].includes(detail.status) && (
+                <CampaignReportCard key={`r${detail.id}`} token={token} campaignId={detail.id} slug={detail.slug} external={detail.participationMode === "EXTERNAL"} />
+              )}
               <CampaignTraffic
                 key={`t${detail.id}`}
                 token={token}
