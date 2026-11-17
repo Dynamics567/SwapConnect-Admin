@@ -8,6 +8,7 @@ import { useAuthToken } from "@/hooks/useAuthToken";
 import { useRole } from "@/hooks/useRole";
 import CampaignForm, { type CampaignFull } from "./CampaignForm";
 import CampaignPrizesEntries from "./CampaignPrizesEntries";
+import CampaignTraffic from "./CampaignTraffic";
 import { Sheet, Field, INPUT, Pill } from "./Sheet";
 import {
   api,
@@ -404,6 +405,14 @@ export default function CampaignsTab({ meta }: { meta: Meta | null }) {
                 </div>
               )}
 
+              <CampaignTraffic
+                key={`t${detail.id}`}
+                token={token}
+                campaignId={detail.id}
+                slug={detail.slug}
+                partnerSlug={detail.Partner?.slug}
+                isPublic={["PUBLISHED", "ACTIVE", "COMPLETED"].includes(detail.status) && detail.visibility !== "PRIVATE"}
+              />
               <CampaignPrizesEntries
                 key={detail.id}
                 token={token}
