@@ -9,6 +9,7 @@ import { useAuthToken } from "@/hooks/useAuthToken";
 import { useRole } from "@/hooks/useRole";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import PartnerForm, { type PartnerFull } from "./PartnerForm";
+import PartnerIntegration from "./PartnerIntegration";
 import { Sheet, Field, INPUT, Pill } from "./Sheet";
 import {
   api,
@@ -381,7 +382,6 @@ export default function PartnersTab({ meta }: { meta: Meta | null }) {
                     {detail.permissions?.allowedCampaignTypes?.length ? detail.permissions.allowedCampaignTypes.map((t) => CAMPAIGN_TYPE_LABEL[t] || t).join(", ") : "All types"}
                   </span>
                 </p>
-                <p className="text-gray-500">API keys and webhooks arrive in a later phase.</p>
               </div>
 
               <section className="border-t border-gray-100 pt-4">
@@ -435,6 +435,16 @@ export default function PartnersTab({ meta }: { meta: Meta | null }) {
                   </div>
                 )}
               </section>
+
+              <PartnerIntegration
+                key={`int${detail.id}`}
+                token={token}
+                partnerId={detail.id}
+                approvedDomains={detail.approvedDomains || []}
+                apiEnabled={(detail.integrationTypes || []).includes("API")}
+                meta={meta}
+                canEdit={canEdit}
+              />
 
               <section className="border-t border-gray-100 pt-4">
                 <p className="text-xs font-semibold text-gray-700 mb-2">Campaigns</p>

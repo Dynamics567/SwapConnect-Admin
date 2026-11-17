@@ -148,6 +148,13 @@ export const ACTIVITY_LABEL: Record<string, string> = {
   member_added: "Team member added",
   member_role_changed: "Team member role changed",
   member_removed: "Team member removed",
+  api_key_created: "API key created",
+  api_key_revoked: "API key revoked",
+  webhook_created: "Webhook added",
+  webhook_updated: "Webhook edited",
+  webhook_deleted: "Webhook removed",
+  webhook_secret_rotated: "Webhook secret replaced",
+  webhook_replayed: "Webhook event re-sent",
   submit: "Submitted for review",
   request_changes: "Sent back for changes",
   publish: "Published",
@@ -220,6 +227,8 @@ export interface Meta {
   memberRoles: string[];
   typePresets: Record<string, { participationMode: string; requiresManualReview: boolean; allocationMethod: string }>;
   campaignActions: Record<string, { from: string[]; by: string[]; noteRequired: boolean }>;
+  eventTypes?: string[];
+  apiScopes?: string[];
 }
 
 export interface PartnerBrief {
