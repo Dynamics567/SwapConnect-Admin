@@ -7,6 +7,7 @@ import { Plus, Pencil, ArrowLeft, ExternalLink, Megaphone, CalendarDays } from "
 import { useAuthToken } from "@/hooks/useAuthToken";
 import { useRole } from "@/hooks/useRole";
 import CampaignForm, { type CampaignFull } from "./CampaignForm";
+import CampaignPrizesEntries from "./CampaignPrizesEntries";
 import { Sheet, Field, INPUT, Pill } from "./Sheet";
 import {
   api,
@@ -403,7 +404,14 @@ export default function CampaignsTab({ meta }: { meta: Meta | null }) {
                 </div>
               )}
 
-              <p className="text-[11px] text-gray-500">Prize items, requests and winners connect to campaigns in the next phase.</p>
+              <CampaignPrizesEntries
+                key={detail.id}
+                token={token}
+                campaignId={detail.id}
+                campaignStatus={detail.status}
+                participationMode={detail.participationMode}
+                canEdit={canEdit}
+              />
 
               <section className="border-t border-gray-100 pt-4">
                 <p className="text-xs font-semibold text-gray-700 mb-2">History</p>

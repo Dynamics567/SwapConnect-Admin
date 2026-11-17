@@ -156,6 +156,10 @@ export const ACTIVITY_LABEL: Record<string, string> = {
   archive: "Archived",
   resume: "Resumed",
   cancel: "Cancelled",
+  item_added: "Prize added",
+  item_removed: "Prize removed",
+  entry_approve: "Entry accepted",
+  entry_reject: "Entry rejected",
 };
 
 export function fmtDate(iso?: string | null, withTime = false) {
