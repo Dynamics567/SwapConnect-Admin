@@ -2,7 +2,7 @@
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, UserCircle } from "lucide-react";
+import { ArrowLeft, Check, Copy, ExternalLink, Link2, UserCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { API_URL } from "@/lib/config";
@@ -82,6 +82,7 @@ interface User {
   location?: UserLocation;
   profileUpdatedAt?: string | null;
   storeName?: string | null;
+  storeSlug?: string | null;
   storeTagline?: string | null;
   storePrimaryColor?: string | null;
   storeSecondaryColor?: string | null;
@@ -137,6 +138,7 @@ function UserDetailsPageContent() {
 
   const [showDeleteUser, setShowDeleteUser] = useState(false);
   const [deletingUser, setDeletingUser] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [deleteUserError, setDeleteUserError] = useState<string | null>(null);
 
   const handleConfirmDeleteUser = async () => {
@@ -491,6 +493,52 @@ function UserDetailsPageContent() {
                 </div>
 
                 <p className="text-sm text-[#505050] mb-1">{users.storeName || "No store name set"}</p>
+                {(() => {
+                  // Same address the owner shares: clean /store/<name> once the
+                  // store is named, otherwise the always-working numbered link.
+                  const storeLink = `https://swapconnect.africa/store/${users.storeSlug || users.id}`;
+                  return (
+                    <div className="flex flex-wrap items-center gap-2 my-3 p-2.5 rounded-lg bg-[#f7f8fa] border border-[#e5e7eb]">
+                      <Link2 size={14} className="text-[#848484] shrink-0" />
+                      <a
+                        href={storeLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-brand-emerald font-medium hover:underline break-all flex-1 min-w-0"
+                      >
+                        {storeLink.replace("https://", "")}
+                      </a>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(storeLink).then(
+                              () => { setLinkCopied(true); setTimeout(() => setLinkCopied(false), 2000); },
+                              () => {}
+                            );
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border border-[#e5e7eb] bg-white text-[#353535] hover:bg-[#f3f4f6]"
+                        >
+                          {linkCopied ? <Check size={12} /> : <Copy size={12} />}
+                          {linkCopied ? "Copied" : "Copy"}
+                        </button>
+                        <a
+                          href={storeLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border border-[#e5e7eb] bg-white text-[#353535] hover:bg-[#f3f4f6]"
+                        >
+                          <ExternalLink size={12} /> Open
+                        </a>
+                      </div>
+                      {!users.storeSlug && (
+                        <p className="basis-full text-xs text-[#848484]">
+                          Numbered link — the store gets a clean name link once the owner sets a store name.
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
                 {users.storeTagline && (
                   <p className="text-xs text-[#848484] italic mb-3">&ldquo;{users.storeTagline}&rdquo;</p>
                 )}
