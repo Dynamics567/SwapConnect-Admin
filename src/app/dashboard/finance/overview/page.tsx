@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Info } from "lucide-react";
+import { ChevronRight, Info } from "lucide-react";
+import MetricItemsSheet from "@/components/finance/MetricItemsSheet";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import FinanceTabs from "@/components/finance/FinanceTabs";
 import { useAuthToken } from "@/hooks/useAuthToken";
@@ -52,7 +53,7 @@ const METRIC_LABELS: Record<string, string> = {
   reconciliationDiscrepancies: "Reconciliation Discrepancies",
 };
 
-function MetricCard({ name, metric }: { name: string; metric: Metric }) {
+function MetricCard({ name, metric, onOpen }: { name: string; metric: Metric; onOpen: () => void }) {
   if (!metric.available) {
     return (
       <div className="bg-white rounded-2xl border border-dashed border-[#e5e7eb] p-5">
@@ -63,7 +64,11 @@ function MetricCard({ name, metric }: { name: string; metric: Metric }) {
     );
   }
   return (
-    <div className="bg-white rounded-2xl border border-[#e5e7eb] p-5 group relative">
+    <button
+      type="button"
+      onClick={onOpen}
+      className="text-left w-full bg-white rounded-2xl border border-[#e5e7eb] p-5 group relative cursor-pointer transition hover:border-brand-emerald hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-emerald"
+    >
       <div className="flex items-center justify-between mb-1">
         <p className="text-xs font-semibold text-[#6b7280] uppercase tracking-wide">{METRIC_LABELS[name] || name}</p>
         <Info size={13} className="text-[#d1d5db] shrink-0" />
@@ -77,7 +82,10 @@ function MetricCard({ name, metric }: { name: string; metric: Metric }) {
       <p className="text-xs text-[#9ca3af] mt-2 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity absolute left-5 right-5 top-full bg-white border border-[#e5e7eb] rounded-lg p-2.5 shadow-lg z-10">
         {metric.definition}
       </p>
-    </div>
+      <span className="mt-3 inline-flex items-center gap-0.5 text-xs font-medium text-brand-emerald opacity-70 group-hover:opacity-100">
+        View line items <ChevronRight size={13} />
+      </span>
+    </button>
   );
 }
 
@@ -90,18 +98,26 @@ function FinanceOverviewContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [openMetric, setOpenMetric] = useState<string | null>(null);
+
+  // Same period params for the overview and for each card's line items.
+  const periodParams = (() => {
+    const params = new URLSearchParams();
+    if (period === "custom") {
+      if (customFrom) params.set("from", customFrom);
+      if (customTo) params.set("to", customTo);
+    } else {
+      params.set("period", period);
+    }
+    return params.toString();
+  })();
+
   const load = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams();
-      if (period === "custom") {
-        if (customFrom) params.set("from", customFrom);
-        if (customTo) params.set("to", customTo);
-      } else {
-        params.set("period", period);
-      }
+      const params = periodParams;
       const res = await fetch(`${API_URL}/api/admin/finance/overview?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -113,7 +129,7 @@ function FinanceOverviewContent() {
     } finally {
       setLoading(false);
     }
-  }, [token, period, customFrom, customTo]);
+  }, [token, periodParams]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -123,7 +139,7 @@ function FinanceOverviewContent() {
         <h1 className="text-xl font-bold text-[#353535]">Financial Overview</h1>
         <p className="text-sm text-[#6b7280] mt-1">
           Real, period-scoped financial metrics. Cards with a dashed border reflect data that genuinely isn&apos;t
-          available yet (no fabricated numbers) -- hover a solid card for its exact definition.
+          available yet (no fabricated numbers) -- hover a solid card for its exact definition, click it to see the line items behind the figure.
         </p>
       </div>
 
@@ -164,10 +180,19 @@ function FinanceOverviewContent() {
       {data && !loading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Object.entries(data.metrics).map(([name, metric]) => (
-            <MetricCard key={name} name={name} metric={metric} />
+            <MetricCard key={name} name={name} metric={metric} onOpen={() => setOpenMetric(name)} />
           ))}
         </div>
       )}
+
+      <MetricItemsSheet
+        token={token}
+        metric={openMetric}
+        title={openMetric ? METRIC_LABELS[openMetric] || openMetric : ""}
+        cardValue={openMetric && data ? data.metrics[openMetric]?.value ?? null : null}
+        periodParams={periodParams}
+        onClose={() => setOpenMetric(null)}
+      />
     </div>
   );
 }
