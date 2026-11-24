@@ -6,6 +6,7 @@ import { ExternalLink, Loader2 } from "lucide-react";
 import { Sheet } from "@/components/campaigns/Sheet";
 import { API_URL } from "@/lib/config";
 import { fmtDate, fmtNaira, STATUS_STYLES } from "@/lib/financeFormat";
+import EnvBadge from "@/components/finance/EnvBadge";
 
 interface Party { id: number; name: string | null; email: string }
 
@@ -19,6 +20,7 @@ interface LineItem {
   status?: string;
   escrowStatus?: string;
   method?: string;
+  environment?: string | null;
   orderId?: number | null;
   party?: Party | null;
   seller?: Party | null;
@@ -189,9 +191,12 @@ export default function MetricItemsSheet({
                     </p>
                   )}
                 </div>
-                <span className={`text-sm font-bold tabular-nums whitespace-nowrap ${it.amount < 0 ? "text-red-600" : "text-[#353535]"}`}>
-                  {it.amount < 0 ? `−${fmtNaira(-it.amount)}` : fmtNaira(it.amount)}
-                </span>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className={`text-sm font-bold tabular-nums whitespace-nowrap ${it.amount < 0 ? "text-red-600" : "text-[#353535]"}`}>
+                    {it.amount < 0 ? `−${fmtNaira(-it.amount)}` : fmtNaira(it.amount)}
+                  </span>
+                  {it.kind !== "wallet" && <EnvBadge env={it.environment} />}
+                </div>
               </li>
             );
           })}

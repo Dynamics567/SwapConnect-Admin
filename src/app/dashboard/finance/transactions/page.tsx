@@ -9,11 +9,12 @@ import { useAuthToken } from "@/hooks/useAuthToken";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { API_URL } from "@/lib/config";
 import { fmtNaira, fmtDate, statusBadgeClass } from "@/lib/financeFormat";
+import EnvBadge from "@/components/finance/EnvBadge";
 
 interface PartySummary { id: number; name: string; email: string }
 interface TxRow {
   id: number; reference: string; orderId: number | null; transactionType: string; purposeLabel: string;
-  type: string; method: string; purpose: string; status: string; amount: number; feeAmount: number | null;
+  type: string; method: string; environment?: string | null; purpose: string; status: string; amount: number; feeAmount: number | null;
   netAmount: number | null; buyer: PartySummary | null; seller: PartySummary | null; description: string | null;
   createdAt: string; updatedAt: string;
 }
@@ -136,13 +137,14 @@ function FinanceTransactionsContent() {
                 <th className="py-3 px-4">Seller</th>
                 <th className="py-3 px-4 text-right">Amount</th>
                 <th className="py-3 px-4">Method</th>
+                <th className="py-3 px-4">Test / Live</th>
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4">Date</th>
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan={8} className="py-8 text-center text-[#9ca3af]">Loading…</td></tr>}
-              {!loading && rows.length === 0 && <tr><td colSpan={8} className="py-8 text-center text-[#9ca3af]">No transactions match these filters.</td></tr>}
+              {loading && <tr><td colSpan={9} className="py-8 text-center text-[#9ca3af]">Loading…</td></tr>}
+              {!loading && rows.length === 0 && <tr><td colSpan={9} className="py-8 text-center text-[#9ca3af]">No transactions match these filters.</td></tr>}
               {!loading && rows.map((t) => (
                 <tr key={t.id} onClick={() => openDetail(t.id)} className="border-b border-[#f3f4f6] last:border-0 hover:bg-[#f8f9fb] cursor-pointer">
                   <td className="py-3 px-4 font-medium text-[#353535]">{t.reference}</td>
@@ -151,6 +153,7 @@ function FinanceTransactionsContent() {
                   <td className="py-3 px-4 text-[#6b7280]">{t.seller?.name || "—"}</td>
                   <td className="py-3 px-4 text-right font-medium text-[#353535]">{fmtNaira(t.amount)}</td>
                   <td className="py-3 px-4 text-[#6b7280] capitalize">{t.method}</td>
+                  <td className="py-3 px-4"><EnvBadge env={t.environment} /></td>
                   <td className="py-3 px-4">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusBadgeClass(t.status)}`}>{t.status}</span>
                   </td>
@@ -177,6 +180,7 @@ function FinanceTransactionsContent() {
             {selected.feeAmount != null && <DetailRow label="Fee" value={fmtNaira(selected.feeAmount)} />}
             {selected.netAmount != null && <DetailRow label="Net Amount" value={fmtNaira(selected.netAmount)} />}
             <DetailRow label="Method" value={<span className="capitalize">{selected.method}</span>} />
+            <DetailRow label="Test / Live" value={<EnvBadge env={selected.environment} />} />
             <DetailRow label="Buyer" value={selected.buyer ? `${selected.buyer.name} (${selected.buyer.email})` : "—"} />
             <DetailRow label="Seller" value={selected.seller ? `${selected.seller.name} (${selected.seller.email})` : "—"} />
             <DetailRow label="Created" value={fmtDate(selected.createdAt)} />
